@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import BookSlideshow from '@/components/BookSlideshow'
 
 export default function Home() {
   return (
@@ -44,6 +45,20 @@ export default function Home() {
               Master South African traffic laws, speed limits, right of way, and more.
             </p>
           </div>
+        </div>
+      </section>
+
+      {/* Study Materials — Book Slideshow */}
+      <section className="py-16 px-6 bg-gray-50 border-t border-gray-100">
+        <div className="max-w-3xl mx-auto">
+          <div className="text-center mb-8">
+            <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">Free Study Material</span>
+            <h2 className="text-3xl font-extrabold text-gray-900 mt-2 mb-2">Code 10 Memo — Part 1</h2>
+            <p className="text-gray-500 max-w-xl mx-auto">
+              Flip through all 122 study slides. Use the arrows or your keyboard to navigate.
+            </p>
+          </div>
+          <BookSlideshow />
         </div>
       </section>
 

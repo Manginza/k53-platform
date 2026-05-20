@@ -3,14 +3,13 @@ import { supabase } from '@/lib/supabase'
 import QuizClient from '@/components/QuizClient'
 import type { Course, QuizQuestion } from '@/lib/types'
 
-// Re-build at most once per day; question edits appear within 24h
 export const revalidate = 86400
 
 interface Props {
-  params: { id: string }
+  params:      { id: string }
+  searchParams: { test?: string }
 }
 
-// Pre-build a static quiz page for every course at deploy time
 export async function generateStaticParams() {
   const { data } = await supabase
     .from('courses')
@@ -20,7 +19,9 @@ export async function generateStaticParams() {
   return (data ?? []).map(c => ({ id: String(c.id) }))
 }
 
-export default async function QuizPage({ params }: Props) {
+export default async function QuizPage({ params, searchParams }: Props) {
+  const testNumber = Number(searchParams.test ?? 1)
+
   const { data: course, error: courseError } = await supabase
     .from('courses')
     .select('*')
@@ -33,7 +34,7 @@ export default async function QuizPage({ params }: Props) {
     .from('quiz_questions')
     .select('*')
     .eq('course_id', params.id)
-    .eq('test_number', 1)
+    .eq('test_number', testNumber)
     .order('id')
 
   if (qError) {
@@ -62,6 +63,7 @@ export default async function QuizPage({ params }: Props) {
       questions={questions as QuizQuestion[]}
       courseTitle={c.title}
       courseId={c.id}
+      testNumber={testNumber}
     />
   )
 }
