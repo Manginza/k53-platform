@@ -37,3 +37,6 @@ next-env.d.ts
 
 # local PDF source files (already uploaded to Supabase Storage)
 k53-pdfs/
+
+# Claude Code internal files
+.claude/
