@@ -40,3 +40,5 @@ k53-pdfs/
 
 # Claude Code internal files
 .claude/
+
+.vercel
