@@ -3,19 +3,10 @@ import { notFound } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import type { Course } from '@/lib/types'
 
-export const revalidate = 86400
+export const dynamic = 'force-dynamic'
 
 interface Props {
   params: { id: string }
-}
-
-export async function generateStaticParams() {
-  const { data } = await supabase
-    .from('courses')
-    .select('id')
-    .not('code', 'is', null)
-
-  return (data ?? []).map(c => ({ id: String(c.id) }))
 }
 
 export default async function CoursePage({ params }: Props) {
