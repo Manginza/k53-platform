@@ -20,7 +20,7 @@ const QUESTIONS = [
   // 1
   { ...img('3c10.1.img.png'),
     question: 'This sign warns you that ...',
-    option_a: 'There is a traffic signal ahead.',
+    option_a: 'There is a robot (traffic signal) ahead.',
     option_b: 'There is a compulsory police stop ahead.',
     option_c: 'You are now entering an urban area.',
     correct_answer: 'A' },
@@ -102,8 +102,8 @@ const QUESTIONS = [
     question: 'When are you allowed to drive in the right lane of a freeway?',
     option_a: "At any time, as long as you don't stop in the right-hand lane.",
     option_b: 'Only when overtaking another vehicle.',
-    option_c: 'When you are driving at a higher speed.',
-    correct_answer: 'C' },
+    option_c: 'When you are driving at a higher speed than other vehicles.',
+    correct_answer: 'B' },
 
   // 12
   { ...noImg,
@@ -287,7 +287,7 @@ const QUESTIONS = [
     option_a: 'Not more than 450 mm from the edge of the roadway.',
     option_b: 'Not more than 1 m from the edge of the roadway.',
     option_c: 'A vehicle may not park on a public road unless in a parking bay.',
-    correct_answer: 'C' },
+    correct_answer: 'B' },
 
   // 35
   { ...noImg,

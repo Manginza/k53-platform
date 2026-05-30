@@ -18,38 +18,30 @@ export default async function CoursePage({ params }: Props) {
 
   if (error || !course) notFound()
 
-  // Fetch question counts for each test in parallel
-  const [{ count: count1 }, { count: count2 }, { count: count3 }] = await Promise.all([
-    supabase
-      .from('quiz_questions')
-      .select('*', { count: 'exact', head: true })
-      .eq('course_id', params.id)
-      .eq('test_number', 1),
-    supabase
-      .from('quiz_questions')
-      .select('*', { count: 'exact', head: true })
-      .eq('course_id', params.id)
-      .eq('test_number', 2),
-    supabase
-      .from('quiz_questions')
-      .select('*', { count: 'exact', head: true })
-      .eq('course_id', params.id)
-      .eq('test_number', 3),
-  ])
+  // Single query — count by test_number client-side (avoids head:true edge case on Vercel)
+  const { data: qMeta } = await supabase
+    .from('quiz_questions')
+    .select('test_number')
+    .eq('course_id', params.id)
+
+  const countByTest: Record<number, number> = {}
+  for (const q of qMeta ?? []) {
+    countByTest[q.test_number] = (countByTest[q.test_number] ?? 0) + 1
+  }
 
   const c = course as Course
 
   const tests = [
     {
       number:    1,
-      count:     count1 ?? 0,
+      count:     countByTest[1] ?? 0,
       label:     'Road Signs & Controls',
       passInfo:  '75% to pass',
       href:      `/quiz/${c.id}?test=1`,
     },
     {
       number:    2,
-      count:     count2 ?? 0,
+      count:     countByTest[2] ?? 0,
       label:     'Rules of Road + Road Signs',
       passInfo:  '22/30 rules · 22/30 signs',
       href:      `/quiz/${c.id}?test=2`,
@@ -57,7 +49,7 @@ export default async function CoursePage({ params }: Props) {
     },
     {
       number:    3,
-      count:     count3 ?? 0,
+      count:     countByTest[3] ?? 0,
       label:     'Rules of Road + Road Signs',
       passInfo:  '75% to pass',
       href:      `/quiz/${c.id}?test=3`,
