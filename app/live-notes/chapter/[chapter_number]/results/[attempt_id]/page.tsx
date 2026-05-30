@@ -42,10 +42,17 @@ export default async function ResultsPage({ params }: Props) {
     supabase.from('ln_question_options').select('id, option_label, option_text').in('id', optionIds),
   ])
 
+  type ReviewItem = {
+    number: number; text: string; explanation: string
+    selectedLabel: string; selectedText: string
+    correctLabel: string; correctText: string
+    isCorrect: boolean
+  }
+
   // Build review items
-  const review = detail
-    .map(d => {
-      const question      = questions?.find(q => q.id === d.question_id)
+  const review: ReviewItem[] = detail
+    .map((d): ReviewItem | null => {
+      const question       = questions?.find(q => q.id === d.question_id)
       const selectedOption = options?.find(o => o.id === d.selected_option_id)
       const correctOption  = options?.find(o => o.id === d.correct_option_id)
       if (!question) return null
@@ -60,8 +67,8 @@ export default async function ResultsPage({ params }: Props) {
         isCorrect:     d.is_correct,
       }
     })
-    .filter(Boolean)
-    .sort((a, b) => (a!.number - b!.number)) as NonNullable<ReturnType<typeof review.find>>[]
+    .filter((x): x is ReviewItem => x !== null)
+    .sort((a, b) => a.number - b.number)
 
   const score   = Math.round(Number(attempt.score_percent))
   const passed  = attempt.passed
