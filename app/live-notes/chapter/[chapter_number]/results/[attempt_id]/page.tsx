@@ -15,6 +15,13 @@ interface AnswerDetail {
   is_correct: boolean
 }
 
+type ReviewItem = {
+  number: number; text: string; explanation: string
+  selectedLabel: string; selectedText: string
+  correctLabel: string; correctText: string
+  isCorrect: boolean
+}
+
 export default async function ResultsPage({ params }: Props) {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -24,7 +31,6 @@ export default async function ResultsPage({ params }: Props) {
   const chapterNum = parseInt(params.chapter_number, 10)
   if (isNaN(chapterNum)) notFound()
 
-  // Fetch attempt (RLS ensures it belongs to this user)
   const { data: attempt, error: attErr } = await supabase
     .from('ln_quiz_attempts')
     .select('*')
@@ -35,21 +41,16 @@ export default async function ResultsPage({ params }: Props) {
 
   const detail: AnswerDetail[] = attempt.answers ?? []
   const questionIds = detail.map(d => d.question_id)
-  const optionIds   = Array.from(new Set([...detail.map(d => d.selected_option_id), ...detail.map(d => d.correct_option_id)]))
+  const optionIds   = Array.from(new Set([
+    ...detail.map(d => d.selected_option_id),
+    ...detail.map(d => d.correct_option_id),
+  ]))
 
   const [{ data: questions }, { data: options }] = await Promise.all([
     supabase.from('ln_questions').select('id, question_number, question_text, explanation').in('id', questionIds),
     supabase.from('ln_question_options').select('id, option_label, option_text').in('id', optionIds),
   ])
 
-  type ReviewItem = {
-    number: number; text: string; explanation: string
-    selectedLabel: string; selectedText: string
-    correctLabel: string; correctText: string
-    isCorrect: boolean
-  }
-
-  // Build review items
   const review: ReviewItem[] = detail
     .map((d): ReviewItem | null => {
       const question       = questions?.find(q => q.id === d.question_id)
@@ -76,75 +77,84 @@ export default async function ResultsPage({ params }: Props) {
   const total   = attempt.total_questions
 
   return (
-    <main className="max-w-2xl mx-auto px-4 py-8">
-      {/* Score card */}
-      <div className={`rounded-2xl p-6 text-center mb-8 ${passed ? 'bg-green-50 border-2 border-green-500' : 'bg-red-50 border-2 border-red-400'}`}>
-        <div className="text-5xl font-extrabold mb-2" style={{ color: passed ? '#16a34a' : '#dc2626' }}>
-          {score}%
-        </div>
-        <div className={`text-lg font-bold mb-1 ${passed ? 'text-green-700' : 'text-red-700'}`}>
-          {passed ? '🎉 Passed!' : '❌ Not Passed'}
-        </div>
-        <div className="text-gray-500 text-sm">
-          {correct} / {total} correct · Pass mark: 70%
-        </div>
+    <main className="max-w-2xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
 
-        {/* Animated score ring */}
-        <div className="flex justify-center mt-4">
-          <svg width="80" height="80" viewBox="0 0 80 80">
-            <circle cx="40" cy="40" r="34" fill="none" stroke="#e5e7eb" strokeWidth="8" />
+      {/* Score card */}
+      <div className={`rounded-2xl p-5 sm:p-8 text-center mb-6 sm:mb-8 ${
+        passed ? 'bg-green-50 border-2 border-green-500' : 'bg-red-50 border-2 border-red-400'
+      }`}>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8">
+          {/* Score ring */}
+          <svg width="90" height="90" viewBox="0 0 90 90" className="shrink-0">
+            <circle cx="45" cy="45" r="38" fill="none" stroke="#e5e7eb" strokeWidth="9" />
             <circle
-              cx="40" cy="40" r="34"
+              cx="45" cy="45" r="38"
               fill="none"
               stroke={passed ? '#16a34a' : '#dc2626'}
-              strokeWidth="8"
+              strokeWidth="9"
               strokeLinecap="round"
-              strokeDasharray={`${2 * Math.PI * 34}`}
-              strokeDashoffset={`${2 * Math.PI * 34 * (1 - score / 100)}`}
-              transform="rotate(-90 40 40)"
+              strokeDasharray={`${2 * Math.PI * 38}`}
+              strokeDashoffset={`${2 * Math.PI * 38 * (1 - score / 100)}`}
+              transform="rotate(-90 45 45)"
             />
-            <text x="40" y="46" textAnchor="middle" fontSize="14" fontWeight="bold" fill={passed ? '#16a34a' : '#dc2626'}>
-              {correct}/{total}
+            <text x="45" y="50" textAnchor="middle" fontSize="16" fontWeight="bold" fill={passed ? '#16a34a' : '#dc2626'}>
+              {score}%
             </text>
           </svg>
+
+          <div>
+            <div className={`text-2xl sm:text-3xl font-extrabold mb-1 ${passed ? 'text-green-700' : 'text-red-700'}`}>
+              {passed ? '🎉 Passed!' : '❌ Not Passed'}
+            </div>
+            <div className="text-gray-500 text-sm sm:text-base">
+              {correct} / {total} correct
+            </div>
+            <div className="text-xs text-gray-400 mt-1">Pass mark: 70%</div>
+          </div>
         </div>
       </div>
 
       {/* Actions */}
-      <div className="flex gap-3 mb-8">
+      <div className="flex gap-3 mb-6 sm:mb-8">
         <Link
           href={`/live-notes/chapter/${chapterNum}/quiz`}
-          className="flex-1 py-3 rounded-xl border-2 border-gray-200 text-gray-600 font-semibold text-center text-sm hover:border-gray-400 transition-colors"
+          className="flex-1 py-3 sm:py-3.5 rounded-xl border-2 border-gray-200 text-gray-600 font-semibold text-center text-sm hover:border-gray-400 transition-colors"
         >
           Retake Quiz
         </Link>
         {chapterNum < 18 ? (
           <Link
             href={`/live-notes/chapter/${chapterNum + 1}`}
-            className="flex-1 py-3 rounded-xl bg-green-600 text-white font-bold text-center text-sm hover:bg-green-700 transition-colors"
+            className="flex-1 py-3 sm:py-3.5 rounded-xl bg-green-600 text-white font-bold text-center text-sm hover:bg-green-700 transition-colors"
           >
             Ch {chapterNum + 1} →
           </Link>
         ) : (
           <Link
             href="/live-notes"
-            className="flex-1 py-3 rounded-xl bg-green-600 text-white font-bold text-center text-sm hover:bg-green-700 transition-colors"
+            className="flex-1 py-3 sm:py-3.5 rounded-xl bg-green-600 text-white font-bold text-center text-sm hover:bg-green-700 transition-colors"
           >
             All Chapters
           </Link>
         )}
       </div>
 
-      {/* Question review */}
-      <h2 className="font-bold text-lg text-gray-900 mb-4">Review ({review.length} questions)</h2>
-      <div className="space-y-4">
+      {/* Review */}
+      <h2 className="font-bold text-base sm:text-lg text-gray-900 mb-3 sm:mb-4">
+        Review — {review.length} questions
+      </h2>
+      <div className="space-y-3 sm:space-y-4">
         {review.map((item, i) => (
           <div
             key={i}
-            className={`rounded-xl border-2 p-4 ${item.isCorrect ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}
+            className={`rounded-xl border-2 p-3 sm:p-4 ${
+              item.isCorrect ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'
+            }`}
           >
-            <div className="flex items-start gap-2 mb-3">
-              <span className={`flex-shrink-0 w-5 h-5 rounded-full text-xs font-bold flex items-center justify-center mt-0.5 ${item.isCorrect ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}>
+            <div className="flex items-start gap-2 mb-2 sm:mb-3">
+              <span className={`flex-shrink-0 w-5 h-5 rounded-full text-xs font-bold flex items-center justify-center mt-0.5 ${
+                item.isCorrect ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
+              }`}>
                 {item.isCorrect ? '✓' : '✗'}
               </span>
               <p className="font-semibold text-gray-900 text-sm leading-snug">
@@ -152,7 +162,7 @@ export default async function ResultsPage({ params }: Props) {
               </p>
             </div>
 
-            <div className="ml-7 space-y-1 text-sm">
+            <div className="ml-7 space-y-1 text-xs sm:text-sm">
               {!item.isCorrect && (
                 <div className="text-red-700">
                   <span className="font-semibold">Your answer ({item.selectedLabel}):</span> {item.selectedText}
@@ -161,7 +171,7 @@ export default async function ResultsPage({ params }: Props) {
               <div className="text-green-700 font-semibold">
                 ✓ Correct ({item.correctLabel}): {item.correctText}
               </div>
-              <div className="text-gray-500 text-xs mt-2 italic leading-relaxed">
+              <div className="text-gray-500 text-xs mt-1.5 italic leading-relaxed">
                 {item.explanation}
               </div>
             </div>
@@ -169,7 +179,6 @@ export default async function ResultsPage({ params }: Props) {
         ))}
       </div>
 
-      {/* Back link */}
       <div className="mt-8 text-center">
         <Link href="/live-notes" className="text-green-600 hover:underline text-sm font-medium">
           ← Back to all chapters

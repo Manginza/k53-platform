@@ -18,86 +18,98 @@ export default async function LiveNotesPage() {
   ])
 
   const chapterList = (chapters ?? []).map(ch => {
-    const progress = progressData?.find(p => p.chapter_id === ch.id) ?? null
-    const quiz = quizzes?.find(q => q.chapter_id === ch.id) ?? null
+    const progress    = progressData?.find(p => p.chapter_id === ch.id) ?? null
+    const quiz        = quizzes?.find(q => q.chapter_id === ch.id) ?? null
     const quizAttempts = quiz ? (attempts?.filter(a => a.quiz_id === quiz.id) ?? []) : []
-    const bestScore = quizAttempts.length ? Math.max(...quizAttempts.map(a => Number(a.score_percent))) : null
-    const passed = quizAttempts.some(a => a.passed)
+    const bestScore   = quizAttempts.length ? Math.max(...quizAttempts.map(a => Number(a.score_percent))) : null
+    const passed      = quizAttempts.some(a => a.passed)
     return { ...ch, progress, quiz, bestScore, passed }
   })
 
-  const totalChapters   = chapterList.length
-  const readCount       = chapterList.filter(c => c.progress?.marked_complete).length
-  const passedCount     = chapterList.filter(c => c.passed).length
+  const totalChapters = chapterList.length
+  const readCount     = chapterList.filter(c => c.progress?.marked_complete).length
+  const passedCount   = chapterList.filter(c => c.passed).length
 
   return (
-    <main className="max-w-4xl mx-auto px-4 py-10">
+    <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+
       {/* Header */}
-      <div className="mb-8">
+      <div className="mb-6 sm:mb-8">
         <span className="text-xs font-bold text-green-600 uppercase tracking-widest">Live Notes</span>
-        <h1 className="text-3xl font-extrabold text-gray-900 mt-1 mb-2">Road Traffic Signs Manual</h1>
-        <p className="text-gray-500">SA Learner Driver Manual — Dept. of Transport, June 2012 · 18 chapters · 56 study pages</p>
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mt-1 mb-2">
+          Road Traffic Signs Manual
+        </h1>
+        <p className="text-sm sm:text-base text-gray-500">
+          SA Learner Driver Manual — Dept. of Transport, June 2012 · 18 chapters · 56 study pages
+        </p>
       </div>
 
-      {/* Progress bar */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 mb-8">
+      {/* Progress card */}
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 sm:p-5 mb-6 sm:mb-8">
         <div className="flex items-center justify-between text-sm mb-3">
           <span className="font-semibold text-gray-700">Your Progress</span>
           <span className="text-gray-400">{passedCount}/{totalChapters} quizzes passed</span>
         </div>
-        <div className="w-full bg-gray-100 rounded-full h-3 mb-4">
+        <div className="w-full bg-gray-100 rounded-full h-2.5 mb-4">
           <div
-            className="bg-green-500 h-3 rounded-full transition-all"
+            className="bg-green-500 h-2.5 rounded-full transition-all"
             style={{ width: `${totalChapters ? (passedCount / totalChapters) * 100 : 0}%` }}
           />
         </div>
-        <div className="flex gap-6 text-sm text-gray-500">
-          <span>📖 <strong className="text-gray-900">{readCount}</strong> chapters read</span>
-          <span>✅ <strong className="text-gray-900">{passedCount}</strong> quizzes passed</span>
+        <div className="flex gap-4 sm:gap-6 text-sm text-gray-500 flex-wrap">
+          <span>📖 <strong className="text-gray-900">{readCount}</strong> read</span>
+          <span>✅ <strong className="text-gray-900">{passedCount}</strong> passed</span>
+          <span>📚 <strong className="text-gray-900">{totalChapters - readCount}</strong> remaining</span>
         </div>
       </div>
 
-      {/* Chapter grid */}
-      <div className="space-y-3">
+      {/* Chapter list — single col on mobile, 2-col on large desktop */}
+      <div className="grid gap-2 sm:gap-3 lg:grid-cols-2">
         {chapterList.map(ch => {
-          const isRead    = ch.progress?.marked_complete ?? false
-          const isPassed  = ch.passed
-          const hasScore  = ch.bestScore !== null
+          const isRead   = ch.progress?.marked_complete ?? false
+          const isPassed = ch.passed
+          const hasScore = ch.bestScore !== null
 
-          let statusBadge = <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">Not started</span>
-          if (isPassed)   statusBadge = <span className="text-xs text-green-700 bg-green-100 px-2 py-0.5 rounded-full font-medium">✓ Passed</span>
-          else if (hasScore) statusBadge = <span className="text-xs text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded-full font-medium">Retry</span>
-          else if (isRead) statusBadge = <span className="text-xs text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full font-medium">Read ✓</span>
-          else if (ch.progress) statusBadge = <span className="text-xs text-orange-700 bg-orange-100 px-2 py-0.5 rounded-full font-medium">In progress</span>
+          let statusEl: React.ReactNode
+          if (isPassed)        statusEl = <span className="text-xs text-green-700 bg-green-100 px-2 py-0.5 rounded-full font-medium whitespace-nowrap">✓ Passed</span>
+          else if (hasScore)   statusEl = <span className="text-xs text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded-full font-medium whitespace-nowrap">Retry</span>
+          else if (isRead)     statusEl = <span className="text-xs text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full font-medium whitespace-nowrap">Read ✓</span>
+          else if (ch.progress) statusEl = <span className="text-xs text-orange-700 bg-orange-100 px-2 py-0.5 rounded-full font-medium whitespace-nowrap">Started</span>
+          else                  statusEl = <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full whitespace-nowrap">Not started</span>
 
           return (
             <Link
               key={ch.id}
               href={`/live-notes/chapter/${ch.chapter_number}`}
-              className="flex items-center justify-between p-4 bg-white rounded-xl border-2 border-gray-200 hover:border-green-500 hover:bg-green-50 transition-all group"
+              className="flex items-center justify-between p-3 sm:p-4 bg-white rounded-xl border-2 border-gray-200 hover:border-green-500 hover:bg-green-50 transition-all group"
             >
-              <div className="flex items-center gap-4 min-w-0">
-                <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${isPassed ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-500 group-hover:bg-green-100 group-hover:text-green-700'}`}>
+              {/* Left: number + text */}
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className={`flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold ${
+                  isPassed ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-500 group-hover:bg-green-100 group-hover:text-green-700'
+                }`}>
                   {ch.chapter_number}
                 </div>
                 <div className="min-w-0">
-                  <div className="font-semibold text-gray-900 group-hover:text-green-800 truncate text-sm sm:text-base">
+                  <div className="font-semibold text-gray-900 group-hover:text-green-800 text-sm leading-snug line-clamp-2 sm:line-clamp-1">
                     {ch.title}
                   </div>
-                  <div className="text-xs text-gray-400 mt-0.5">
-                    Pages {ch.page_start}–{ch.page_end} · {ch.total_pages} page{ch.total_pages !== 1 ? 's' : ''}
-                    {ch.section_reference && ` · ${ch.section_reference}`}
+                  <div className="text-xs text-gray-400 mt-0.5 hidden sm:block">
+                    Pages {ch.page_start}–{ch.page_end}
+                    {ch.section_reference ? ` · ${ch.section_reference}` : ''}
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-3 flex-shrink-0 ml-3">
+
+              {/* Right: score + status + arrow */}
+              <div className="flex items-center gap-2 flex-shrink-0 ml-2">
                 {hasScore && (
-                  <span className={`text-xs font-bold ${isPassed ? 'text-green-700' : 'text-yellow-700'}`}>
+                  <span className={`text-xs font-bold hidden sm:block ${isPassed ? 'text-green-700' : 'text-yellow-700'}`}>
                     {Math.round(ch.bestScore!)}%
                   </span>
                 )}
-                {statusBadge}
-                <span className="text-gray-300 group-hover:text-green-600 text-lg">›</span>
+                <div className="hidden xs:block sm:block">{statusEl}</div>
+                <span className="text-gray-300 group-hover:text-green-600 text-lg font-light">›</span>
               </div>
             </Link>
           )
