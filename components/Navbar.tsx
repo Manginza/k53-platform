@@ -34,6 +34,7 @@ export default function Navbar() {
         <div className="flex items-center gap-6 text-sm font-medium">
           <Link href="/" className="hover:text-blue-200 transition-colors">Home</Link>
           <Link href="/courses" className="hover:text-blue-200 transition-colors">Courses</Link>
+          <Link href="/live-notes" className="hover:text-blue-200 transition-colors">Live Notes</Link>
           <Link href="/videos" className="hover:text-blue-200 transition-colors">Videos</Link>
           <Link href="/resources" className="hover:text-blue-200 transition-colors">Resources</Link>
 
