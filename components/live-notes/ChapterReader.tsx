@@ -2,7 +2,6 @@
 
 import { useState, useCallback, useRef } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
 import type { User } from '@supabase/supabase-js'
 
@@ -34,7 +33,6 @@ interface Props {
 }
 
 export default function ChapterReader({ chapter, pages, progress, user, prevChapter, nextChapter }: Props) {
-  const router = useRouter()
   const supabase = createClient()
 
   const [currentIdx, setCurrentIdx] = useState(0)

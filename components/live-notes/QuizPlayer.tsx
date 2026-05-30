@@ -3,7 +3,6 @@
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
-import type { User } from '@supabase/supabase-js'
 
 interface Option   { id: string; option_label: string; option_text: string }
 interface Question { id: string; question_number: number; question_text: string; options: Option[] }
@@ -12,11 +11,10 @@ interface Quiz     { id: string; title: string; instructions: string | null }
 interface Props {
   quiz: Quiz
   questions: Question[]
-  user: User
   chapterNumber: number
 }
 
-export default function QuizPlayer({ quiz, questions, user, chapterNumber }: Props) {
+export default function QuizPlayer({ quiz, questions, chapterNumber }: Props) {
   const router = useRouter()
   const supabase = createClient()
   const startedAt = useRef(new Date())

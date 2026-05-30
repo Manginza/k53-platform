@@ -64,7 +64,6 @@ export default async function QuizPage({ params }: Props) {
     <QuizPlayer
       quiz={quiz}
       questions={questionsWithOptions}
-      user={user}
       chapterNumber={chapterNum}
     />
   )
