@@ -35,7 +35,7 @@ export default async function ResultsPage({ params }: Props) {
 
   const detail: AnswerDetail[] = attempt.answers ?? []
   const questionIds = detail.map(d => d.question_id)
-  const optionIds   = [...new Set([...detail.map(d => d.selected_option_id), ...detail.map(d => d.correct_option_id)])]
+  const optionIds   = Array.from(new Set([...detail.map(d => d.selected_option_id), ...detail.map(d => d.correct_option_id)]))
 
   const [{ data: questions }, { data: options }] = await Promise.all([
     supabase.from('ln_questions').select('id, question_number, question_text, explanation').in('id', questionIds),
