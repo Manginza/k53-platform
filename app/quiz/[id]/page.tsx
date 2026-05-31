@@ -2,7 +2,9 @@ import { notFound } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { createClient } from '@/lib/supabase-server'
 import { getUserSubscription, isPremium } from '@/lib/subscription'
+import { readQuizTiming } from '@/lib/quiz-session'
 import QuizClient from '@/components/QuizClient'
+import QuizPaywall from '@/components/QuizPaywall'
 import type { Course, QuizQuestion } from '@/lib/types'
 
 // Per-user paywall state (reads auth cookies) — must render dynamically.
@@ -58,6 +60,18 @@ export default async function QuizPage({ params, searchParams }: Props) {
 
   const c = course as Course
 
+  // Server-side free-preview enforcement: if a non-premium visitor's window
+  // has already expired, render the paywall here — a reload or a tampered
+  // client timer can't get past this.
+  let initialSeconds: number | undefined
+  if (!premium) {
+    const timing = await readQuizTiming(c.id, testNumber)
+    if (timing.locked) {
+      return <QuizPaywall courseId={c.id} isLoggedIn={!!user} />
+    }
+    initialSeconds = timing.remaining
+  }
+
   return (
     <QuizClient
       questions={questions as QuizQuestion[]}
@@ -66,6 +80,7 @@ export default async function QuizPage({ params, searchParams }: Props) {
       testNumber={testNumber}
       isPremium={premium}
       isLoggedIn={!!user}
+      initialSeconds={initialSeconds}
     />
   )
 }

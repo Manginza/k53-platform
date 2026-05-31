@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import QuizPaywall from '@/components/QuizPaywall'
 import type { QuizQuestion } from '@/lib/types'
 
 type Option    = 'A' | 'B' | 'C'
@@ -17,57 +18,8 @@ interface Props {
   testNumber:  number
   isPremium:   boolean
   isLoggedIn:  boolean
-}
-
-// ── Paywall overlay (free preview expired) ───────────────────────────────────
-function PaywallOverlay({ courseId, isLoggedIn }: { courseId: number; isLoggedIn: boolean }) {
-  return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-10">
-      <div className="bg-white rounded-2xl shadow-lg max-w-md w-full p-8 text-center">
-        <div className="text-5xl mb-4">⏱️</div>
-        <h1 className="text-2xl font-extrabold text-gray-900 mb-2">Your free preview is up</h1>
-        <p className="text-sm text-gray-500 mb-6">
-          You&apos;ve used your free 3 minutes on this test. Get an access pass to keep practising —
-          unlimited timed tests, plus Live Notes, resources and videos.
-        </p>
-
-        <div className="grid grid-cols-3 gap-2 mb-6 text-sm">
-          <div className="rounded-xl border border-gray-200 p-3">
-            <div className="font-extrabold text-gray-900">R49</div>
-            <div className="text-xs text-gray-400">14 days</div>
-          </div>
-          <div className="rounded-xl border-2 border-blue-600 p-3">
-            <div className="font-extrabold text-blue-700">R150</div>
-            <div className="text-xs text-gray-400">50 days</div>
-          </div>
-          <div className="rounded-xl border border-gray-200 p-3">
-            <div className="font-extrabold text-gray-900">R399</div>
-            <div className="text-xs text-gray-400">lifetime</div>
-          </div>
-        </div>
-
-        <Link
-          href="/pricing"
-          className="block w-full bg-blue-700 text-white font-bold py-3 rounded-xl hover:bg-blue-800 transition-colors"
-        >
-          View access passes
-        </Link>
-        <Link
-          href={`/courses/${courseId}`}
-          className="block w-full text-gray-500 font-medium py-3 mt-1 hover:text-gray-700 transition-colors text-sm"
-        >
-          Back to course
-        </Link>
-
-        {!isLoggedIn && (
-          <p className="text-sm text-gray-500 mt-2">
-            Already paid?{' '}
-            <Link href="/login" className="text-blue-700 font-medium hover:underline">Log in</Link>
-          </p>
-        )}
-      </div>
-    </div>
-  )
+  /** Server-computed seconds left in the free preview (non-premium only). */
+  initialSeconds?: number
 }
 
 /** mm:ss formatter for the countdown pill. */
@@ -374,7 +326,7 @@ function StandardResultsScreen({
 }
 
 // ── Main quiz component ───────────────────────────────────────────────────────
-export default function QuizClient({ questions, courseTitle, courseId, testNumber, isPremium, isLoggedIn }: Props) {
+export default function QuizClient({ questions, courseTitle, courseId, testNumber, isPremium, isLoggedIn, initialSeconds }: Props) {
   const [current,  setCurrent]  = useState(0)
   const [answers,  setAnswers]  = useState<AnswerMap>({})
   const [revealed, setRevealed] = useState(false)
@@ -383,9 +335,34 @@ export default function QuizClient({ questions, courseTitle, courseId, testNumbe
   // Timer. Paid users get an exam-style limit of 1 minute per question
   // (auto-submits to results on expiry); free users get a 3-minute preview
   // that then hits the paywall. Premium users can restart any time.
-  const totalSeconds = isPremium ? questions.length * 60 : FREE_SECONDS
+  // For free users the starting value comes from the server (initialSeconds)
+  // and is reconciled with /api/quiz/session on mount so the window can't be
+  // reset by reloading or editing the client timer.
+  const totalSeconds = isPremium ? questions.length * 60 : (initialSeconds ?? FREE_SECONDS)
   const [secondsLeft, setSecondsLeft] = useState(totalSeconds)
   const [lockedOut,   setLockedOut]   = useState(false)
+
+  // Authoritative free-preview timing from the server (start the window if new).
+  useEffect(() => {
+    if (isPremium) return
+    let cancelled = false
+    fetch('/api/quiz/session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ courseId, testNumber }),
+    })
+      .then(r => r.json())
+      .then(d => {
+        if (cancelled || d.unlimited) return
+        if (d.locked) { setLockedOut(true); return }
+        if (typeof d.remaining === 'number') {
+          // Trust the server: never allow more time than it reports.
+          setSecondsLeft(s => Math.min(s, d.remaining))
+        }
+      })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [isPremium, courseId, testNumber])
 
   useEffect(() => {
     if (finished || lockedOut) return
@@ -443,7 +420,7 @@ export default function QuizClient({ questions, courseTitle, courseId, testNumbe
   }
 
   if (lockedOut) {
-    return <PaywallOverlay courseId={courseId} isLoggedIn={isLoggedIn} />
+    return <QuizPaywall courseId={courseId} isLoggedIn={isLoggedIn} />
   }
 
   if (finished) {
