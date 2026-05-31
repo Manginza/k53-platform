@@ -1,17 +1,80 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import type { QuizQuestion } from '@/lib/types'
 
 type Option    = 'A' | 'B' | 'C'
 type AnswerMap = Record<number, Option>
 
+/** Free preview length (seconds) before non-premium users hit the paywall. */
+const FREE_SECONDS = 180
+
 interface Props {
   questions:   QuizQuestion[]
   courseTitle: string
   courseId:    number
   testNumber:  number
+  isPremium:   boolean
+  isLoggedIn:  boolean
+}
+
+// ── Paywall overlay (free preview expired) ───────────────────────────────────
+function PaywallOverlay({ courseId, isLoggedIn }: { courseId: number; isLoggedIn: boolean }) {
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-10">
+      <div className="bg-white rounded-2xl shadow-lg max-w-md w-full p-8 text-center">
+        <div className="text-5xl mb-4">⏱️</div>
+        <h1 className="text-2xl font-extrabold text-gray-900 mb-2">Your free preview is up</h1>
+        <p className="text-sm text-gray-500 mb-6">
+          You&apos;ve used your free 3 minutes on this test. Get an access pass to keep practising —
+          unlimited timed tests, plus Live Notes, resources and videos.
+        </p>
+
+        <div className="grid grid-cols-3 gap-2 mb-6 text-sm">
+          <div className="rounded-xl border border-gray-200 p-3">
+            <div className="font-extrabold text-gray-900">R49</div>
+            <div className="text-xs text-gray-400">14 days</div>
+          </div>
+          <div className="rounded-xl border-2 border-blue-600 p-3">
+            <div className="font-extrabold text-blue-700">R150</div>
+            <div className="text-xs text-gray-400">60 days</div>
+          </div>
+          <div className="rounded-xl border border-gray-200 p-3">
+            <div className="font-extrabold text-gray-900">R399</div>
+            <div className="text-xs text-gray-400">lifetime</div>
+          </div>
+        </div>
+
+        <Link
+          href="/pricing"
+          className="block w-full bg-blue-700 text-white font-bold py-3 rounded-xl hover:bg-blue-800 transition-colors"
+        >
+          View access passes
+        </Link>
+        <Link
+          href={`/courses/${courseId}`}
+          className="block w-full text-gray-500 font-medium py-3 mt-1 hover:text-gray-700 transition-colors text-sm"
+        >
+          Back to course
+        </Link>
+
+        {!isLoggedIn && (
+          <p className="text-sm text-gray-500 mt-2">
+            Already paid?{' '}
+            <Link href="/login" className="text-blue-700 font-medium hover:underline">Log in</Link>
+          </p>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/** mm:ss formatter for the countdown pill. */
+function fmtTime(secs: number): string {
+  const m = Math.floor(secs / 60)
+  const s = secs % 60
+  return `${m}:${s.toString().padStart(2, '0')}`
 }
 
 // ── Split-score results (Test 2 — K53 format) ────────────────────────────────
@@ -311,11 +374,22 @@ function StandardResultsScreen({
 }
 
 // ── Main quiz component ───────────────────────────────────────────────────────
-export default function QuizClient({ questions, courseTitle, courseId, testNumber }: Props) {
+export default function QuizClient({ questions, courseTitle, courseId, testNumber, isPremium, isLoggedIn }: Props) {
   const [current,  setCurrent]  = useState(0)
   const [answers,  setAnswers]  = useState<AnswerMap>({})
   const [revealed, setRevealed] = useState(false)
   const [finished, setFinished] = useState(false)
+
+  // Free-preview countdown — premium users are exempt.
+  const [secondsLeft, setSecondsLeft] = useState(FREE_SECONDS)
+  const [lockedOut,   setLockedOut]   = useState(false)
+
+  useEffect(() => {
+    if (isPremium || finished || lockedOut) return
+    if (secondsLeft <= 0) { setLockedOut(true); return }
+    const t = setTimeout(() => setSecondsLeft(s => s - 1), 1000)
+    return () => clearTimeout(t)
+  }, [isPremium, finished, lockedOut, secondsLeft])
 
   const isSplitTest = testNumber === 2
 
@@ -359,6 +433,10 @@ export default function QuizClient({ questions, courseTitle, courseId, testNumbe
       setCurrent(c => c + 1)
       setRevealed(false)
     }
+  }
+
+  if (lockedOut) {
+    return <PaywallOverlay courseId={courseId} isLoggedIn={isLoggedIn} />
   }
 
   if (finished) {
@@ -409,10 +487,20 @@ export default function QuizClient({ questions, courseTitle, courseId, testNumbe
 
       {/* Top bar */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
-          <span className="text-sm font-medium text-gray-500 truncate max-w-[60%]">
+        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+          <span className="text-sm font-medium text-gray-500 truncate flex-1 min-w-0">
             {sectionLabel ?? courseTitle}
           </span>
+          {!isPremium && (
+            <span
+              className={`text-xs font-bold px-2.5 py-1 rounded-full shrink-0 tabular-nums ${
+                secondsLeft <= 30 ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
+              }`}
+              title="Free preview time remaining"
+            >
+              ⏱ {fmtTime(secondsLeft)}
+            </span>
+          )}
           <span className="text-sm font-bold text-gray-700 shrink-0">
             {current + 1} <span className="text-gray-400 font-normal">/ {ordered.length}</span>
           </span>

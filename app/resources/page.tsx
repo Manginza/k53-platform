@@ -1,8 +1,13 @@
 import type { Metadata } from 'next'
+import { createClient } from '@/lib/supabase-server'
+import { getUserSubscription, isPremium } from '@/lib/subscription'
+import LockedContent from '@/components/LockedContent'
+
+export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   title: 'K53 Resources — Download Study PDFs',
-  description: 'Download free K53 learner\'s licence study PDFs including test memos, practice quizzes, and the official road signs manual.',
+  description: 'Download K53 learner\'s licence study PDFs including test memos, practice quizzes, and the official road signs manual.',
 }
 
 // ── Data ─────────────────────────────────────────────────────────────────────
@@ -134,7 +139,20 @@ function ResourceCard({ resource }: { resource: typeof resources[0] }) {
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────
-export default function ResourcesPage() {
+export default async function ResourcesPage() {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  const sub = await getUserSubscription()
+  if (!isPremium(sub.status)) {
+    return (
+      <LockedContent
+        feature="Study resources"
+        description="Download all K53 practice tests, memos with highlighted answers, and reference manuals with any access pass."
+        isLoggedIn={!!user}
+      />
+    )
+  }
+
   const grouped = {
     Reference: resources.filter(r => r.category === 'Reference'),
     'Code 8':  resources.filter(r => r.category === 'Code 8'),

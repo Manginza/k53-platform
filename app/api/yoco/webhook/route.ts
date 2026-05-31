@@ -59,18 +59,20 @@ export async function POST(req: NextRequest) {
     switch (type) {
       // ── Payment succeeded ──────────────────────────────────────────────
       case 'payment.succeeded': {
-        const { userId, planId, planInterval } = payload?.metadata ?? {}
+        const { userId, planId, durationDays } = payload?.metadata ?? {}
         if (!userId || !planId) {
           console.error('[yoco-webhook] Missing userId or planId in metadata.')
           break
         }
 
-        const now      = new Date()
+        // Access window: now + duration_days. Lifetime → far-future date so
+        // the active check (period_end > now) always passes.
+        const now       = new Date()
         const periodEnd = new Date(now)
-        if (planInterval === 'yearly') {
-          periodEnd.setFullYear(periodEnd.getFullYear() + 1)
+        if (durationDays === 'lifetime' || durationDays == null) {
+          periodEnd.setFullYear(periodEnd.getFullYear() + 100)
         } else {
-          periodEnd.setMonth(periodEnd.getMonth() + 1)
+          periodEnd.setDate(periodEnd.getDate() + Number(durationDays))
         }
 
         // Activate subscription

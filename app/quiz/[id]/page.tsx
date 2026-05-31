@@ -1,26 +1,26 @@
 import { notFound } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase-server'
+import { getUserSubscription, isPremium } from '@/lib/subscription'
 import QuizClient from '@/components/QuizClient'
 import type { Course, QuizQuestion } from '@/lib/types'
 
-export const revalidate = 86400
+// Per-user paywall state (reads auth cookies) — must render dynamically.
+export const dynamic = 'force-dynamic'
 
 interface Props {
   params:      { id: string }
   searchParams: { test?: string }
 }
 
-export async function generateStaticParams() {
-  const { data } = await supabase
-    .from('courses')
-    .select('id')
-    .not('code', 'is', null)
-
-  return (data ?? []).map(c => ({ id: String(c.id) }))
-}
-
 export default async function QuizPage({ params, searchParams }: Props) {
   const testNumber = Number(searchParams.test ?? 1)
+
+  // Paywall state: premium users skip the timer; everyone else gets 3 free minutes.
+  const ssr = createClient()
+  const { data: { user } } = await ssr.auth.getUser()
+  const sub = await getUserSubscription()
+  const premium = isPremium(sub.status)
 
   const { data: course, error: courseError } = await supabase
     .from('courses')
@@ -64,6 +64,8 @@ export default async function QuizPage({ params, searchParams }: Props) {
       courseTitle={c.title}
       courseId={c.id}
       testNumber={testNumber}
+      isPremium={premium}
+      isLoggedIn={!!user}
     />
   )
 }

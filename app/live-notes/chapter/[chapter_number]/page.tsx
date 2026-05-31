@@ -1,5 +1,7 @@
 import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
+import { getUserSubscription, isPremium } from '@/lib/subscription'
+import LockedContent from '@/components/LockedContent'
 import ChapterReader from '@/components/live-notes/ChapterReader'
 
 export const dynamic = 'force-dynamic'
@@ -13,6 +15,17 @@ export default async function ChapterPage({ params }: Props) {
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) redirect('/login')
+
+  const sub = await getUserSubscription()
+  if (!isPremium(sub.status)) {
+    return (
+      <LockedContent
+        feature="Live Notes"
+        description="Read the full Road Traffic Signs Manual — all 18 chapters with chapter quizzes — with any access pass."
+        isLoggedIn
+      />
+    )
+  }
 
   const chapterNum = parseInt(params.chapter_number, 10)
   if (isNaN(chapterNum)) notFound()

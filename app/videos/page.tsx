@@ -1,5 +1,10 @@
 import type { Metadata } from 'next'
 import { YouTubeCard, DriveCard } from '@/components/VideoCard'
+import { createClient } from '@/lib/supabase-server'
+import { getUserSubscription, isPremium } from '@/lib/subscription'
+import LockedContent from '@/components/LockedContent'
+
+export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   title: 'K53 Videos — Study Resources',
@@ -26,7 +31,20 @@ const driveVideos = [
   { id: '1AvmpMhapaPJP8yOzZ__Af4spYS_IyW10', url: 'https://drive.google.com/file/d/1AvmpMhapaPJP8yOzZ__Af4spYS_IyW10/view?usp=drive_link' },
 ]
 
-export default function VideosPage() {
+export default async function VideosPage() {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  const sub = await getUserSubscription()
+  if (!isPremium(sub.status)) {
+    return (
+      <LockedContent
+        feature="Study videos"
+        description="Watch all K53 study videos covering road signs, rules of the road, and vehicle controls with any access pass."
+        isLoggedIn={!!user}
+      />
+    )
+  }
+
   return (
     <main className="max-w-6xl mx-auto px-4 py-12">
 

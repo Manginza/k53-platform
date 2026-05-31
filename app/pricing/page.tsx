@@ -6,46 +6,54 @@ import Link from 'next/link'
 
 const PLANS = [
   {
-    slug:      'premium-monthly',
-    name:      'Premium Monthly',
+    slug:      'pass-14day',
+    name:      '14-Day Access',
     price:     'R49',
-    period:    '/month',
-    interval:  'monthly',
+    period:    '/ 14 days',
     highlight: false,
     badge:     null,
     features: [
-      'All Code 8 practice tests',
-      'All Code 10 practice tests',
-      'Live Notes — Road Signs Manual (18 chapters)',
-      'Unlimited retakes',
+      'Unlimited timed practice tests',
+      'Full Live Notes (18 chapters)',
+      'All study resources & PDFs',
+      'All study videos',
       'Full answer explanations',
-      'Progress tracking',
     ],
   },
   {
-    slug:      'premium-annual',
-    name:      'Premium Annual',
-    price:     'R399',
-    period:    '/year',
-    interval:  'yearly',
+    slug:      'pass-60day',
+    name:      '60-Day Access',
+    price:     'R150',
+    period:    '/ 60 days',
     highlight: true,
-    badge:     'Best value — save R189',
+    badge:     'Most popular',
     features: [
-      'All Code 8 practice tests',
-      'All Code 10 practice tests',
-      'Live Notes — Road Signs Manual (18 chapters)',
-      'Unlimited retakes',
-      'Full answer explanations',
-      'Progress tracking',
-      'Less than R34/month',
+      'Everything in 14-Day Access',
+      '60 days of full access',
+      'Best for thorough preparation',
+      'Save vs. two 14-day passes',
+    ],
+  },
+  {
+    slug:      'pass-lifetime',
+    name:      'Lifetime Access',
+    price:     'R399',
+    period:    'once-off',
+    highlight: false,
+    badge:     'Best value',
+    features: [
+      'Everything in 60-Day Access',
+      'Pay once, learn forever',
+      'All future content updates',
+      'No recurring charges',
     ],
   },
 ]
 
 const FREE_FEATURES = [
-  'Code 8 Test 1 — preview (first 10 questions)',
-  'Code 10 Test 1 — preview (first 10 questions)',
-  'Limited Live Notes access',
+  'Every practice test — free 3-minute preview',
+  'Browse the course & test list',
+  'Upgrade any time to unlock full access',
 ]
 
 export default function PricingPage() {
@@ -98,7 +106,7 @@ export default function PricingPage() {
       </div>
 
       {/* Plans */}
-      <div className="max-w-4xl mx-auto px-4 py-10">
+      <div className="max-w-6xl mx-auto px-4 py-10">
 
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl px-5 py-4 text-sm mb-6">
@@ -106,7 +114,7 @@ export default function PricingPage() {
           </div>
         )}
 
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 mb-10">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-10">
 
           {/* Free tier */}
           <div className="bg-white rounded-2xl border-2 border-gray-200 p-6 flex flex-col">
@@ -201,9 +209,9 @@ export default function PricingPage() {
           <div className="space-y-4 text-sm">
             {[
               ['What payment methods does Yoco accept?', 'Yoco accepts all major credit and debit cards (Visa, Mastercard) as well as EFT and SnapScan.'],
-              ['Can I cancel my subscription?', 'Yes — contact us at any time and we\'ll cancel your subscription. You keep access until the end of your current period.'],
+              ['Are these one-time payments?', 'Yes. All passes are once-off — there is no subscription and nothing auto-renews. When a timed pass expires you simply buy another if you need more time.'],
+              ['What do I get for free?', 'You can preview any practice test for 3 minutes without paying. To keep practising past the timer — and to unlock Live Notes, resources and videos — you buy any access pass.'],
               ['Is this aligned to the official K53 exam?', 'Yes. All content is based on the SA National Road Traffic Act and official K53 learner\'s licence study material.'],
-              ['Will my subscription auto-renew?', 'Currently subscriptions are manual — you will receive a reminder before your renewal date.'],
             ].map(([q, a]) => (
               <div key={q} className="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
                 <div className="font-semibold text-gray-800 mb-1">{q}</div>

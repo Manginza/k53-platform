@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
+import { getUserSubscription, isPremium } from '@/lib/subscription'
+import LockedContent from '@/components/LockedContent'
 
 export const dynamic = 'force-dynamic'
 
@@ -9,6 +11,17 @@ export default async function LiveNotesPage() {
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) redirect('/login')
+
+  const sub = await getUserSubscription()
+  if (!isPremium(sub.status)) {
+    return (
+      <LockedContent
+        feature="Live Notes"
+        description="Read the full Road Traffic Signs Manual — all 18 chapters with chapter quizzes and progress tracking — with any access pass."
+        isLoggedIn
+      />
+    )
+  }
 
   const [{ data: chapters }, { data: quizzes }, { data: progressData }, { data: attempts }] = await Promise.all([
     supabase.from('ln_chapters').select('*').eq('is_front_matter', false).order('display_order'),

@@ -79,7 +79,8 @@ export async function POST(req: NextRequest) {
         userEmail:    user.email ?? '',
         planId:       plan.id,
         planSlug:     plan.slug,
-        planInterval: plan.interval,
+        // duration of the access pass — 'lifetime' when duration_days is null
+        durationDays: plan.duration_days != null ? String(plan.duration_days) : 'lifetime',
         ...affiliateMeta,
       },
     })
