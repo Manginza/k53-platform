@@ -79,3 +79,15 @@ export function formatPeriodEnd(isoDate: string | null): string {
     day: 'numeric', month: 'short', year: 'numeric',
   })
 }
+
+/** True for the lifetime pass (its period end is set ~100 years out). */
+export function isLifetime(sub: UserSubscription): boolean {
+  return sub.planSlug === 'pass-lifetime'
+}
+
+/** Whole days remaining until the access period ends (0 if past/none). */
+export function daysRemaining(isoDate: string | null): number {
+  if (!isoDate) return 0
+  const ms = new Date(isoDate).getTime() - Date.now()
+  return ms <= 0 ? 0 : Math.ceil(ms / (1000 * 60 * 60 * 24))
+}

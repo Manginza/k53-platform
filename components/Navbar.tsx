@@ -71,7 +71,19 @@ export default function Navbar() {
         <div className="hidden md:flex items-center gap-2 shrink-0">
           {user ? (
             <>
-              <span className="text-blue-200 text-xs truncate max-w-[130px] hidden lg:block">{user.email}</span>
+              <Link
+                href="/account"
+                className="text-blue-100 hover:text-white text-xs font-medium truncate max-w-[130px] hidden lg:block transition-colors"
+                title="My account"
+              >
+                {user.email}
+              </Link>
+              <Link
+                href="/account"
+                className="text-sm font-medium text-blue-100 hover:text-white transition-colors px-2 lg:hidden"
+              >
+                Account
+              </Link>
               <button
                 onClick={logout}
                 className="bg-white text-blue-700 font-semibold px-3 py-1.5 rounded-lg text-xs hover:bg-blue-100 transition-colors"
@@ -142,7 +154,13 @@ export default function Navbar() {
           <div className="border-t border-blue-700 pt-3">
             {user ? (
               <div className="space-y-2">
-                <p className="text-xs text-blue-300 px-3 truncate">{user.email}</p>
+                <Link
+                  href="/account"
+                  className="flex items-center justify-between px-3 py-3 rounded-xl text-sm font-medium text-blue-100 hover:bg-blue-700 hover:text-white transition-colors"
+                >
+                  <span className="truncate">{user.email}</span>
+                  <span className="text-blue-300 text-xs shrink-0 ml-2">My account ›</span>
+                </Link>
                 <button
                   onClick={logout}
                   className="w-full bg-white text-blue-700 font-semibold py-3 rounded-xl text-sm hover:bg-blue-100 transition-colors"
