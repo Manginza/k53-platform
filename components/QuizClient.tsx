@@ -38,7 +38,7 @@ function PaywallOverlay({ courseId, isLoggedIn }: { courseId: number; isLoggedIn
           </div>
           <div className="rounded-xl border-2 border-blue-600 p-3">
             <div className="font-extrabold text-blue-700">R150</div>
-            <div className="text-xs text-gray-400">60 days</div>
+            <div className="text-xs text-gray-400">50 days</div>
           </div>
           <div className="rounded-xl border border-gray-200 p-3">
             <div className="font-extrabold text-gray-900">R399</div>
@@ -380,13 +380,20 @@ export default function QuizClient({ questions, courseTitle, courseId, testNumbe
   const [revealed, setRevealed] = useState(false)
   const [finished, setFinished] = useState(false)
 
-  // Free-preview countdown — premium users are exempt.
-  const [secondsLeft, setSecondsLeft] = useState(FREE_SECONDS)
+  // Timer. Paid users get an exam-style limit of 1 minute per question
+  // (auto-submits to results on expiry); free users get a 3-minute preview
+  // that then hits the paywall. Premium users can restart any time.
+  const totalSeconds = isPremium ? questions.length * 60 : FREE_SECONDS
+  const [secondsLeft, setSecondsLeft] = useState(totalSeconds)
   const [lockedOut,   setLockedOut]   = useState(false)
 
   useEffect(() => {
-    if (isPremium || finished || lockedOut) return
-    if (secondsLeft <= 0) { setLockedOut(true); return }
+    if (finished || lockedOut) return
+    if (secondsLeft <= 0) {
+      if (isPremium) setFinished(true)   // time's up → show results
+      else           setLockedOut(true)  // free preview over → paywall
+      return
+    }
     const t = setTimeout(() => setSecondsLeft(s => s - 1), 1000)
     return () => clearTimeout(t)
   }, [isPremium, finished, lockedOut, secondsLeft])
@@ -491,16 +498,16 @@ export default function QuizClient({ questions, courseTitle, courseId, testNumbe
           <span className="text-sm font-medium text-gray-500 truncate flex-1 min-w-0">
             {sectionLabel ?? courseTitle}
           </span>
-          {!isPremium && (
-            <span
-              className={`text-xs font-bold px-2.5 py-1 rounded-full shrink-0 tabular-nums ${
-                secondsLeft <= 30 ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
-              }`}
-              title="Free preview time remaining"
-            >
-              ⏱ {fmtTime(secondsLeft)}
-            </span>
-          )}
+          <span
+            className={`text-xs font-bold px-2.5 py-1 rounded-full shrink-0 tabular-nums ${
+              secondsLeft <= (isPremium ? 60 : 30)
+                ? 'bg-red-100 text-red-700'
+                : isPremium ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'
+            }`}
+            title={isPremium ? 'Time remaining' : 'Free preview time remaining'}
+          >
+            ⏱ {fmtTime(secondsLeft)}
+          </span>
           <span className="text-sm font-bold text-gray-700 shrink-0">
             {current + 1} <span className="text-gray-400 font-normal">/ {ordered.length}</span>
           </span>

@@ -12,10 +12,11 @@
 alter table public.subscription_plans
   add column if not exists duration_days int;
 
--- 2. Retire the old recurring plans (keep rows for historical FKs)
+-- 2. Retire the old recurring plans (keep rows for historical FKs).
+--    pass-60day included in case an earlier draft was ever seeded.
 update public.subscription_plans
   set is_active = false
-  where slug in ('premium-monthly', 'premium-annual');
+  where slug in ('premium-monthly', 'premium-annual', 'pass-60day');
 
 -- 3. Seed the three access passes (idempotent on slug)
 insert into public.subscription_plans (name, slug, price_cents, interval, duration_days, features)
@@ -27,9 +28,9 @@ values
     'All study videos',
     'Full answer explanations'
   ]),
-  ('60-Day Access', 'pass-60day', 15000, 'once', 60, array[
+  ('50-Day Access', 'pass-50day', 15000, 'once', 50, array[
     'Everything in 14-Day Access',
-    '60 days of full access',
+    '50 days of full access',
     'Best for thorough preparation'
   ]),
   ('Lifetime Access', 'pass-lifetime', 39900, 'once', null, array[
