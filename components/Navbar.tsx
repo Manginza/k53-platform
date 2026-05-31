@@ -9,11 +9,12 @@ import { isAdminEmail } from '@/lib/admin-emails'
 import type { User } from '@supabase/supabase-js'
 
 const LINKS = [
-  { href: '/',           label: 'Home' },
-  { href: '/courses',    label: 'Courses' },
-  { href: '/live-notes', label: 'Live Notes' },
-  { href: '/videos',     label: 'Videos' },
-  { href: '/resources',  label: 'Resources' },
+  { href: '/',                 label: 'Home' },
+  { href: '/courses',          label: 'Courses' },
+  { href: '/live-notes',       label: 'Live Notes' },
+  { href: '/live-notes/rules', label: 'Road Rules' },
+  { href: '/videos',           label: 'Videos' },
+  { href: '/resources',        label: 'Resources' },
 ]
 
 export default function Navbar() {
@@ -35,6 +36,13 @@ export default function Navbar() {
   }, [supabase])
 
   const isAdmin = isAdminEmail(user?.email)
+
+  // Active when the path matches; "Live Notes" excludes the nested Road Rules.
+  const isActive = (href: string) => {
+    if (href === '/') return pathname === '/'
+    if (href === '/live-notes') return pathname.startsWith('/live-notes') && !pathname.startsWith('/live-notes/rules')
+    return pathname === href || pathname.startsWith(href)
+  }
 
   const logout = async () => {
     await supabase.auth.signOut()
@@ -58,7 +66,7 @@ export default function Navbar() {
               key={l.href}
               href={l.href}
               className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors hover:bg-blue-600 ${
-                pathname === l.href || (l.href !== '/' && pathname.startsWith(l.href))
+                isActive(l.href)
                   ? 'bg-blue-800 text-white'
                   : 'text-blue-100 hover:text-white'
               }`}
@@ -119,7 +127,7 @@ export default function Navbar() {
                 key={l.href}
                 href={l.href}
                 className={`flex items-center px-3 py-3 rounded-xl text-sm font-medium transition-colors ${
-                  pathname === l.href || (l.href !== '/' && pathname.startsWith(l.href))
+                  isActive(l.href)
                     ? 'bg-blue-700 text-white'
                     : 'text-blue-100 hover:bg-blue-700 hover:text-white'
                 }`}
