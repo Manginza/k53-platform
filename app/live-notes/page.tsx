@@ -59,6 +59,21 @@ export default async function LiveNotesPage() {
         </p>
       </div>
 
+      {/* Rules of the Road callout */}
+      <Link
+        href="/live-notes/rules"
+        className="flex items-center justify-between gap-4 bg-green-600 text-white rounded-2xl p-4 sm:p-5 mb-6 sm:mb-8 hover:bg-green-700 transition-colors"
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          <span className="text-3xl shrink-0">📜</span>
+          <div className="min-w-0">
+            <div className="font-bold leading-snug">Rules of the Road</div>
+            <div className="text-green-100 text-sm">8 chapters · exam-style quiz at the end of each</div>
+          </div>
+        </div>
+        <span className="bg-white/20 rounded-full px-4 py-2 text-sm font-semibold shrink-0">Study →</span>
+      </Link>
+
       {/* Progress card */}
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 sm:p-5 mb-6 sm:mb-8">
         <div className="flex items-center justify-between text-sm mb-3">
