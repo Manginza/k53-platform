@@ -1,61 +1,47 @@
 /**
  * QuizPaywall — shown when a free user's 3-minute preview has expired.
- * Server-safe (links only) so it can render from both the quiz page
- * (server) and QuizClient (client).
+ * Directs them to WhatsApp to buy access, or to redeem a code they already
+ * have. Server-safe (links only) so both the quiz page and QuizClient use it.
  */
 import Link from 'next/link'
+import { WHATSAPP_URL, ACCESS_PRICE, ACCESS_DURATION_DAYS } from '@/lib/contact'
 
-export default function QuizPaywall({
-  courseId,
-  isLoggedIn,
-}: {
-  courseId: number
-  isLoggedIn: boolean
-}) {
+export default function QuizPaywall({ courseId }: { courseId: number }) {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-10">
       <div className="bg-white rounded-2xl shadow-lg max-w-md w-full p-8 text-center">
         <div className="text-5xl mb-4">⏱️</div>
         <h1 className="text-2xl font-extrabold text-gray-900 mb-2">Your free preview is up</h1>
         <p className="text-sm text-gray-500 mb-6">
-          You&apos;ve used your free 3 minutes on this test. Get an access pass to keep practising —
-          unlimited timed tests, plus Live Notes, resources and videos.
+          You&apos;ve used your free 3 minutes on this test. Get full access for{' '}
+          <strong>{ACCESS_PRICE}</strong> ({ACCESS_DURATION_DAYS} days) — unlimited timed tests,
+          plus Live Notes, resources and videos.
         </p>
 
-        <div className="grid grid-cols-3 gap-2 mb-6 text-sm">
-          <div className="rounded-xl border border-gray-200 p-3">
-            <div className="font-extrabold text-gray-900">R49</div>
-            <div className="text-xs text-gray-400">14 days</div>
-          </div>
-          <div className="rounded-xl border-2 border-blue-600 p-3">
-            <div className="font-extrabold text-blue-700">R150</div>
-            <div className="text-xs text-gray-400">50 days</div>
-          </div>
-          <div className="rounded-xl border border-gray-200 p-3">
-            <div className="font-extrabold text-gray-900">R399</div>
-            <div className="text-xs text-gray-400">lifetime</div>
-          </div>
-        </div>
+        <a
+          href={WHATSAPP_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center gap-2 w-full bg-green-600 text-white font-bold py-3.5 rounded-xl hover:bg-green-700 transition-colors"
+        >
+          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M17.47 14.38c-.3-.15-1.74-.86-2-.95-.27-.1-.47-.15-.66.15-.2.3-.77.95-.94 1.15-.17.2-.35.22-.64.07-.3-.15-1.25-.46-2.38-1.47-.88-.78-1.47-1.75-1.64-2.05-.17-.3-.02-.46.13-.6.13-.14.3-.35.44-.53.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.66-1.6-.9-2.18-.24-.57-.48-.5-.66-.5l-.57-.01c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.06 2.88 1.21 3.08c.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.7.63.71.23 1.36.2 1.87.12.57-.08 1.74-.71 1.98-1.4.24-.68.24-1.27.17-1.4-.07-.13-.27-.2-.57-.35zM12.05 21.5h-.01a9.5 9.5 0 01-4.84-1.33l-.35-.2-3.6.94.96-3.5-.23-.36a9.46 9.46 0 01-1.45-5.05c0-5.24 4.27-9.5 9.52-9.5 2.54 0 4.93.99 6.73 2.79a9.45 9.45 0 012.79 6.72c0 5.24-4.27 9.5-9.52 9.5zm5.55-15.05A11.43 11.43 0 0012.05 3C5.8 3 .72 8.08.72 14.33c0 2 .53 3.96 1.53 5.69L.64 26l6.13-1.61a11.4 11.4 0 005.28 1.34h.01c6.25 0 11.33-5.08 11.33-11.33 0-3.03-1.18-5.87-3.32-8.01z"/>
+          </svg>
+          Get access on WhatsApp · {ACCESS_PRICE}
+        </a>
 
         <Link
-          href="/pricing"
-          className="block w-full bg-blue-700 text-white font-bold py-3 rounded-xl hover:bg-blue-800 transition-colors"
+          href="/redeem"
+          className="block w-full text-blue-700 font-semibold py-3 mt-2 hover:underline text-sm"
         >
-          View access passes
+          I already have an access code
         </Link>
         <Link
           href={`/courses/${courseId}`}
-          className="block w-full text-gray-500 font-medium py-3 mt-1 hover:text-gray-700 transition-colors text-sm"
+          className="block w-full text-gray-500 font-medium py-2 hover:text-gray-700 transition-colors text-sm"
         >
           Back to course
         </Link>
-
-        {!isLoggedIn && (
-          <p className="text-sm text-gray-500 mt-2">
-            Already paid?{' '}
-            <Link href="/login" className="text-blue-700 font-medium hover:underline">Log in</Link>
-          </p>
-        )}
       </div>
     </div>
   )

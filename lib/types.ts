@@ -63,3 +63,17 @@ export interface AffiliateStats {
   pendingCents: number     // earned but not yet paid out
   paidCents: number        // already paid out
 }
+
+// ─── Access Codes (admin-issued member access) ──────────────────────────────────
+
+export interface AccessCode {
+  id: string
+  code: string
+  label: string | null
+  status: 'active' | 'revoked'
+  duration_days: number
+  activated_at: string | null
+  expires_at: string | null
+  created_by: string | null
+  created_at: string
+}

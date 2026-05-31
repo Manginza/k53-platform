@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import { YouTubeCard, DriveCard } from '@/components/VideoCard'
-import { createClient } from '@/lib/supabase-server'
-import { getUserSubscription, isPremium } from '@/lib/subscription'
+import { hasFullAccess } from '@/lib/access'
 import LockedContent from '@/components/LockedContent'
 
 export const dynamic = 'force-dynamic'
@@ -32,15 +31,11 @@ const driveVideos = [
 ]
 
 export default async function VideosPage() {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  const sub = await getUserSubscription()
-  if (!isPremium(sub.status)) {
+  if (!(await hasFullAccess())) {
     return (
       <LockedContent
         feature="Study videos"
-        description="Watch all K53 study videos covering road signs, rules of the road, and vehicle controls with any access pass."
-        isLoggedIn={!!user}
+        description="Watch all K53 study videos covering road signs, rules of the road, and vehicle controls with full access."
       />
     )
   }

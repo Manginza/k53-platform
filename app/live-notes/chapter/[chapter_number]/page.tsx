@@ -1,6 +1,6 @@
-import { notFound, redirect } from 'next/navigation'
+import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
-import { getUserSubscription, isPremium } from '@/lib/subscription'
+import { hasFullAccess } from '@/lib/access'
 import LockedContent from '@/components/LockedContent'
 import ChapterReader from '@/components/live-notes/ChapterReader'
 
@@ -11,21 +11,17 @@ interface Props {
 }
 
 export default async function ChapterPage({ params }: Props) {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) redirect('/login')
-
-  const sub = await getUserSubscription()
-  if (!isPremium(sub.status)) {
+  if (!(await hasFullAccess())) {
     return (
       <LockedContent
         feature="Live Notes"
-        description="Read the full Road Traffic Signs Manual — all 18 chapters with chapter quizzes — with any access pass."
-        isLoggedIn
+        description="Read the full Road Traffic Signs Manual — all 18 chapters with chapter quizzes — with full access."
       />
     )
   }
+
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
   const chapterNum = parseInt(params.chapter_number, 10)
   if (isNaN(chapterNum)) notFound()
@@ -45,12 +41,14 @@ export default async function ChapterPage({ params }: Props) {
     .eq('chapter_id', chapter.id)
     .order('page_number')
 
-  const { data: progress } = await supabase
-    .from('ln_user_chapter_progress')
-    .select('marked_complete, pages_read')
-    .eq('user_id', user.id)
-    .eq('chapter_id', chapter.id)
-    .maybeSingle()
+  const { data: progress } = user
+    ? await supabase
+        .from('ln_user_chapter_progress')
+        .select('marked_complete, pages_read')
+        .eq('user_id', user.id)
+        .eq('chapter_id', chapter.id)
+        .maybeSingle()
+    : { data: null }
 
   return (
     <ChapterReader

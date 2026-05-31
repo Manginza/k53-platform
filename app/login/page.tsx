@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { createClient } from '@/lib/supabase-browser'
+import { isAdminEmail } from '@/lib/admin-emails'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -17,21 +17,29 @@ export default function LoginPage() {
     e.preventDefault()
     setError('')
     setLoading(true)
+
+    // Restrict login to admins.
+    if (!isAdminEmail(email)) {
+      setError('This login is for administrators only.')
+      setLoading(false)
+      return
+    }
+
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
       setError(error.message)
       setLoading(false)
-    } else {
-      router.push('/')
-      router.refresh()
+      return
     }
+    router.push('/admin')
+    router.refresh()
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="bg-white rounded-2xl shadow-md p-8 w-full max-w-md">
-        <h1 className="text-2xl font-extrabold text-blue-700 mb-2 text-center">Welcome back</h1>
-        <p className="text-sm text-gray-500 text-center mb-6">Sign in to your K53 account</p>
+        <h1 className="text-2xl font-extrabold text-blue-700 mb-2 text-center">Admin sign in</h1>
+        <p className="text-sm text-gray-500 text-center mb-6">Administrator access only</p>
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
@@ -42,7 +50,7 @@ export default function LoginPage() {
               value={email}
               onChange={e => setEmail(e.target.value)}
               className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="you@example.com"
+              placeholder="admin@example.com"
             />
           </div>
           <div>
@@ -67,11 +75,6 @@ export default function LoginPage() {
             {loading ? 'Signing in…' : 'Sign in'}
           </button>
         </form>
-
-        <p className="text-sm text-center text-gray-500 mt-6">
-          Don&apos;t have an account?{' '}
-          <Link href="/signup" className="text-blue-700 font-medium hover:underline">Sign up</Link>
-        </p>
       </div>
     </div>
   )

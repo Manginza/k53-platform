@@ -1,34 +1,36 @@
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
-import { getUserSubscription, isPremium } from '@/lib/subscription'
+import { hasFullAccess } from '@/lib/access'
 import LockedContent from '@/components/LockedContent'
 
 export const dynamic = 'force-dynamic'
 
 export default async function LiveNotesPage() {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) redirect('/login')
-
-  const sub = await getUserSubscription()
-  if (!isPremium(sub.status)) {
+  if (!(await hasFullAccess())) {
     return (
       <LockedContent
         feature="Live Notes"
-        description="Read the full Road Traffic Signs Manual — all 18 chapters with chapter quizzes and progress tracking — with any access pass."
-        isLoggedIn
+        description="Read the full Road Traffic Signs Manual — all 18 chapters with chapter quizzes — with full access."
       />
     )
   }
 
-  const [{ data: chapters }, { data: quizzes }, { data: progressData }, { data: attempts }] = await Promise.all([
+  const supabase = createClient()
+  // Progress/attempts are per logged-in user (admins). Code-based members
+  // have no account, so those simply come back empty (read-only).
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const [{ data: chapters }, { data: quizzes }] = await Promise.all([
     supabase.from('ln_chapters').select('*').eq('is_front_matter', false).order('display_order'),
     supabase.from('ln_quizzes').select('id, chapter_id'),
-    supabase.from('ln_user_chapter_progress').select('chapter_id, marked_complete, pages_read').eq('user_id', user.id),
-    supabase.from('ln_quiz_attempts').select('quiz_id, score_percent, passed').eq('user_id', user.id).order('completed_at', { ascending: false }),
   ])
+
+  const progressData = user
+    ? (await supabase.from('ln_user_chapter_progress').select('chapter_id, marked_complete, pages_read').eq('user_id', user.id)).data
+    : []
+  const attempts = user
+    ? (await supabase.from('ln_quiz_attempts').select('quiz_id, score_percent, passed').eq('user_id', user.id).order('completed_at', { ascending: false })).data
+    : []
 
   const chapterList = (chapters ?? []).map(ch => {
     const progress    = progressData?.find(p => p.chapter_id === ch.id) ?? null

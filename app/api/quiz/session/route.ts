@@ -16,7 +16,7 @@ import { randomUUID } from 'crypto'
 import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase-server'
 import { createAdminClient } from '@/lib/supabase-admin'
-import { getUserSubscription, isPremium } from '@/lib/subscription'
+import { hasFullAccess } from '@/lib/access'
 import { FREE_PREVIEW_SECONDS, ANON_COOKIE } from '@/lib/quiz-session'
 
 function remainingFrom(startedAtIso: string): number {
@@ -36,9 +36,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'courseId and testNumber are required.' }, { status: 400 })
   }
 
-  // Premium users are never timed.
-  const sub = await getUserSubscription()
-  if (isPremium(sub.status)) return NextResponse.json({ unlimited: true })
+  // Full-access users are never timed.
+  if (await hasFullAccess()) return NextResponse.json({ unlimited: true })
 
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()

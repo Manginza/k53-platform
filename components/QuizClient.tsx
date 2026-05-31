@@ -17,7 +17,6 @@ interface Props {
   courseId:    number
   testNumber:  number
   isPremium:   boolean
-  isLoggedIn:  boolean
   /** Server-computed seconds left in the free preview (non-premium only). */
   initialSeconds?: number
 }
@@ -326,7 +325,7 @@ function StandardResultsScreen({
 }
 
 // ── Main quiz component ───────────────────────────────────────────────────────
-export default function QuizClient({ questions, courseTitle, courseId, testNumber, isPremium, isLoggedIn, initialSeconds }: Props) {
+export default function QuizClient({ questions, courseTitle, courseId, testNumber, isPremium, initialSeconds }: Props) {
   const [current,  setCurrent]  = useState(0)
   const [answers,  setAnswers]  = useState<AnswerMap>({})
   const [revealed, setRevealed] = useState(false)
@@ -420,7 +419,7 @@ export default function QuizClient({ questions, courseTitle, courseId, testNumbe
   }
 
   if (lockedOut) {
-    return <QuizPaywall courseId={courseId} isLoggedIn={isLoggedIn} />
+    return <QuizPaywall courseId={courseId} />
   }
 
   if (finished) {

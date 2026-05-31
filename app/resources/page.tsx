@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
-import { createClient } from '@/lib/supabase-server'
-import { getUserSubscription, isPremium } from '@/lib/subscription'
+import { hasFullAccess } from '@/lib/access'
 import LockedContent from '@/components/LockedContent'
 
 export const dynamic = 'force-dynamic'
@@ -140,15 +139,11 @@ function ResourceCard({ resource }: { resource: typeof resources[0] }) {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default async function ResourcesPage() {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  const sub = await getUserSubscription()
-  if (!isPremium(sub.status)) {
+  if (!(await hasFullAccess())) {
     return (
       <LockedContent
         feature="Study resources"
-        description="Download all K53 practice tests, memos with highlighted answers, and reference manuals with any access pass."
-        isLoggedIn={!!user}
+        description="Download all K53 practice tests, memos with highlighted answers, and reference manuals with full access."
       />
     )
   }
