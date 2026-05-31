@@ -16,7 +16,7 @@ export default function SignupPage() {
     e.preventDefault()
     setError('')
     setLoading(true)
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: { emailRedirectTo: `${location.origin}/auth/callback` },
@@ -25,6 +25,18 @@ export default function SignupPage() {
       setError(error.message)
       setLoading(false)
     } else {
+      // Attribute the signup to a referring affiliate, if a ref code is stored
+      const refCode = document.cookie
+        .split('; ')
+        .find(c => c.startsWith('sk_ref='))
+        ?.split('=')[1]
+      if (refCode && data.user) {
+        fetch('/api/affiliate/record-referral', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: decodeURIComponent(refCode), userId: data.user.id }),
+        }).catch(() => {})
+      }
       setSuccess(true)
     }
   }

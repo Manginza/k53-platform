@@ -54,7 +54,7 @@ export async function getUserSubscription(): Promise<UserSubscription> {
 
   if (!data) return FREE
 
-  const plan = data.subscription_plans as any
+  const plan = data.subscription_plans as unknown as { name: string; slug: string; interval: string } | null
   const periodEnd = data.current_period_end ? new Date(data.current_period_end) : null
   const isActive  = data.status === 'active' && periodEnd && periodEnd > new Date()
 

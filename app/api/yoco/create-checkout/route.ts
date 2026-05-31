@@ -7,8 +7,11 @@
  * Body: { planSlug: 'premium-monthly' | 'premium-annual' }
  */
 import { NextRequest, NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase-server'
+import { createAdminClient } from '@/lib/supabase-admin'
 import { createYocoCheckout } from '@/lib/yoco'
+import { REF_COOKIE } from '@/lib/affiliate'
 
 const BASE_URL =
   process.env.NEXT_PUBLIC_BASE_URL ?? 'https://sa-learners-licence.vercel.app'
@@ -44,6 +47,25 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Subscription plan not found.' }, { status: 404 })
   }
 
+  // 3b. Resolve referring affiliate from the sk_ref cookie (if any).
+  //     An affiliate can't earn commission off their own purchase.
+  const refCode = cookies().get(REF_COOKIE)?.value
+  const affiliateMeta: Record<string, string> = {}
+  if (refCode) {
+    const admin = createAdminClient()
+    const { data: affiliate } = await admin
+      .from('affiliates')
+      .select('id, user_id, commission_rate')
+      .eq('code', refCode)
+      .eq('status', 'active')
+      .maybeSingle()
+    if (affiliate && affiliate.user_id !== user.id) {
+      affiliateMeta.affiliateId   = affiliate.id
+      affiliateMeta.affiliateCode = refCode
+      affiliateMeta.commissionRate = String(affiliate.commission_rate)
+    }
+  }
+
   // 4. Create Yoco Hosted Checkout
   let checkout: Awaited<ReturnType<typeof createYocoCheckout>>
   try {
@@ -58,10 +80,11 @@ export async function POST(req: NextRequest) {
         planId:       plan.id,
         planSlug:     plan.slug,
         planInterval: plan.interval,
+        ...affiliateMeta,
       },
     })
-  } catch (err: any) {
-    console.error('[create-checkout] Yoco error:', err.message)
+  } catch (err) {
+    console.error('[create-checkout] Yoco error:', err instanceof Error ? err.message : err)
     return NextResponse.json(
       { error: 'Payment service is temporarily unavailable. Please try again.' },
       { status: 502 },

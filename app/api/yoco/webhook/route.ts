@@ -20,6 +20,14 @@ const adminClient = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!,
 )
 
+/** Relevant fields from a Yoco payment-event payload. */
+interface YocoEventPayload {
+  id: string
+  amountInCents?: number
+  checkoutId?: string
+  metadata?: Record<string, string>
+}
+
 export async function POST(req: NextRequest) {
   const rawBody = await req.text()
 
@@ -37,7 +45,7 @@ export async function POST(req: NextRequest) {
   }
 
   // ── Parse event ──────────────────────────────────────────────────────────
-  let event: { type: string; payload: Record<string, any> }
+  let event: { type: string; payload: YocoEventPayload }
   try {
     event = JSON.parse(rawBody)
   } catch {
@@ -100,6 +108,9 @@ export async function POST(req: NextRequest) {
           raw_payload:      event,
         })
         console.log(`[yoco-webhook] Subscription activated for user ${userId} until ${periodEnd.toISOString()}`)
+
+        // ── Affiliate commission ──────────────────────────────────────────
+        await recordAffiliateCommission(adminClient, payload)
         break
       }
 
@@ -137,4 +148,78 @@ export async function POST(req: NextRequest) {
 
   // Always return 200 — Yoco retries on non-2xx
   return NextResponse.json({ received: true })
+}
+
+/**
+ * Credits the referring affiliate for a successful payment.
+ *
+ * Reads affiliateId / commissionRate from the payment metadata (set at
+ * checkout). Idempotent: the unique constraint on
+ * affiliate_commissions.yoco_payment_id means a retried webhook can't
+ * double-credit — we only bump the affiliate's running total when a NEW
+ * commission row is actually inserted.
+ */
+async function recordAffiliateCommission(
+  admin: typeof adminClient,
+  payload: YocoEventPayload,
+) {
+  const { affiliateId, commissionRate, userId } = payload?.metadata ?? {}
+  if (!affiliateId) return
+
+  const amountCents = payload.amountInCents ?? 0
+  const rate = Number(commissionRate) || 0
+  const commissionCents = Math.round(amountCents * rate)
+  if (commissionCents <= 0) return
+
+  // Look up the referral row (for the FK + to flip it to 'converted')
+  const { data: referral } = await admin
+    .from('referrals')
+    .select('id')
+    .eq('referred_user_id', userId)
+    .maybeSingle()
+
+  // Insert the commission. onConflict on yoco_payment_id makes this idempotent.
+  const { data: inserted, error } = await admin
+    .from('affiliate_commissions')
+    .insert({
+      affiliate_id:     affiliateId,
+      referral_id:      referral?.id ?? null,
+      referred_user_id: userId ?? null,
+      yoco_payment_id:  payload.id,
+      amount_cents:     amountCents,
+      commission_cents: commissionCents,
+      status:           'pending',
+    })
+    .select('id')
+    .maybeSingle()
+
+  // Unique violation (23505) = webhook retry for a payment we already credited
+  if (error) {
+    if (error.code !== '23505') console.error('[yoco-webhook] commission insert error:', error.message)
+    return
+  }
+  if (!inserted) return
+
+  // Mark the referral converted
+  if (referral?.id) {
+    await admin
+      .from('referrals')
+      .update({ status: 'converted', converted_at: new Date().toISOString() })
+      .eq('id', referral.id)
+  }
+
+  // Bump the affiliate's lifetime earned total
+  const { data: aff } = await admin
+    .from('affiliates')
+    .select('total_earned_cents')
+    .eq('id', affiliateId)
+    .maybeSingle()
+  if (aff) {
+    await admin
+      .from('affiliates')
+      .update({ total_earned_cents: (aff.total_earned_cents ?? 0) + commissionCents })
+      .eq('id', affiliateId)
+  }
+
+  console.log(`[yoco-webhook] Commission ${commissionCents}c credited to affiliate ${affiliateId}`)
 }

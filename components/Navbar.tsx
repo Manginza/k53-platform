@@ -13,6 +13,7 @@ const LINKS = [
   { href: '/pricing',    label: 'Pricing' },
   { href: '/videos',     label: 'Videos' },
   { href: '/resources',  label: 'Resources' },
+  { href: '/affiliate',  label: 'Affiliate' },
 ]
 
 export default function Navbar() {

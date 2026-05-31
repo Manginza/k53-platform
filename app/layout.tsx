@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import { Suspense } from "react";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
+import ReferralCapture from "@/components/ReferralCapture";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -27,6 +29,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 min-h-screen`}>
+        <Suspense fallback={null}>
+          <ReferralCapture />
+        </Suspense>
         <Navbar />
         {children}
       </body>
