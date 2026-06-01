@@ -55,8 +55,11 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  // 3. Bind the grant to the new user.
-  const { error: bindErr } = await admin
+  // 3. Atomically claim the token for THIS account. The `status = 'ready'`
+  //    filter means only the FIRST registration succeeds — the link is locked
+  //    to one customer. A concurrent/second attempt updates 0 rows and is
+  //    rejected, and we roll back the account it just created so nothing dangles.
+  const { data: claimed, error: bindErr } = await admin
     .from('registration_tokens')
     .update({
       status: 'used',
@@ -65,11 +68,18 @@ export async function POST(req: NextRequest) {
       expires_at: grantExpiry(row.duration_days),
     })
     .eq('id', row.id)
-    .eq('status', 'ready')   // guard against a race / double-use
+    .eq('status', 'ready')
+    .select('id')
+    .maybeSingle()
 
-  if (bindErr) {
-    console.error('[register-with-token] grant bind error:', bindErr.message)
-    return NextResponse.json({ error: 'Account created but access could not be linked. Please contact support.' }, { status: 500 })
+  if (bindErr || !claimed) {
+    // Someone else already used this link (or the update failed) — undo the account.
+    await admin.auth.admin.deleteUser(created.user.id).catch(() => {})
+    if (bindErr) console.error('[register-with-token] grant bind error:', bindErr.message)
+    return NextResponse.json(
+      { error: 'This registration link has already been used. Please contact us for a new link.' },
+      { status: 409 },
+    )
   }
 
   return NextResponse.json({ ok: true })
