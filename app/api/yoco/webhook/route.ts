@@ -1,20 +1,21 @@
 /**
- * POST /api/yoco/webhook
+ * POST /api/yoco/webhook  (backup to the synchronous /api/yoco/confirm)
  *
- * On payment.succeeded, mark the registration token 'ready' so the buyer can
- * create their account at /register?token=…. Idempotent and resilient: if the
- * token row is missing (e.g. the create-checkout insert failed) it is created.
+ * On payment.succeeded, grant the buyer's account 60 days of access and record
+ * the affiliate commission. Idempotent: access is an upsert by user, and the
+ * commission is deduped by the checkout id (shared with the confirm route).
  *
  * Register this URL in Yoco Dashboard → Developers → Webhooks.
- * Uses SUPABASE_SERVICE_ROLE_KEY (bypasses RLS) — keep it secret.
  */
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase-admin'
 import { verifyYocoSignature } from '@/lib/yoco'
-import { REG_DURATION_DAYS } from '@/lib/registration'
+import { grantAccess } from '@/lib/access'
+import { ACCESS_DURATION_DAYS, ACCESS_PRICE_CENTS } from '@/lib/contact'
 
 interface YocoEventPayload {
   id?: string
+  checkoutId?: string
   amountInCents?: number
   metadata?: Record<string, string>
 }
@@ -45,15 +46,14 @@ export async function POST(req: NextRequest) {
 
   try {
     if (type === 'payment.succeeded') {
-      const token = payload?.metadata?.token
-      if (!token) {
-        console.error('[yoco-webhook] payment.succeeded with no token in metadata.')
+      const userId = payload?.metadata?.userId
+      if (userId) {
+        const days = Number(payload?.metadata?.durationDays) || ACCESS_DURATION_DAYS
+        await grantAccess(userId, days, 'payment')
+        console.log(`[yoco-webhook] Access granted to ${userId} for ${days} days.`)
       } else {
-        await markTokenReady(token, Number(payload?.metadata?.durationDays) || REG_DURATION_DAYS, payload?.id)
-        console.log(`[yoco-webhook] Registration token ${token} marked ready.`)
+        console.error('[yoco-webhook] payment.succeeded with no userId in metadata.')
       }
-
-      // Affiliate commission (30% of the payment), if attributed to one.
       await recordAffiliateCommission(payload)
     } else {
       console.log(`[yoco-webhook] Unhandled event type: ${type}`)
@@ -65,51 +65,22 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ received: true })
 }
 
-async function markTokenReady(token: string, durationDays: number, checkoutId?: string) {
-  const admin = createAdminClient()
-  const { data: existing } = await admin
-    .from('registration_tokens')
-    .select('id, status')
-    .eq('token', token)
-    .maybeSingle()
-
-  if (existing) {
-    // Don't downgrade an already-used token.
-    if (existing.status === 'pending') {
-      await admin.from('registration_tokens').update({ status: 'ready' }).eq('id', existing.id)
-    }
-    return
-  }
-
-  await admin.from('registration_tokens').insert({
-    token,
-    source: 'payment',
-    status: 'ready',
-    duration_days: durationDays,
-    label: 'Online payment (Yoco)',
-    yoco_checkout_id: checkoutId ?? null,
-    created_by: 'yoco',
-  })
-}
-
-/** Credit the referring affiliate 30% of the payment (idempotent per payment). */
 async function recordAffiliateCommission(payload: YocoEventPayload) {
   const affiliateId = payload?.metadata?.affiliateId
-  if (!affiliateId) return
-
-  const amountCents = payload.amountInCents ?? 0
   const rate = Number(payload?.metadata?.commissionRate) || 0
+  if (!affiliateId || rate <= 0) return
+
+  const amountCents = payload.amountInCents ?? ACCESS_PRICE_CENTS
   const commissionCents = Math.round(amountCents * rate)
   if (commissionCents <= 0) return
 
   const admin = createAdminClient()
-
-  // Idempotent: unique yoco_payment_id stops a retried webhook double-crediting.
   const { data: inserted, error } = await admin
     .from('affiliate_commissions')
     .insert({
       affiliate_id:     affiliateId,
-      yoco_payment_id:  payload.id,
+      yoco_checkout_id: payload.checkoutId ?? null,   // shared dedupe key with confirm
+      yoco_payment_id:  payload.id ?? null,
       amount_cents:     amountCents,
       commission_cents: commissionCents,
       status:           'pending',
@@ -123,12 +94,6 @@ async function recordAffiliateCommission(payload: YocoEventPayload) {
   }
   if (!inserted) return
 
-  // Bump the affiliate's lifetime earned total.
   const { data: aff } = await admin.from('affiliates').select('total_earned_cents').eq('id', affiliateId).maybeSingle()
-  if (aff) {
-    await admin.from('affiliates')
-      .update({ total_earned_cents: (aff.total_earned_cents ?? 0) + commissionCents })
-      .eq('id', affiliateId)
-  }
-  console.log(`[yoco-webhook] Commission ${commissionCents}c credited to affiliate ${affiliateId}.`)
+  if (aff) await admin.from('affiliates').update({ total_earned_cents: (aff.total_earned_cents ?? 0) + commissionCents }).eq('id', affiliateId)
 }

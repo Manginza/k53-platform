@@ -1,20 +1,16 @@
 /**
- * lib/access.ts — full-access gate (account-based).
+ * lib/access.ts — full-access gate (register-before-pay model).
  *
- * A visitor has full access if EITHER:
- *   - they are a logged-in admin, OR
- *   - they are a logged-in user holding a valid (used, unexpired) registration
- *     token grant.
- *
- * Server-only. The grant read uses the RLS-scoped server client (the user may
- * read their own token via the reg_tokens_own_read policy).
+ * Access is tied to a registered account via the access_grants table. A grant
+ * is created by a verified card payment or by an admin. hasFullAccess = admin
+ * OR a logged-in user with an active (unexpired) grant.
  */
 import { createClient } from '@/lib/supabase-server'
+import { createAdminClient } from '@/lib/supabase-admin'
 import { getAdminUser } from '@/lib/admin'
 
 /** Whether the current visitor may see paid content. */
 export async function hasFullAccess(): Promise<boolean> {
-  // Admins always have access.
   if (await getAdminUser()) return true
 
   const supabase = createClient()
@@ -22,14 +18,27 @@ export async function hasFullAccess(): Promise<boolean> {
   if (!user) return false
 
   const { data } = await supabase
-    .from('registration_tokens')
+    .from('access_grants')
     .select('expires_at')
-    .eq('used_by_user_id', user.id)
-    .eq('status', 'used')
+    .eq('user_id', user.id)
+    .maybeSingle()
 
-  if (!data || data.length === 0) return false
+  if (!data) return false
+  return !data.expires_at || new Date(data.expires_at).getTime() > Date.now()
+}
 
-  // Active if any grant is lifetime (null expiry) or not yet expired.
-  const now = Date.now()
-  return data.some(g => !g.expires_at || new Date(g.expires_at).getTime() > now)
+/**
+ * Grant (or extend) a user's access. Service-role write. Sets the window to
+ * now + durationDays (null = lifetime). Idempotent — safe to call from both
+ * the synchronous payment confirm and the webhook.
+ */
+export async function grantAccess(userId: string, durationDays: number | null, source = 'payment') {
+  const admin = createAdminClient()
+  const expires = durationDays == null
+    ? null
+    : new Date(Date.now() + durationDays * 24 * 60 * 60 * 1000).toISOString()
+  await admin.from('access_grants').upsert(
+    { user_id: userId, expires_at: expires, source, updated_at: new Date().toISOString() },
+    { onConflict: 'user_id' },
+  )
 }

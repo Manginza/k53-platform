@@ -1,14 +1,11 @@
 /**
  * /admin — admin dashboard (allowlisted accounts only).
- *
- * Generate registration links to send to paying members, and revoke/delete
- * them. Non-admins are redirected to the login page.
+ * Grant full access to members by email (e.g. WhatsApp payers) and revoke it.
  */
 import { redirect } from 'next/navigation'
 import { getAdminUser } from '@/lib/admin'
 import { createAdminClient } from '@/lib/supabase-admin'
-import AdminDashboard from '@/components/admin/AdminDashboard'
-import type { RegistrationToken } from '@/lib/types'
+import AdminDashboard, { type AdminGrant } from '@/components/admin/AdminDashboard'
 
 export const dynamic = 'force-dynamic'
 
@@ -17,16 +14,18 @@ export default async function AdminPage() {
   if (!admin) redirect('/login')
 
   const db = createAdminClient()
-  const { data: tokens } = await db
-    .from('registration_tokens')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(500)
+  const [{ data: grants }, { data: list }] = await Promise.all([
+    db.from('access_grants').select('*').order('updated_at', { ascending: false }).limit(500),
+    db.auth.admin.listUsers({ perPage: 1000 }),
+  ])
 
-  return (
-    <AdminDashboard
-      adminEmail={admin.email ?? ''}
-      initialTokens={(tokens as RegistrationToken[]) ?? []}
-    />
-  )
+  const emailById = new Map((list?.users ?? []).map(u => [u.id, u.email ?? '']))
+  const rows: AdminGrant[] = (grants ?? []).map(g => ({
+    user_id: g.user_id,
+    email: emailById.get(g.user_id) ?? g.user_id,
+    expires_at: g.expires_at,
+    source: g.source,
+  }))
+
+  return <AdminDashboard adminEmail={admin.email ?? ''} initialGrants={rows} />
 }

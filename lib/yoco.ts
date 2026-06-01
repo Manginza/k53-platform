@@ -69,6 +69,33 @@ export async function createYocoCheckout(
   return res.json() as Promise<YocoCheckout>
 }
 
+// ─── Fetch Checkout (verify payment on return) ────────────────────────────────
+
+export interface YocoCheckoutDetail {
+  id: string
+  status: string                       // 'created' | 'started' | 'processing' | 'completed' | 'expired'
+  paymentId?: string | null
+  metadata?: Record<string, string>
+}
+
+/** Fetches a checkout so we can verify it was paid before granting access. */
+export async function getYocoCheckout(id: string): Promise<YocoCheckoutDetail | null> {
+  const secretKey = process.env.YOCO_SECRET_KEY
+  if (!secretKey) throw new Error('YOCO_SECRET_KEY is not set')
+
+  const res = await fetch(`${YOCO_API}/checkouts/${id}`, {
+    headers: { Authorization: `Bearer ${secretKey}` },
+  })
+  if (!res.ok) return null
+  return res.json() as Promise<YocoCheckoutDetail>
+}
+
+/** True when a fetched checkout represents a completed/paid transaction. */
+export function isYocoCheckoutPaid(c: YocoCheckoutDetail | null): boolean {
+  if (!c) return false
+  return c.status === 'completed' || !!c.paymentId
+}
+
 // ─── Webhook Signature Verification ──────────────────────────────────────────
 
 /**

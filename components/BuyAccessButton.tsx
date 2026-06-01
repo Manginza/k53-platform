@@ -1,24 +1,33 @@
 'use client'
 
 /**
- * BuyAccessButton — primary "Pay R150" action. Creates a Yoco checkout and
- * redirects the buyer to Yoco's hosted payment page. On failure it surfaces a
- * message (WhatsApp remains available as the alternative).
+ * BuyAccessButton — primary "Pay R150" action. Requires a logged-in account;
+ * if not logged in, sends the visitor to register first. Stashes the Yoco
+ * checkout id so the success page can confirm the payment and grant access.
  */
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { ACCESS_PRICE, ACCESS_DURATION_DAYS } from '@/lib/contact'
 
 export default function BuyAccessButton({ className = '' }: { className?: string }) {
+  const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   async function pay() {
-    setLoading(true)
-    setError('')
+    setLoading(true); setError('')
     try {
       const res = await fetch('/api/yoco/create-checkout', { method: 'POST' })
+      if (res.status === 401) {
+        // Not logged in — register/log in first, then come back to pay.
+        router.push('/register?next=/pricing')
+        return
+      }
       const body = await res.json()
       if (!res.ok || !body.redirectUrl) throw new Error(body.error ?? 'Could not start payment.')
+      if (body.checkoutId) {
+        try { localStorage.setItem('sk_checkout', body.checkoutId) } catch {}
+      }
       window.location.href = body.redirectUrl
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not start payment. Please try WhatsApp.')
