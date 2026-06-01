@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
-import { WHATSAPP_URL, ACCESS_PRICE } from '@/lib/contact'
+import { ACCESS_PRICE } from '@/lib/contact'
 import { isAdminEmail } from '@/lib/admin-emails'
 import type { User } from '@supabase/supabase-js'
 
@@ -91,14 +91,12 @@ export default function Navbar() {
               </button>
             </>
           ) : (
-            <a
-              href={WHATSAPP_URL}
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              href="/pricing"
               className="bg-green-500 text-white font-semibold px-3 py-1.5 rounded-lg text-xs hover:bg-green-600 transition-colors"
             >
               Get full access · {ACCESS_PRICE}
-            </a>
+            </Link>
           )}
         </div>
 
@@ -151,14 +149,12 @@ export default function Navbar() {
                 </button>
               </div>
             ) : (
-              <a
-                href={WHATSAPP_URL}
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                href="/pricing"
                 className="block text-center bg-green-500 text-white font-semibold py-3 rounded-xl text-sm hover:bg-green-600 transition-colors"
               >
                 Get full access · {ACCESS_PRICE}
-              </a>
+              </Link>
             )}
           </div>
         </div>

@@ -11,4 +11,5 @@ export const WHATSAPP_URL =
 
 /** Headline price for full access. */
 export const ACCESS_PRICE = 'R150'
+export const ACCESS_PRICE_CENTS = 15000   // R150.00 in ZAR cents (Yoco)
 export const ACCESS_DURATION_DAYS = 60
