@@ -65,12 +65,13 @@ export default function PricingPage() {
             Pay via WhatsApp instead
           </a>
 
-          <Link href="/redeem" className="block text-center text-blue-700 font-semibold py-3 mt-1 hover:underline text-sm">
-            I already have an access code
+          <Link href="/login" className="block text-center text-blue-700 font-semibold py-3 mt-1 hover:underline text-sm">
+            Already have an account? Log in
           </Link>
 
           <p className="text-xs text-gray-400 text-center mt-2">
-            Pay securely by card with Yoco, or message us on WhatsApp and we&apos;ll send your access code.
+            Pay securely by card with Yoco (then create your account), or message us on WhatsApp and
+            we&apos;ll send you a registration link.
           </p>
         </div>
       </div>

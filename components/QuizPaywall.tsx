@@ -39,8 +39,8 @@ export default function QuizPaywall({ courseId }: { courseId: number }) {
           Pay via WhatsApp instead
         </a>
 
-        <Link href="/redeem" className="block w-full text-blue-700 font-semibold py-3 mt-2 hover:underline text-sm">
-          I already have an access code
+        <Link href="/login" className="block w-full text-blue-700 font-semibold py-3 mt-2 hover:underline text-sm">
+          Already have an account? Log in
         </Link>
         <Link href={`/courses/${courseId}`} className="block w-full text-gray-500 font-medium py-1 hover:text-gray-700 transition-colors text-sm">
           Back to course

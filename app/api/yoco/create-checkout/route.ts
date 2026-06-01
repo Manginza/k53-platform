@@ -2,20 +2,20 @@
  * POST /api/yoco/create-checkout
  *
  * Creates a Yoco Hosted Checkout for the R150 / 60-day full-access pass.
- * No login required — purchase is anonymous. We generate an access code up
- * front and pass it in the Yoco metadata + success URL. On payment success
- * the webhook activates that code, and the success page redeems it onto the
- * buyer's device (httpOnly cookie). WhatsApp remains an alternative.
+ * No login required. We pre-create a 'pending' registration token and pass it
+ * in the Yoco metadata + success URL. On payment success the webhook marks the
+ * token 'ready', and the success page sends the buyer to /register?token=… to
+ * create their account and unlock access.
  *
- * Returns { redirectUrl, code }.
+ * Returns { redirectUrl, token }.
  */
 import { NextResponse } from 'next/server'
 import { createYocoCheckout } from '@/lib/yoco'
-import { generateAccessCode } from '@/lib/access'
-import { ACCESS_PRICE_CENTS, ACCESS_DURATION_DAYS } from '@/lib/contact'
+import { createAdminClient } from '@/lib/supabase-admin'
+import { generateRegistrationToken, REG_DURATION_DAYS } from '@/lib/registration'
+import { ACCESS_PRICE_CENTS } from '@/lib/contact'
 
-const BASE_URL =
-  process.env.NEXT_PUBLIC_BASE_URL ?? 'https://www.skdriving.co.za'
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://www.skdriving.co.za'
 
 export async function POST() {
   if (!process.env.YOCO_SECRET_KEY) {
@@ -25,22 +25,17 @@ export async function POST() {
     )
   }
 
-  // Pre-generate the access code the buyer will receive on success.
-  const code = generateAccessCode()
+  const token = generateRegistrationToken()
 
+  let checkout
   try {
-    const checkout = await createYocoCheckout({
+    checkout = await createYocoCheckout({
       amountInCents: ACCESS_PRICE_CENTS,
-      successUrl: `${BASE_URL}/subscribe/success?code=${encodeURIComponent(code)}`,
+      successUrl: `${BASE_URL}/subscribe/success?token=${token}`,
       cancelUrl:  `${BASE_URL}/pricing`,
       failureUrl: `${BASE_URL}/subscribe/failed`,
-      metadata: {
-        code,
-        durationDays: String(ACCESS_DURATION_DAYS),
-        product: 'full-access-60day',
-      },
+      metadata: { token, durationDays: String(REG_DURATION_DAYS), product: 'full-access-60day' },
     })
-    return NextResponse.json({ redirectUrl: checkout.redirectUrl, code })
   } catch (err) {
     console.error('[create-checkout] Yoco error:', err instanceof Error ? err.message : err)
     return NextResponse.json(
@@ -48,4 +43,19 @@ export async function POST() {
       { status: 502 },
     )
   }
+
+  // Record a pending token (webhook will mark it 'ready' on payment success).
+  const admin = createAdminClient()
+  const { error } = await admin.from('registration_tokens').insert({
+    token,
+    source: 'payment',
+    status: 'pending',
+    duration_days: REG_DURATION_DAYS,
+    label: 'Online payment (Yoco)',
+    yoco_checkout_id: checkout.id,
+    created_by: 'yoco',
+  })
+  if (error) console.error('[create-checkout] token insert error:', error.message)
+
+  return NextResponse.json({ redirectUrl: checkout.redirectUrl, token })
 }

@@ -1,10 +1,9 @@
 /**
  * POST /api/yoco/webhook
  *
- * Receives Yoco payment events. On payment.succeeded we activate the access
- * code that was generated at checkout (passed in metadata), giving the buyer
- * 60 days of full access. Idempotent: re-runs upsert the same code by its
- * unique value.
+ * On payment.succeeded, mark the registration token 'ready' so the buyer can
+ * create their account at /register?token=…. Idempotent and resilient: if the
+ * token row is missing (e.g. the create-checkout insert failed) it is created.
  *
  * Register this URL in Yoco Dashboard → Developers → Webhooks.
  * Uses SUPABASE_SERVICE_ROLE_KEY (bypasses RLS) — keep it secret.
@@ -12,18 +11,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase-admin'
 import { verifyYocoSignature } from '@/lib/yoco'
-import { ACCESS_DURATION_DAYS } from '@/lib/contact'
+import { REG_DURATION_DAYS } from '@/lib/registration'
 
 interface YocoEventPayload {
   id?: string
-  amountInCents?: number
   metadata?: Record<string, string>
 }
 
 export async function POST(req: NextRequest) {
   const rawBody = await req.text()
 
-  // ── Signature verification ───────────────────────────────────────────────
   const secret = process.env.YOCO_WEBHOOK_SECRET
   if (secret) {
     const sig = req.headers.get('X-Yoco-Signature') ?? ''
@@ -47,13 +44,12 @@ export async function POST(req: NextRequest) {
 
   try {
     if (type === 'payment.succeeded') {
-      const code = payload?.metadata?.code
-      if (!code) {
-        console.error('[yoco-webhook] payment.succeeded with no access code in metadata.')
+      const token = payload?.metadata?.token
+      if (!token) {
+        console.error('[yoco-webhook] payment.succeeded with no token in metadata.')
       } else {
-        const days = Number(payload?.metadata?.durationDays) || ACCESS_DURATION_DAYS
-        await activateAccessCode(code, days)
-        console.log(`[yoco-webhook] Access code ${code} activated for ${days} days.`)
+        await markTokenReady(token, Number(payload?.metadata?.durationDays) || REG_DURATION_DAYS, payload?.id)
+        console.log(`[yoco-webhook] Registration token ${token} marked ready.`)
       }
     } else {
       console.log(`[yoco-webhook] Unhandled event type: ${type}`)
@@ -62,43 +58,32 @@ export async function POST(req: NextRequest) {
     console.error('[yoco-webhook] Processing error:', err instanceof Error ? err.message : err)
   }
 
-  // Always 200 so Yoco does not retry indefinitely.
   return NextResponse.json({ received: true })
 }
 
-/** Create or activate a paid access code with a fresh 60-day window. */
-async function activateAccessCode(code: string, durationDays: number) {
+async function markTokenReady(token: string, durationDays: number, checkoutId?: string) {
   const admin = createAdminClient()
-  const now = new Date()
-  const end = new Date(now)
-  end.setDate(end.getDate() + durationDays)
-
   const { data: existing } = await admin
-    .from('access_codes')
-    .select('id, activated_at')
-    .eq('code', code)
+    .from('registration_tokens')
+    .select('id, status')
+    .eq('token', token)
     .maybeSingle()
 
   if (existing) {
-    // Only start the clock once (idempotent on webhook retries).
-    if (!existing.activated_at) {
-      await admin
-        .from('access_codes')
-        .update({ status: 'active', activated_at: now.toISOString(), expires_at: end.toISOString() })
-        .eq('id', existing.id)
-    } else {
-      await admin.from('access_codes').update({ status: 'active' }).eq('id', existing.id)
+    // Don't downgrade an already-used token.
+    if (existing.status === 'pending') {
+      await admin.from('registration_tokens').update({ status: 'ready' }).eq('id', existing.id)
     }
     return
   }
 
-  await admin.from('access_codes').insert({
-    code,
-    label: 'Online payment (Yoco)',
-    status: 'active',
+  await admin.from('registration_tokens').insert({
+    token,
+    source: 'payment',
+    status: 'ready',
     duration_days: durationDays,
-    activated_at: now.toISOString(),
-    expires_at: end.toISOString(),
+    label: 'Online payment (Yoco)',
+    yoco_checkout_id: checkoutId ?? null,
     created_by: 'yoco',
   })
 }

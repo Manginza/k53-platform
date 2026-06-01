@@ -1,24 +1,24 @@
 /**
  * /admin — admin dashboard (allowlisted accounts only).
  *
- * Generate, revoke and delete member access codes. Non-admins are redirected
- * to the login page.
+ * Generate registration links to send to paying members, and revoke/delete
+ * them. Non-admins are redirected to the login page.
  */
 import { redirect } from 'next/navigation'
 import { getAdminUser } from '@/lib/admin'
 import { createAdminClient } from '@/lib/supabase-admin'
 import AdminDashboard from '@/components/admin/AdminDashboard'
-import type { AccessCode } from '@/lib/types'
+import type { RegistrationToken } from '@/lib/types'
 
 export const dynamic = 'force-dynamic'
 
 export default async function AdminPage() {
   const admin = await getAdminUser()
-  if (!admin) redirect('/login?next=/admin')
+  if (!admin) redirect('/login')
 
   const db = createAdminClient()
-  const { data: codes } = await db
-    .from('access_codes')
+  const { data: tokens } = await db
+    .from('registration_tokens')
     .select('*')
     .order('created_at', { ascending: false })
     .limit(500)
@@ -26,7 +26,7 @@ export default async function AdminPage() {
   return (
     <AdminDashboard
       adminEmail={admin.email ?? ''}
-      initialCodes={(codes as AccessCode[]) ?? []}
+      initialTokens={(tokens as RegistrationToken[]) ?? []}
     />
   )
 }

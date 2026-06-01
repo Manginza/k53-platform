@@ -77,3 +77,18 @@ export interface AccessCode {
   created_by: string | null
   created_at: string
 }
+
+export interface RegistrationToken {
+  id: string
+  token: string
+  source: 'payment' | 'admin'
+  status: 'pending' | 'ready' | 'used' | 'revoked'
+  duration_days: number | null
+  label: string | null
+  used_by_user_id: string | null
+  used_at: string | null
+  expires_at: string | null
+  created_by: string | null
+  yoco_checkout_id: string | null
+  created_at: string
+}

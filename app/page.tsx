@@ -122,8 +122,8 @@ export default async function Home() {
                 </svg>
                 Pay via WhatsApp instead
               </a>
-              <Link href="/redeem" className="block text-blue-700 font-semibold mt-3 hover:underline text-sm">
-                I already have an access code
+              <Link href="/login" className="block text-blue-700 font-semibold mt-3 hover:underline text-sm">
+                Already have an account? Log in
               </Link>
             </div>
           )}
