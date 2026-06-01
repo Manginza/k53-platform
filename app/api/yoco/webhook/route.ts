@@ -15,6 +15,7 @@ import { REG_DURATION_DAYS } from '@/lib/registration'
 
 interface YocoEventPayload {
   id?: string
+  amountInCents?: number
   metadata?: Record<string, string>
 }
 
@@ -51,6 +52,9 @@ export async function POST(req: NextRequest) {
         await markTokenReady(token, Number(payload?.metadata?.durationDays) || REG_DURATION_DAYS, payload?.id)
         console.log(`[yoco-webhook] Registration token ${token} marked ready.`)
       }
+
+      // Affiliate commission (30% of the payment), if attributed to one.
+      await recordAffiliateCommission(payload)
     } else {
       console.log(`[yoco-webhook] Unhandled event type: ${type}`)
     }
@@ -86,4 +90,45 @@ async function markTokenReady(token: string, durationDays: number, checkoutId?: 
     yoco_checkout_id: checkoutId ?? null,
     created_by: 'yoco',
   })
+}
+
+/** Credit the referring affiliate 30% of the payment (idempotent per payment). */
+async function recordAffiliateCommission(payload: YocoEventPayload) {
+  const affiliateId = payload?.metadata?.affiliateId
+  if (!affiliateId) return
+
+  const amountCents = payload.amountInCents ?? 0
+  const rate = Number(payload?.metadata?.commissionRate) || 0
+  const commissionCents = Math.round(amountCents * rate)
+  if (commissionCents <= 0) return
+
+  const admin = createAdminClient()
+
+  // Idempotent: unique yoco_payment_id stops a retried webhook double-crediting.
+  const { data: inserted, error } = await admin
+    .from('affiliate_commissions')
+    .insert({
+      affiliate_id:     affiliateId,
+      yoco_payment_id:  payload.id,
+      amount_cents:     amountCents,
+      commission_cents: commissionCents,
+      status:           'pending',
+    })
+    .select('id')
+    .maybeSingle()
+
+  if (error) {
+    if (error.code !== '23505') console.error('[yoco-webhook] commission insert error:', error.message)
+    return
+  }
+  if (!inserted) return
+
+  // Bump the affiliate's lifetime earned total.
+  const { data: aff } = await admin.from('affiliates').select('total_earned_cents').eq('id', affiliateId).maybeSingle()
+  if (aff) {
+    await admin.from('affiliates')
+      .update({ total_earned_cents: (aff.total_earned_cents ?? 0) + commissionCents })
+      .eq('id', affiliateId)
+  }
+  console.log(`[yoco-webhook] Commission ${commissionCents}c credited to affiliate ${affiliateId}.`)
 }

@@ -10,9 +10,11 @@
  * Returns { redirectUrl, token }.
  */
 import { NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
 import { createYocoCheckout } from '@/lib/yoco'
 import { createAdminClient } from '@/lib/supabase-admin'
 import { generateRegistrationToken, REG_DURATION_DAYS } from '@/lib/registration'
+import { REF_COOKIE } from '@/lib/affiliate'
 import { ACCESS_PRICE_CENTS } from '@/lib/contact'
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://www.skdriving.co.za'
@@ -27,6 +29,24 @@ export async function POST() {
 
   const token = generateRegistrationToken()
 
+  // Affiliate attribution: if the visitor arrived via a referral link, pass the
+  // affiliate into the Yoco metadata so the webhook can credit their 30%.
+  const admin = createAdminClient()
+  const refCode = cookies().get(REF_COOKIE)?.value
+  const affiliateMeta: Record<string, string> = {}
+  if (refCode) {
+    const { data: aff } = await admin
+      .from('affiliates')
+      .select('id, commission_rate')
+      .eq('code', refCode)
+      .eq('status', 'active')
+      .maybeSingle()
+    if (aff) {
+      affiliateMeta.affiliateId = aff.id
+      affiliateMeta.commissionRate = String(aff.commission_rate)
+    }
+  }
+
   let checkout
   try {
     checkout = await createYocoCheckout({
@@ -34,7 +54,7 @@ export async function POST() {
       successUrl: `${BASE_URL}/subscribe/success?token=${token}`,
       cancelUrl:  `${BASE_URL}/pricing`,
       failureUrl: `${BASE_URL}/subscribe/failed`,
-      metadata: { token, durationDays: String(REG_DURATION_DAYS), product: 'full-access-60day' },
+      metadata: { token, durationDays: String(REG_DURATION_DAYS), product: 'full-access-60day', ...affiliateMeta },
     })
   } catch (err) {
     console.error('[create-checkout] Yoco error:', err instanceof Error ? err.message : err)
@@ -45,7 +65,6 @@ export async function POST() {
   }
 
   // Record a pending token (webhook will mark it 'ready' on payment success).
-  const admin = createAdminClient()
   const { error } = await admin.from('registration_tokens').insert({
     token,
     source: 'payment',

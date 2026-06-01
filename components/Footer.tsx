@@ -27,8 +27,11 @@ export default function Footer() {
             >
               Get full access on WhatsApp
             </a>
-            <Link href="/redeem" className="text-sm text-gray-400 hover:text-white transition-colors">
-              I have an access code →
+            <Link href="/pricing" className="text-sm text-gray-400 hover:text-white transition-colors">
+              Pay by card →
+            </Link>
+            <Link href="/affiliate" className="text-sm text-gray-400 hover:text-white transition-colors">
+              Earn 30% — become an affiliate →
             </Link>
           </div>
         </div>
