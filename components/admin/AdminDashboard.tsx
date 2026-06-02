@@ -6,6 +6,7 @@
  */
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase-browser'
 
 export interface AdminGrant {
@@ -72,7 +73,10 @@ export default function AdminDashboard({
           <h1 className="text-2xl font-extrabold text-blue-700">Admin dashboard</h1>
           <p className="text-sm text-gray-500 truncate">{adminEmail}</p>
         </div>
-        <button onClick={logout} className="text-sm font-semibold text-gray-600 border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-gray-50 shrink-0">Log out</button>
+        <div className="flex items-center gap-2 shrink-0">
+          <Link href="/admin/payouts" className="text-sm font-semibold text-blue-700 border border-blue-200 rounded-lg px-3 py-1.5 hover:bg-blue-50">Affiliate payouts</Link>
+          <button onClick={logout} className="text-sm font-semibold text-gray-600 border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-gray-50">Log out</button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
