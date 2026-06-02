@@ -1,9 +1,12 @@
 'use client'
 
 /**
- * /register — open account registration. Anyone can sign up; the account has
- * no access until payment. After registering we sign them in and send them to
- * the pricing page to pay (or to ?next if provided).
+ * /register — account registration.
+ *
+ * - With ?token=… (admin signup link): single-use, locked to this first email;
+ *   registering grants 60-day access immediately → sent to /courses.
+ * - Without a token (open): anyone can sign up, but the account has NO access
+ *   until payment → sent to /pricing to pay.
  */
 import { Suspense, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -12,7 +15,9 @@ import { createClient } from '@/lib/supabase-browser'
 
 function RegisterForm() {
   const router = useRouter()
-  const next = useSearchParams().get('next') || '/pricing'
+  const params = useSearchParams()
+  const token = params.get('token') || ''
+  const next = params.get('next') || '/pricing'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -22,15 +27,18 @@ function RegisterForm() {
     e.preventDefault()
     setLoading(true); setError('')
     try {
-      const res = await fetch('/api/auth/register', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }),
+      const endpoint = token ? '/api/auth/register-with-token' : '/api/auth/register'
+      const res = await fetch(endpoint, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(token ? { token, email, password } : { email, password }),
       })
       const body = await res.json()
       if (!res.ok) throw new Error(body.error ?? 'Could not create your account.')
 
       const { error: signInErr } = await createClient().auth.signInWithPassword({ email, password })
       if (signInErr) { router.push('/login'); return }
-      router.push(next)
+      // Token signups already have access → go straight to courses.
+      router.push(token ? '/courses' : next)
       router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong.')
@@ -41,7 +49,11 @@ function RegisterForm() {
   return (
     <div className="bg-white rounded-2xl shadow-md p-8 w-full max-w-md">
       <h1 className="text-2xl font-extrabold text-blue-700 mb-1 text-center">Create your account</h1>
-      <p className="text-sm text-gray-500 text-center mb-6">It&apos;s free to register. Unlock full access for R150 once you&apos;re in.</p>
+      <p className="text-sm text-gray-500 text-center mb-6">
+        {token
+          ? 'Your account unlocks 60 days of full access. This link works once, for this email only.'
+          : "It's free to register. Unlock full access for R150 once you're in."}
+      </p>
 
       <form onSubmit={submit} className="space-y-4">
         <div>
@@ -57,7 +69,7 @@ function RegisterForm() {
         {error && <p className="text-red-500 text-sm">{error}</p>}
         <button type="submit" disabled={loading}
           className="w-full bg-blue-700 text-white font-semibold py-2.5 rounded-lg hover:bg-blue-800 transition-colors disabled:opacity-60">
-          {loading ? 'Creating account…' : 'Create account'}
+          {loading ? 'Creating account…' : token ? 'Create account & unlock access' : 'Create account'}
         </button>
       </form>
 
