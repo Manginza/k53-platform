@@ -31,13 +31,13 @@ export async function POST() {
     return NextResponse.json({ error: 'Please create an account or log in before paying.' }, { status: 401 })
   }
 
-  // Affiliate attribution from the referral cookie.
+  // Affiliate attribution from the referral cookie (no self-referrals).
   const refCode = cookies().get(REF_COOKIE)?.value
   const affiliateMeta: Record<string, string> = {}
   if (refCode) {
     const { data: aff } = await createAdminClient()
-      .from('affiliates').select('id, commission_rate').eq('code', refCode).eq('status', 'active').maybeSingle()
-    if (aff) {
+      .from('affiliates').select('id, user_id, commission_rate').eq('code', refCode).eq('status', 'active').maybeSingle()
+    if (aff && aff.user_id !== user.id) {
       affiliateMeta.affiliateId = aff.id
       affiliateMeta.commissionRate = String(aff.commission_rate)
     }

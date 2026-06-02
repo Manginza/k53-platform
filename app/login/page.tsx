@@ -19,13 +19,26 @@ export default function LoginPage() {
     setError('')
     setLoading(true)
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
       setError(error.message)
       setLoading(false)
       return
     }
-    router.push(isAdminEmail(email) ? '/admin' : '/courses')
+
+    // Route by role: admin → admin, affiliate → affiliate dashboard, else courses.
+    let dest = '/courses'
+    if (isAdminEmail(email)) {
+      dest = '/admin'
+    } else if (data.user) {
+      const { data: aff } = await supabase
+        .from('affiliates')
+        .select('id')
+        .eq('user_id', data.user.id)
+        .maybeSingle()
+      if (aff) dest = '/affiliate'
+    }
+    router.push(dest)
     router.refresh()
   }
 
@@ -64,6 +77,10 @@ export default function LoginPage() {
         <p className="text-sm text-center text-gray-500 mt-6">
           Don&apos;t have an account? Get full access on the{' '}
           <Link href="/pricing" className="text-blue-700 font-medium hover:underline">pricing page</Link>.
+        </p>
+        <p className="text-sm text-center text-gray-500 mt-2">
+          Want to earn? Join the{' '}
+          <Link href="/affiliate" className="text-blue-700 font-medium hover:underline">affiliate programme</Link>.
         </p>
       </div>
     </div>
