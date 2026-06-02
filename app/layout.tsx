@@ -5,6 +5,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ReferralCapture from "@/components/ReferralCapture";
+import CookieBanner from "@/components/CookieBanner";
 
 const geistSans = localFont({
     src: "./fonts/GeistVF.woff",
@@ -71,6 +72,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                         <Navbar />
                   {children}
                         <Footer />
+                        <CookieBanner />
                 </body>
           </html>
         );
