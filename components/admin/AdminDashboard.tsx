@@ -146,7 +146,23 @@ export default function AdminDashboard({
         </div>
       </section>
 
-      {/* ── 2. Signup links ── */}
+      {/* ── 2. Admin Pass Link ── */}
+      <section className="space-y-3">
+        <h2 className="font-extrabold text-gray-900">Admin Pass</h2>
+        <div className="bg-white rounded-2xl shadow-md p-5 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div>
+            <p className="text-xs text-gray-500 mb-1">
+              Anyone with this link can register and get 60 days of free access automatically.
+            </p>
+            <div className="font-mono text-xs break-all text-blue-700">{origin}/admin-pass</div>
+          </div>
+          <button onClick={() => copy(`${origin}/admin-pass`, 'adminpass')} className="text-xs font-semibold bg-blue-700 text-white px-4 py-2 rounded-lg shrink-0">
+            {copied === 'adminpass' ? 'Copied!' : 'Copy Link'}
+          </button>
+        </div>
+      </section>
+
+      {/* ── 3. Signup links ── */}
       <section className="space-y-3">
         <h2 className="font-extrabold text-gray-900">Signup links</h2>
         <div className="bg-white rounded-2xl shadow-md p-5">
