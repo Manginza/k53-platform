@@ -7,7 +7,7 @@
  */
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ACCESS_PRICE, ACCESS_DURATION_DAYS } from '@/lib/contact'
+import { ACCESS_PRICE, ACCESS_PRICE_ORIGINAL, ACCESS_DURATION_DAYS } from '@/lib/contact'
 
 export default function BuyAccessButton({ className = '' }: { className?: string }) {
   const router = useRouter()
@@ -42,7 +42,15 @@ export default function BuyAccessButton({ className = '' }: { className?: string
         disabled={loading}
         className="flex items-center justify-center gap-2 w-full bg-blue-700 text-white font-bold py-3.5 rounded-xl hover:bg-blue-800 transition-colors disabled:opacity-60"
       >
-        {loading ? 'Redirecting to payment…' : `Pay ${ACCESS_PRICE} — ${ACCESS_DURATION_DAYS} days · card`}
+        {loading ? (
+          'Redirecting to payment…'
+        ) : (
+          <>
+            Pay <span className="line-through opacity-70 font-normal">{ACCESS_PRICE_ORIGINAL}</span>
+            <span>{ACCESS_PRICE}</span>
+            <span className="font-normal opacity-80">· {ACCESS_DURATION_DAYS} days · card</span>
+          </>
+        )}
       </button>
       {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
     </div>

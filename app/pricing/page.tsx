@@ -1,6 +1,9 @@
 import Link from 'next/link'
 import BuyAccessButton from '@/components/BuyAccessButton'
-import { WHATSAPP_URL, ACCESS_PRICE, ACCESS_DURATION_DAYS } from '@/lib/contact'
+import {
+  WHATSAPP_URL, ACCESS_PRICE, ACCESS_PRICE_ORIGINAL,
+  ACCESS_DISCOUNT_LABEL, ACCESS_DURATION_DAYS,
+} from '@/lib/contact'
 
 export const metadata = {
   title: 'Get Full Access — K53 Learner\'s',
@@ -22,18 +25,32 @@ export default function PricingPage() {
         <span className="text-xs font-bold tracking-widest uppercase text-blue-200 block mb-3">SK Driving</span>
         <h1 className="text-3xl sm:text-4xl font-extrabold mb-3 leading-tight">Pass Your K53 First Time</h1>
         <p className="text-blue-100 text-base sm:text-lg max-w-xl mx-auto">
-          Try any test free for 3 minutes. Unlock everything for {ACCESS_PRICE}.
+          Try any test free for 3 minutes. Unlock everything for{' '}
+          <span className="line-through opacity-60 mr-1">{ACCESS_PRICE_ORIGINAL}</span>
+          <span className="font-extrabold text-white">{ACCESS_PRICE}</span>.
         </p>
+        <span className="inline-block mt-3 bg-yellow-300 text-blue-900 text-xs font-extrabold tracking-wide uppercase px-3 py-1 rounded-full">
+          Special · {ACCESS_DISCOUNT_LABEL}
+        </span>
       </div>
 
       <div className="max-w-md mx-auto px-4 py-10">
-        <div className="bg-white rounded-2xl border-2 border-blue-600 shadow-lg p-7">
+        <div className="relative bg-white rounded-2xl border-2 border-blue-600 shadow-lg p-7">
+          {/* Discount ribbon */}
+          <span className="absolute -top-3 right-5 bg-red-600 text-white text-xs font-extrabold tracking-wider uppercase px-3 py-1 rounded-full shadow">
+            {ACCESS_DISCOUNT_LABEL}
+          </span>
+
           <div className="text-center mb-5">
             <div className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-1">Full Access</div>
-            <div className="flex items-end justify-center gap-1">
-              <span className="text-4xl font-extrabold text-gray-900">{ACCESS_PRICE}</span>
+            <div className="flex items-end justify-center gap-2">
+              <span className="text-2xl font-semibold text-gray-400 line-through mb-1">{ACCESS_PRICE_ORIGINAL}</span>
+              <span className="text-4xl font-extrabold text-blue-700">{ACCESS_PRICE}</span>
               <span className="text-sm text-gray-400 mb-1">/ {ACCESS_DURATION_DAYS} days</span>
             </div>
+            <p className="text-xs font-semibold text-red-600 mt-1">
+              Limited-time price — down from {ACCESS_PRICE_ORIGINAL}
+            </p>
           </div>
 
           <ul className="space-y-2 mb-6">

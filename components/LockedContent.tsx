@@ -5,7 +5,7 @@
  */
 import Link from 'next/link'
 import BuyAccessButton from '@/components/BuyAccessButton'
-import { WHATSAPP_URL, ACCESS_PRICE, ACCESS_DURATION_DAYS } from '@/lib/contact'
+import { WHATSAPP_URL, ACCESS_PRICE, ACCESS_PRICE_ORIGINAL, ACCESS_DURATION_DAYS } from '@/lib/contact'
 
 export default function LockedContent({
   feature,
@@ -24,7 +24,14 @@ export default function LockedContent({
         <ul className="text-left text-sm text-gray-600 space-y-2 mb-7 max-w-xs mx-auto">
           <li className="flex gap-2"><span className="text-green-600">✓</span> Unlimited timed practice tests</li>
           <li className="flex gap-2"><span className="text-green-600">✓</span> Full Live Notes, resources &amp; videos</li>
-          <li className="flex gap-2"><span className="text-green-600">✓</span> {ACCESS_PRICE} · {ACCESS_DURATION_DAYS} days full access</li>
+          <li className="flex gap-2">
+            <span className="text-green-600">✓</span>
+            <span>
+              <span className="line-through text-gray-400 mr-1">{ACCESS_PRICE_ORIGINAL}</span>
+              <strong className="text-blue-700">{ACCESS_PRICE}</strong>
+              {' '}· {ACCESS_DURATION_DAYS} days full access
+            </span>
+          </li>
         </ul>
 
         {/* Primary: pay online */}

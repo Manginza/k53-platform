@@ -5,7 +5,7 @@
  */
 import Link from 'next/link'
 import BuyAccessButton from '@/components/BuyAccessButton'
-import { WHATSAPP_URL, ACCESS_PRICE, ACCESS_DURATION_DAYS } from '@/lib/contact'
+import { WHATSAPP_URL, ACCESS_PRICE, ACCESS_PRICE_ORIGINAL, ACCESS_DURATION_DAYS } from '@/lib/contact'
 
 export default function QuizPaywall({ courseId }: { courseId: number }) {
   return (
@@ -14,7 +14,10 @@ export default function QuizPaywall({ courseId }: { courseId: number }) {
         <div className="text-5xl mb-4">⏱️</div>
         <h1 className="text-2xl font-extrabold text-gray-900 mb-2">Your free preview is up</h1>
         <p className="text-sm text-gray-500 mb-6">
-          Get full access for <strong>{ACCESS_PRICE}</strong> ({ACCESS_DURATION_DAYS} days) — unlimited
+          Get full access for{' '}
+          <span className="line-through text-gray-400 mr-1">{ACCESS_PRICE_ORIGINAL}</span>
+          <strong className="text-blue-700">{ACCESS_PRICE}</strong>{' '}
+          ({ACCESS_DURATION_DAYS} days) — unlimited
           timed tests, plus Live Notes, resources and videos.
         </p>
 

@@ -2,7 +2,7 @@ import Link from 'next/link'
 import BookSlideshow from '@/components/BookSlideshow'
 import BuyAccessButton from '@/components/BuyAccessButton'
 import { hasFullAccess } from '@/lib/access'
-import { WHATSAPP_URL, ACCESS_PRICE, ACCESS_DURATION_DAYS } from '@/lib/contact'
+import { WHATSAPP_URL, ACCESS_PRICE, ACCESS_PRICE_ORIGINAL, ACCESS_DURATION_DAYS } from '@/lib/contact'
 
 export const dynamic = 'force-dynamic'
 
@@ -101,7 +101,9 @@ export default async function Home() {
               <div className="text-4xl mb-3">🔒</div>
               <p className="text-gray-600 mb-6">
                 These 122 study slides are for full-access members. Unlock everything for{' '}
-                <strong>{ACCESS_PRICE}</strong> ({ACCESS_DURATION_DAYS} days).
+                <span className="line-through text-gray-400">{ACCESS_PRICE_ORIGINAL}</span>{' '}
+                <strong className="text-blue-700">{ACCESS_PRICE}</strong>{' '}
+                ({ACCESS_DURATION_DAYS} days).
               </p>
 
               <BuyAccessButton />
