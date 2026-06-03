@@ -1,5 +1,4 @@
 import React from 'react';
-import Link from 'next/link';
 import { WHATSAPP_URL } from '@/lib/contact';
 
 export default function ContactPage() {

@@ -6,8 +6,8 @@ export default function AboutPage() {
       <h1 className="text-3xl font-extrabold text-gray-900 mb-8">About Us</h1>
       <div className="prose prose-blue max-w-none text-gray-600">
         <p className="mb-4">
-          Welcome to the K53 Learner's Licence Platform! Our mission is to provide the most accessible, 
-          comprehensive, and easy-to-use study materials for the South African K53 Learner's Licence test.
+          Welcome to the K53 Learner&apos;s Licence Platform! Our mission is to provide the most accessible, 
+          comprehensive, and easy-to-use study materials for the South African K53 Learner&apos;s Licence test.
         </p>
         <h2 className="text-xl font-bold text-gray-900 mt-8 mb-4">Our Vision</h2>
         <p className="mb-4">

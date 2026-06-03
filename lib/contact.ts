@@ -1,15 +1,15 @@
 /**
- * lib/contact.ts — WhatsApp purchase contact details.
+ * lib/contact.ts — WhatsApp purchase contact details + headline price.
  *
- * Paid access is arranged over WhatsApp: the visitor messages the number
- * below, pays R150, and the admin issues them an access code.
+ * Paid access is arranged over WhatsApp or via Yoco card payment for R99 →
+ * 60 days of full access.
  */
 export const WHATSAPP_NUMBER = '27631721259'           // +27 63 172 1259
-export const WHATSAPP_MESSAGE = "I'm interested to buy the course."
+export const WHATSAPP_MESSAGE = "I'm interested in buying the course for R99."
 export const WHATSAPP_URL =
   `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`
 
 /** Headline price for full access. */
-export const ACCESS_PRICE = 'R150'
-export const ACCESS_PRICE_CENTS = 15000   // R150.00 in ZAR cents (Yoco)
+export const ACCESS_PRICE = 'R99'
+export const ACCESS_PRICE_CENTS = 9900    // R99.00 in ZAR cents (Yoco)
 export const ACCESS_DURATION_DAYS = 60

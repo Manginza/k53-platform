@@ -45,15 +45,21 @@ export default function AdminDashboard({
 
   // ── Grants ────────────────────────────────────────────────────────────────
   const [grants, setGrants] = useState(initialGrants)
-  const [gEmail, setGEmail] = useState(''); const [gDays, setGDays] = useState(60)
+  const [gEmail, setGEmail] = useState(''); const [gPassword, setGPassword] = useState(''); const [gDays, setGDays] = useState(60)
   const [gBusy, setGBusy] = useState(false); const [gErr, setGErr] = useState(''); const [gOk, setGOk] = useState('')
   async function grant(e: React.FormEvent) {
     e.preventDefault(); setGBusy(true); setGErr(''); setGOk('')
     try {
-      const res = await fetch('/api/admin/grant', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: gEmail, durationDays: gDays }) })
+      const res = await fetch('/api/admin/grant', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: gEmail, password: gPassword || undefined, durationDays: gDays }),
+      })
       const body = await res.json(); if (!res.ok) throw new Error(body.error ?? 'Could not grant access.')
       setGrants(g => [body.grant, ...g.filter(x => x.user_id !== body.grant.user_id)])
-      setGOk(`Access granted to ${body.grant.email} until ${fmtDate(body.grant.expires_at)}.`); setGEmail('')
+      setGOk(body.created
+        ? `Account created and access granted to ${body.grant.email} until ${fmtDate(body.grant.expires_at)}.`
+        : `Access granted to ${body.grant.email} until ${fmtDate(body.grant.expires_at)}.`)
+      setGEmail(''); setGPassword('')
     } catch (err) { setGErr(err instanceof Error ? err.message : 'Something went wrong.') } finally { setGBusy(false) }
   }
   async function revokeGrant(userId: string) {
@@ -119,11 +125,26 @@ export default function AdminDashboard({
       <section className="space-y-3">
         <h2 className="font-extrabold text-gray-900">Member access</h2>
         <div className="bg-white rounded-2xl shadow-md p-5">
-          <p className="text-xs text-gray-500 mb-3">Grant access to a member who already registered at /register (e.g. WhatsApp payers). Card payers are granted automatically.</p>
+          <p className="text-xs text-gray-500 mb-3">
+            Add a member directly. <strong>Set a password</strong> to create a new account and grant access in one step
+            (give the member the email + password to log in). Leave password blank to grant to an account that already exists.
+          </p>
           <form onSubmit={grant} className="flex flex-col sm:flex-row gap-2">
-            <input type="email" required value={gEmail} onChange={e => setGEmail(e.target.value)} placeholder="member@example.com" className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-            <div className="flex items-center gap-1 border border-gray-300 rounded-lg px-3 py-2"><input type="number" min={1} value={gDays} onChange={e => setGDays(Number(e.target.value))} className="w-16 text-sm focus:outline-none" /><span className="text-sm text-gray-400">days</span></div>
-            <button type="submit" disabled={gBusy} className="bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg text-sm hover:bg-blue-800 disabled:opacity-60 shrink-0">{gBusy ? 'Granting…' : 'Grant access'}</button>
+            <input type="email" required value={gEmail} onChange={e => setGEmail(e.target.value)}
+              placeholder="member@example.com"
+              className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <input type="text" value={gPassword} onChange={e => setGPassword(e.target.value)}
+              placeholder="Password (optional)"
+              autoComplete="off"
+              className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <div className="flex items-center gap-1 border border-gray-300 rounded-lg px-3 py-2">
+              <input type="number" min={1} value={gDays} onChange={e => setGDays(Number(e.target.value))} className="w-16 text-sm focus:outline-none" />
+              <span className="text-sm text-gray-400">days</span>
+            </div>
+            <button type="submit" disabled={gBusy}
+              className="bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg text-sm hover:bg-blue-800 disabled:opacity-60 shrink-0">
+              {gBusy ? 'Working…' : gPassword ? 'Create & grant' : 'Grant access'}
+            </button>
           </form>
           {gErr && <p className="text-red-500 text-sm mt-2">{gErr}</p>}
           {gOk && <p className="text-green-600 text-sm mt-2">{gOk}</p>}

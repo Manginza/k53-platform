@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * BuyAccessButton — primary "Pay R150" action. Requires a logged-in account;
+ * BuyAccessButton — primary "Pay R99" action. Requires a logged-in account;
  * if not logged in, sends the visitor to register first. Stashes the Yoco
  * checkout id so the success page can confirm the payment and grant access.
  */

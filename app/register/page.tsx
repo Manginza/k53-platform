@@ -52,7 +52,7 @@ function RegisterForm() {
       <p className="text-sm text-gray-500 text-center mb-6">
         {token
           ? 'Your account unlocks 60 days of full access. This link works once, for this email only.'
-          : "It's free to register. Unlock full access for R150 once you're in."}
+          : "It's free to register. Unlock full access for R99 once you're in."}
       </p>
 
       <form onSubmit={submit} className="space-y-4">
