@@ -21,7 +21,7 @@ export default async function CoursesPage() {
 
   return (
     <main className="max-w-4xl mx-auto px-6 py-12">
-      <h1 className="text-3xl font-bold mb-2 text-gray-900">Courses</h1>
+      <h1 className="text-3xl font-bold mb-2 text-gray-900">Practice Tests</h1>
       <p className="text-gray-500 mb-10">Choose a licence type to start practising</p>
 
       {courses && courses.length > 0 ? (

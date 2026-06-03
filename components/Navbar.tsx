@@ -10,7 +10,7 @@ import type { User } from '@supabase/supabase-js'
 
 const LINKS = [
   { href: '/',                 label: 'Home' },
-  { href: '/courses',          label: 'Courses' },
+  { href: '/courses',          label: 'Practice Tests' },
   { href: '/live-notes',       label: 'Live Notes' },
   { href: '/live-notes/rules', label: 'Road Rules' },
   { href: '/videos',           label: 'Videos' },
