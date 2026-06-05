@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import BuyAccessButton from '@/components/BuyAccessButton'
 import {
-  WHATSAPP_URL, ACCESS_PRICE, ACCESS_PRICE_ORIGINAL,
+  WHATSAPP_URL, WHATSAPP_QUERIES_URL, ACCESS_PRICE, ACCESS_PRICE_ORIGINAL,
   ACCESS_DISCOUNT_LABEL, ACCESS_DURATION_DAYS,
 } from '@/lib/contact'
 
@@ -89,6 +89,13 @@ export default function PricingPage() {
           <p className="text-xs text-gray-400 text-center mt-2">
             Pay securely by card with Yoco (then create your account), or message us on WhatsApp and
             we&apos;ll send you a registration link.
+          </p>
+
+          <p className="text-xs text-center mt-3 pt-3 border-t border-gray-100 text-gray-500">
+            Trouble checking out or paid but not unlocked?{' '}
+            <a href={WHATSAPP_QUERIES_URL} target="_blank" rel="noopener noreferrer" className="text-green-600 font-semibold hover:underline">
+              WhatsApp our support
+            </a>
           </p>
         </div>
       </div>

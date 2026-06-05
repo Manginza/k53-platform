@@ -1,13 +1,16 @@
 /**
  * POST /api/yoco/confirm
  *
- * Called by the success page after the buyer returns from Yoco. Verifies the
- * checkout was paid (directly with Yoco) and that it belongs to the current
- * user, then grants their account 60 days of access — synchronously, so it
- * does NOT depend on the webhook landing. Also records the affiliate
- * commission (idempotent on the checkout id).
+ * Called by the success page (and the "I've paid" retry) after the buyer
+ * returns from Yoco. Grants the logged-in account access if any of their
+ * checkouts is paid — verified directly with Yoco, so it does NOT depend on
+ * the webhook landing.
  *
- * Body: { checkoutId: string }
+ * Robust to a lost localStorage: if no checkoutId is supplied we look up the
+ * user's recent checkouts from `checkout_sessions` and verify each. Also
+ * records the affiliate commission (idempotent on the checkout id).
+ *
+ * Body: { checkoutId?: string }
  */
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase-server'
@@ -24,46 +27,70 @@ export async function POST(req: NextRequest) {
   let checkoutId: string | undefined
   try {
     ({ checkoutId } = await req.json())
-  } catch {
-    return NextResponse.json({ error: 'Invalid request.' }, { status: 400 })
-  }
-  if (!checkoutId) return NextResponse.json({ granted: false, error: 'Missing checkout.' }, { status: 400 })
+  } catch { /* body optional */ }
 
-  const checkout = await getYocoCheckout(checkoutId)
-  if (!isYocoCheckoutPaid(checkout)) {
+  const admin = createAdminClient()
+
+  // Build the list of checkouts to verify for this user.
+  const candidates: string[] = []
+  if (checkoutId) candidates.push(checkoutId)
+
+  // Fallback: this user's recent checkouts (covers lost localStorage / other device).
+  const { data: sessions } = await admin
+    .from('checkout_sessions')
+    .select('checkout_id')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+    .limit(10)
+  for (const s of sessions ?? []) {
+    if (!candidates.includes(s.checkout_id)) candidates.push(s.checkout_id)
+  }
+
+  if (candidates.length === 0) {
     return NextResponse.json({ granted: false, pending: true })
   }
-  // The checkout must belong to this user.
-  if (checkout?.metadata?.userId && checkout.metadata.userId !== user.id) {
-    return NextResponse.json({ granted: false, error: 'This payment is linked to a different account.' }, { status: 403 })
+
+  // Verify each with Yoco; grant on the first that is paid + belongs to the user.
+  for (const cid of candidates) {
+    const checkout = await getYocoCheckout(cid)
+    if (!isYocoCheckoutPaid(checkout)) continue
+    // Guard: the checkout must belong to this user (metadata OR our session map).
+    if (checkout?.metadata?.userId && checkout.metadata.userId !== user.id) continue
+
+    const days = Number(checkout?.metadata?.durationDays) || ACCESS_DURATION_DAYS
+    await grantAccess(user.id, days, 'payment')
+    await recordCommission(admin, checkout, cid)
+    return NextResponse.json({ granted: true })
   }
 
-  const days = Number(checkout?.metadata?.durationDays) || ACCESS_DURATION_DAYS
-  await grantAccess(user.id, days, 'payment')
+  return NextResponse.json({ granted: false, pending: true })
+}
 
-  // Affiliate commission (idempotent on checkout id).
+/** Credit the referring affiliate 30% (idempotent on checkout id). */
+async function recordCommission(
+  admin: ReturnType<typeof createAdminClient>,
+  checkout: Awaited<ReturnType<typeof getYocoCheckout>>,
+  checkoutId: string,
+) {
   const affiliateId = checkout?.metadata?.affiliateId
   const rate = Number(checkout?.metadata?.commissionRate) || 0
-  if (affiliateId && rate > 0) {
-    const admin = createAdminClient()
-    const commissionCents = Math.round(ACCESS_PRICE_CENTS * rate)
-    const { data: inserted, error } = await admin
-      .from('affiliate_commissions')
-      .insert({
-        affiliate_id: affiliateId,
-        yoco_checkout_id: checkoutId,
-        yoco_payment_id: checkout?.paymentId ?? null,
-        amount_cents: ACCESS_PRICE_CENTS,
-        commission_cents: commissionCents,
-        status: 'pending',
-      })
-      .select('id')
-      .maybeSingle()
-    if (!error && inserted) {
-      const { data: aff } = await admin.from('affiliates').select('total_earned_cents').eq('id', affiliateId).maybeSingle()
-      if (aff) await admin.from('affiliates').update({ total_earned_cents: (aff.total_earned_cents ?? 0) + commissionCents }).eq('id', affiliateId)
-    }
-  }
+  if (!affiliateId || rate <= 0) return
 
-  return NextResponse.json({ granted: true })
+  const commissionCents = Math.round(ACCESS_PRICE_CENTS * rate)
+  const { data: inserted, error } = await admin
+    .from('affiliate_commissions')
+    .insert({
+      affiliate_id: affiliateId,
+      yoco_checkout_id: checkoutId,
+      yoco_payment_id: checkout?.paymentId ?? null,
+      amount_cents: ACCESS_PRICE_CENTS,
+      commission_cents: commissionCents,
+      status: 'pending',
+    })
+    .select('id')
+    .maybeSingle()
+  if (error || !inserted) return   // 23505 = already credited
+
+  const { data: aff } = await admin.from('affiliates').select('total_earned_cents').eq('id', affiliateId).maybeSingle()
+  if (aff) await admin.from('affiliates').update({ total_earned_cents: (aff.total_earned_cents ?? 0) + commissionCents }).eq('id', affiliateId)
 }

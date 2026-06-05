@@ -8,6 +8,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { WHATSAPP_QUERIES_URL } from '@/lib/contact'
 
 type Status = 'confirming' | 'done' | 'manual'
 
@@ -68,13 +69,15 @@ export default function SubscribeSuccessPage() {
             <div className="text-5xl mb-4">✅</div>
             <h1 className="text-2xl font-extrabold text-gray-900 mb-2">Payment received</h1>
             <p className="text-sm text-gray-500 mb-6">
-              Your access is being finalised. Refresh this page in a minute, or log in again — if it still hasn&apos;t
-              unlocked, contact us and we&apos;ll sort it out right away.
+              We&apos;re finalising your access. Tap <strong>Unlock my access</strong> below — if it still hasn&apos;t
+              unlocked, message us on WhatsApp with the email you paid with and we&apos;ll sort it out right away.
             </p>
             <div className="flex flex-col gap-3">
-              <button onClick={() => { attempts.current = 0; setStatus('confirming'); confirm() }} className="block w-full bg-blue-700 text-white font-bold py-3 rounded-xl hover:bg-blue-800 transition-colors">Try again</button>
+              <button onClick={() => { attempts.current = 0; setStatus('confirming'); confirm() }} className="block w-full bg-blue-700 text-white font-bold py-3 rounded-xl hover:bg-blue-800 transition-colors">Unlock my access</button>
+              <a href={WHATSAPP_QUERIES_URL} target="_blank" rel="noopener noreferrer" className="block w-full bg-green-600 text-white font-bold py-3 rounded-xl hover:bg-green-700 transition-colors">
+                WhatsApp us about my payment
+              </a>
               <Link href="/courses" className="block border-2 border-gray-200 text-gray-600 font-semibold py-3 rounded-xl hover:border-gray-400 transition-colors">Go to courses</Link>
-              <a href="mailto:support@skdriving.co.za" className="text-xs text-gray-400 underline">support@skdriving.co.za</a>
             </div>
           </>
         )}

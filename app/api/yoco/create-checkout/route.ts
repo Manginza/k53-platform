@@ -51,6 +51,14 @@ export async function POST() {
       failureUrl: `${BASE_URL}/subscribe/failed`,
       metadata: { userId: user.id, durationDays: String(ACCESS_DURATION_DAYS), product: 'full-access-60day', ...affiliateMeta },
     })
+
+    // Map the checkout to this account so access can be granted on return even
+    // if the browser loses localStorage (best-effort; webhook is also a backup).
+    await createAdminClient()
+      .from('checkout_sessions')
+      .insert({ checkout_id: checkout.id, user_id: user.id })
+      .then(({ error }) => { if (error) console.error('[create-checkout] session insert:', error.message) })
+
     return NextResponse.json({ redirectUrl: checkout.redirectUrl, checkoutId: checkout.id })
   } catch (err) {
     console.error('[create-checkout] Yoco error:', err instanceof Error ? err.message : err)
