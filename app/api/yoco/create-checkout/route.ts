@@ -9,20 +9,39 @@
  *
  * Returns { redirectUrl, checkoutId } or 401 if not logged in.
  */
-import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
+import { NextRequest, NextResponse } from 'next/server'
+import { cookies, headers } from 'next/headers'
 import { createClient } from '@/lib/supabase-server'
 import { createAdminClient } from '@/lib/supabase-admin'
 import { createYocoCheckout } from '@/lib/yoco'
 import { REF_COOKIE } from '@/lib/affiliate'
 import { ACCESS_PRICE_CENTS, ACCESS_DURATION_DAYS } from '@/lib/contact'
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://www.skdriving.co.za'
+/**
+ * The base URL Yoco redirects back to MUST match the domain the buyer is on,
+ * otherwise they land on a different domain (different cookies) and aren't
+ * logged in → access can't be granted. Derive it from the request rather than
+ * trusting NEXT_PUBLIC_BASE_URL (which was pointing at the vercel.app domain).
+ */
+function resolveBaseUrl(req: NextRequest): string {
+  const h = headers()
+  const origin = h.get('origin')
+  if (origin && /^https?:\/\//.test(origin)) return origin.replace(/\/$/, '')
+  const host = h.get('x-forwarded-host') ?? h.get('host')
+  if (host) {
+    const proto = h.get('x-forwarded-proto') ?? 'https'
+    return `${proto}://${host}`
+  }
+  try { return req.nextUrl.origin } catch {}
+  return process.env.NEXT_PUBLIC_BASE_URL ?? 'https://www.skdriving.co.za'
+}
 
-export async function POST() {
+export async function POST(req: NextRequest) {
   if (!process.env.YOCO_SECRET_KEY) {
     return NextResponse.json({ error: 'Online payment is not available right now. Please use WhatsApp.' }, { status: 503 })
   }
+
+  const BASE_URL = resolveBaseUrl(req)
 
   // Must be registered + logged in.
   const supabase = createClient()
