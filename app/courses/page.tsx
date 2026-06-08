@@ -1,15 +1,17 @@
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import { hasFullAccess } from '@/lib/access'
+import LiveSessionCard from '@/components/LiveSessionCard'
 import type { Course } from '@/lib/types'
 
-export const revalidate = 3600 // re-fetch at most once per hour
+// Reads access (cookies) to show paid members the live-session link.
+export const dynamic = 'force-dynamic'
 
 export default async function CoursesPage() {
-  const { data: courses, error } = await supabase
-    .from('courses')
-    .select('*')
-    .not('code', 'is', null)
-    .order('id')
+  const [{ data: courses, error }, fullAccess] = await Promise.all([
+    supabase.from('courses').select('*').not('code', 'is', null).order('id'),
+    hasFullAccess(),
+  ])
 
   if (error) {
     return (
@@ -22,7 +24,9 @@ export default async function CoursesPage() {
   return (
     <main className="max-w-4xl mx-auto px-6 py-12">
       <h1 className="text-3xl font-bold mb-2 text-gray-900">Practice Tests</h1>
-      <p className="text-gray-500 mb-10">Choose a licence type to start practising</p>
+      <p className="text-gray-500 mb-6">Choose a licence type to start practising</p>
+
+      {fullAccess && <LiveSessionCard className="mb-8" />}
 
       {courses && courses.length > 0 ? (
         <div className="grid gap-6 sm:grid-cols-2">

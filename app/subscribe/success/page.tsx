@@ -9,6 +9,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { WHATSAPP_QUERIES_URL } from '@/lib/contact'
+import LiveSessionCard from '@/components/LiveSessionCard'
 
 type Status = 'confirming' | 'done' | 'manual'
 
@@ -57,7 +58,10 @@ export default function SubscribeSuccessPage() {
           <>
             <div className="text-6xl mb-4">🎉</div>
             <h1 className="text-2xl font-extrabold text-gray-900 mb-2">You&apos;re in!</h1>
-            <p className="text-sm text-gray-500 mb-6">Full access is unlocked on your account for 60 days.</p>
+            <p className="text-sm text-gray-500 mb-5">Full access is unlocked on your account for 60 days.</p>
+
+            <LiveSessionCard className="mb-5" />
+
             <div className="flex flex-col gap-3">
               <Link href="/courses" className="block bg-blue-700 text-white font-bold py-3 rounded-xl hover:bg-blue-800 transition-colors">Start practising →</Link>
               <Link href="/live-notes" className="block border-2 border-gray-200 text-gray-600 font-semibold py-3 rounded-xl hover:border-gray-400 transition-colors">Go to Live Notes</Link>

@@ -15,6 +15,11 @@ export const WHATSAPP_QUERIES_MESSAGE = 'Hi, I have a query about my course paym
 export const WHATSAPP_QUERIES_URL =
   `https://wa.me/${WHATSAPP_QUERIES_NUMBER}?text=${encodeURIComponent(WHATSAPP_QUERIES_MESSAGE)}`
 
+/** Live online evening study sessions (shown to paid members after checkout). */
+export const LIVE_SESSION_URL = 'https://meet.google.com/yxw-dqij-zgq'
+export const LIVE_SESSION_SCHEDULE = 'Monday to Thursday, 8pm–9pm'
+export const LIVE_SESSION_NOTE = 'Sessions are recorded, so you can catch up if you miss one.'
+
 /** Headline price for full access (discounted from ACCESS_PRICE_ORIGINAL). */
 export const ACCESS_PRICE = 'R99'
 export const ACCESS_PRICE_CENTS = 9900            // R99.00 in ZAR cents (Yoco)
