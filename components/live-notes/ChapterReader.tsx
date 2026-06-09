@@ -7,10 +7,6 @@ import type { User } from '@supabase/supabase-js'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 
-function pageUrl(n: number) {
-  return `${SUPABASE_URL}/storage/v1/object/public/resources/Live%20Notes/${n}.jpg`
-}
-
 interface Page    { id: string; page_number: number; alt_text: string | null }
 interface Chapter {
   id: string; chapter_number: number | null; title: string
@@ -21,14 +17,28 @@ interface Progress { marked_complete: boolean; pages_read: number }
 interface Props {
   chapter: Chapter; pages: Page[]; progress: Progress | null
   user: User | null; prevChapter: number | null; nextChapter: number | null
+  // Manual config — defaults preserve the original Road Signs "Live Notes" behaviour
+  basePath?: string        // route prefix, e.g. '/live-notes' or '/live-notes/k53'
+  imageFolder?: string     // storage folder under the public `resources` bucket
+  imageExt?: string        // image file extension (no dot)
+  progressTable?: string   // user-progress table name
 }
 
 const ZOOM_STEP = 0.25
 const ZOOM_MIN  = 0.5
 const ZOOM_MAX  = 4
 
-export default function ChapterReader({ chapter, pages, progress, user, prevChapter, nextChapter }: Props) {
+export default function ChapterReader({
+  chapter, pages, progress, user, prevChapter, nextChapter,
+  basePath = '/live-notes',
+  imageFolder = 'Live Notes',
+  imageExt = 'jpg',
+  progressTable = 'ln_user_chapter_progress',
+}: Props) {
   const supabase = createClient()
+
+  const pageUrl = (n: number) =>
+    `${SUPABASE_URL}/storage/v1/object/public/resources/${encodeURIComponent(imageFolder)}/${n}.${imageExt}`
 
   const [currentIdx, setCurrentIdx] = useState(0)
   const [marking, setMarking]       = useState(false)
@@ -88,7 +98,7 @@ export default function ChapterReader({ chapter, pages, progress, user, prevChap
   const markComplete = async () => {
     if (!user || marking) return
     setMarking(true)
-    const { error } = await supabase.from('ln_user_chapter_progress').upsert({
+    const { error } = await supabase.from(progressTable).upsert({
       user_id:          user.id,
       chapter_id:       chapter.id,
       marked_complete:  true,
@@ -244,7 +254,7 @@ export default function ChapterReader({ chapter, pages, progress, user, prevChap
 
       {/* Top bar */}
       <div className="bg-gray-900 border-b border-gray-700 px-3 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between gap-2 sticky top-14 z-40">
-        <Link href="/live-notes" className="text-gray-400 hover:text-white text-sm flex items-center gap-1 shrink-0">
+        <Link href={basePath} className="text-gray-400 hover:text-white text-sm flex items-center gap-1 shrink-0">
           ‹ <span className="hidden sm:inline">Back</span>
         </Link>
 
@@ -275,7 +285,7 @@ export default function ChapterReader({ chapter, pages, progress, user, prevChap
 
           {canTakeQuiz && (
             <Link
-              href={`/live-notes/chapter/${chapter.chapter_number}/quiz`}
+              href={`${basePath}/chapter/${chapter.chapter_number}/quiz`}
               className="bg-green-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-green-700 transition-colors whitespace-nowrap"
             >
               Quiz →
@@ -379,7 +389,7 @@ export default function ChapterReader({ chapter, pages, progress, user, prevChap
               )}
               {canTakeQuiz && (
                 <Link
-                  href={`/live-notes/chapter/${chapter.chapter_number}/quiz`}
+                  href={`${basePath}/chapter/${chapter.chapter_number}/quiz`}
                   className="w-full py-3 rounded-xl bg-white text-green-700 font-bold text-center block text-sm hover:bg-green-50 transition-colors"
                 >
                   Take Quiz →
@@ -398,7 +408,7 @@ export default function ChapterReader({ chapter, pages, progress, user, prevChap
         <div className="hidden lg:flex items-center justify-between gap-4 max-w-4xl mx-auto">
           <div className="flex items-center gap-4">
             {prevChapter && (
-              <Link href={`/live-notes/chapter/${prevChapter}`} className="text-gray-400 hover:text-white text-sm transition-colors">
+              <Link href={`${basePath}/chapter/${prevChapter}`} className="text-gray-400 hover:text-white text-sm transition-colors">
                 ‹ Ch {prevChapter}
               </Link>
             )}
@@ -432,7 +442,7 @@ export default function ChapterReader({ chapter, pages, progress, user, prevChap
             )}
             {canTakeQuiz && (
               <Link
-                href={`/live-notes/chapter/${chapter.chapter_number}/quiz`}
+                href={`${basePath}/chapter/${chapter.chapter_number}/quiz`}
                 className="px-5 py-2 rounded-xl bg-white text-green-700 font-bold text-sm hover:bg-green-50 transition-colors"
               >
                 Take Quiz →
@@ -443,7 +453,7 @@ export default function ChapterReader({ chapter, pages, progress, user, prevChap
 
           <div className="flex items-center gap-4">
             {nextChapter && (
-              <Link href={`/live-notes/chapter/${nextChapter}`} className="text-gray-400 hover:text-white text-sm transition-colors">
+              <Link href={`${basePath}/chapter/${nextChapter}`} className="text-gray-400 hover:text-white text-sm transition-colors">
                 Ch {nextChapter} ›
               </Link>
             )}
@@ -452,8 +462,8 @@ export default function ChapterReader({ chapter, pages, progress, user, prevChap
 
         {/* Mobile chapter nav */}
         <div className="flex justify-between mt-2 text-xs text-gray-600 max-w-2xl mx-auto lg:hidden">
-          {prevChapter ? <Link href={`/live-notes/chapter/${prevChapter}`} className="hover:text-gray-300">‹ Ch {prevChapter}</Link> : <span />}
-          {nextChapter ? <Link href={`/live-notes/chapter/${nextChapter}`} className="hover:text-gray-300">Ch {nextChapter} ›</Link> : <span />}
+          {prevChapter ? <Link href={`${basePath}/chapter/${prevChapter}`} className="hover:text-gray-300">‹ Ch {prevChapter}</Link> : <span />}
+          {nextChapter ? <Link href={`${basePath}/chapter/${nextChapter}`} className="hover:text-gray-300">Ch {nextChapter} ›</Link> : <span />}
         </div>
       </div>
     </div>

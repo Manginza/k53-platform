@@ -12,9 +12,16 @@ interface Props {
   quiz:          Quiz
   questions:     Question[]
   chapterNumber: number
+  // Manual config — defaults preserve the original Road Signs "Live Notes" behaviour
+  basePath?:   string   // route prefix, e.g. '/live-notes' or '/live-notes/k53'
+  submitRpc?:  string   // server-side scoring RPC name
 }
 
-export default function QuizPlayer({ quiz, questions, chapterNumber }: Props) {
+export default function QuizPlayer({
+  quiz, questions, chapterNumber,
+  basePath = '/live-notes',
+  submitRpc = 'ln_submit_quiz',
+}: Props) {
   const router   = useRouter()
   const supabase = createClient()
   const startedAt = useRef(new Date())
@@ -49,7 +56,7 @@ export default function QuizPlayer({ quiz, questions, chapterNumber }: Props) {
     const payload = questions.map(q => ({ question_id: q.id, option_id: answers[q.id] }))
     const durationSeconds = Math.floor((Date.now() - startedAt.current.getTime()) / 1000)
 
-    const { data, error: rpcError } = await supabase.rpc('ln_submit_quiz', {
+    const { data, error: rpcError } = await supabase.rpc(submitRpc, {
       p_quiz_id:          quiz.id,
       p_answers:          payload,
       p_started_at:       startedAt.current.toISOString(),
@@ -62,7 +69,7 @@ export default function QuizPlayer({ quiz, questions, chapterNumber }: Props) {
       return
     }
 
-    router.push(`/live-notes/chapter/${chapterNumber}/results/${data[0].attempt_id}`)
+    router.push(`${basePath}/chapter/${chapterNumber}/results/${data[0].attempt_id}`)
   }
 
   if (!current) return <div className="p-8 text-center text-gray-500">No questions found.</div>
