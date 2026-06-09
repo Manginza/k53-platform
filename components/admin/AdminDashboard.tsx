@@ -28,12 +28,13 @@ function rand(cents: number) {
 }
 
 export default function AdminDashboard({
-  adminEmail, initialGrants, initialLinks, initialPayouts,
+  adminEmail, initialGrants, initialLinks, initialPayouts, initialRecordingUrl = '',
 }: {
   adminEmail: string
   initialGrants: AdminGrant[]
   initialLinks: SignupLink[]
   initialPayouts: PayoutRow[]
+  initialRecordingUrl?: string
 }) {
   const router = useRouter()
   const origin = useMemo(() => (typeof window !== 'undefined' ? window.location.origin : ''), [])
@@ -42,6 +43,21 @@ export default function AdminDashboard({
     navigator.clipboard.writeText(text).then(() => { setCopied(key); setTimeout(() => setCopied(null), 1500) }).catch(() => {})
   }
   async function logout() { await createClient().auth.signOut(); router.push('/'); router.refresh() }
+
+  // ── Latest live-session recording ───────────────────────────────────────────
+  const [recordingUrl, setRecordingUrl] = useState(initialRecordingUrl)
+  const [recSaving, setRecSaving] = useState(false)
+  const [recMsg, setRecMsg] = useState('')
+  async function saveRecording(e: React.FormEvent) {
+    e.preventDefault(); setRecSaving(true); setRecMsg('')
+    try {
+      const res = await fetch('/api/admin/recording', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url: recordingUrl }),
+      })
+      const body = await res.json()
+      setRecMsg(res.ok ? 'Saved — this is now the recording shown on Videos and in the popup.' : (body.error ?? 'Could not save.'))
+    } catch { setRecMsg('Could not save.') } finally { setRecSaving(false) }
+  }
 
   // ── Grants ────────────────────────────────────────────────────────────────
   const [grants, setGrants] = useState(initialGrants)
@@ -120,6 +136,27 @@ export default function AdminDashboard({
         </div>
         <button onClick={logout} className="text-sm font-semibold text-gray-600 border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-gray-50 shrink-0">Log out</button>
       </div>
+
+      {/* ── Latest live-session recording ── */}
+      <section className="space-y-3">
+        <h2 className="font-extrabold text-gray-900">Latest session recording</h2>
+        <div className="bg-white rounded-2xl shadow-md p-5">
+          <p className="text-xs text-gray-500 mb-3">
+            Paste the newest recording link (Google Drive). It <strong>replaces</strong> the previous one at the
+            top of the Videos page and in the session popup&apos;s &ldquo;Watch the recording&rdquo; button.
+          </p>
+          <form onSubmit={saveRecording} className="flex flex-col sm:flex-row gap-2">
+            <input type="url" value={recordingUrl} onChange={e => setRecordingUrl(e.target.value)}
+              placeholder="https://drive.google.com/file/d/…/view"
+              className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <button type="submit" disabled={recSaving}
+              className="bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg text-sm hover:bg-blue-800 disabled:opacity-60 shrink-0">
+              {recSaving ? 'Saving…' : 'Update recording'}
+            </button>
+          </form>
+          {recMsg && <p className="text-green-600 text-sm mt-2">{recMsg}</p>}
+        </div>
+      </section>
 
       {/* ── 1. Grant access by email ── */}
       <section className="space-y-3">

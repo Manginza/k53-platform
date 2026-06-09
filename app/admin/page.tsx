@@ -7,6 +7,7 @@
 import { redirect } from 'next/navigation'
 import { getAdminUser } from '@/lib/admin'
 import { createAdminClient } from '@/lib/supabase-admin'
+import { getLatestRecordingUrl } from '@/lib/settings'
 import AdminDashboard, {
   type AdminGrant, type SignupLink, type PayoutRow,
 } from '@/components/admin/AdminDashboard'
@@ -64,12 +65,15 @@ export default async function AdminPage() {
   }))
   payoutRows.sort((a, b) => b.pendingCents - a.pendingCents || b.earnedCents - a.earnedCents)
 
+  const recordingUrl = await getLatestRecordingUrl()
+
   return (
     <AdminDashboard
       adminEmail={admin.email ?? ''}
       initialGrants={grantRows}
       initialLinks={linkRows}
       initialPayouts={payoutRows}
+      initialRecordingUrl={recordingUrl}
     />
   )
 }

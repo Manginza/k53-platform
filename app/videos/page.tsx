@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { YouTubeCard, DriveCard } from '@/components/VideoCard'
 import { hasFullAccess } from '@/lib/access'
 import LockedContent from '@/components/LockedContent'
-import { LIVE_SESSION_RECORDING_FILE_ID, LIVE_SESSION_RECORDING_URL } from '@/lib/contact'
+import { getLatestRecording } from '@/lib/settings'
 
 export const dynamic = 'force-dynamic'
 
@@ -41,6 +41,8 @@ export default async function VideosPage() {
     )
   }
 
+  const recording = await getLatestRecording()
+
   return (
     <main className="max-w-6xl mx-auto px-4 py-12">
 
@@ -65,7 +67,7 @@ export default async function VideosPage() {
           <span>Missed a live evening session? Catch up here — recordings of our 8pm sessions are posted in this section.</span>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          <DriveCard fileId={LIVE_SESSION_RECORDING_FILE_ID} index={0} url={LIVE_SESSION_RECORDING_URL} />
+          <DriveCard fileId={recording.fileId} index={0} url={recording.url} />
         </div>
       </section>
 

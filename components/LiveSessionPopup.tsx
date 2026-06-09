@@ -13,6 +13,7 @@ const DISMISS_KEY = 'sk_session_popup'
 
 export default function LiveSessionPopup() {
   const [open, setOpen] = useState(false)
+  const [recordingUrl, setRecordingUrl] = useState(LIVE_SESSION_RECORDING_URL)
 
   useEffect(() => {
     // Only on session days: Mon(1) – Thu(4) in the visitor's local time.
@@ -26,7 +27,11 @@ export default function LiveSessionPopup() {
     let cancelled = false
     fetch('/api/me/access')
       .then(r => r.json())
-      .then(d => { if (!cancelled && d?.fullAccess) setOpen(true) })
+      .then(d => {
+        if (cancelled || !d?.fullAccess) return
+        if (d.recordingUrl) setRecordingUrl(d.recordingUrl)
+        setOpen(true)
+      })
       .catch(() => {})
     return () => { cancelled = true }
   }, [])
@@ -64,7 +69,7 @@ export default function LiveSessionPopup() {
           Join on Google Meet →
         </a>
         <a
-          href={LIVE_SESSION_RECORDING_URL}
+          href={recordingUrl}
           target="_blank"
           rel="noopener noreferrer"
           onClick={dismiss}
