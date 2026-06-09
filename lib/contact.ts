@@ -19,6 +19,9 @@ export const WHATSAPP_QUERIES_URL =
 export const LIVE_SESSION_URL = 'https://meet.google.com/yxw-dqij-zgq'
 export const LIVE_SESSION_SCHEDULE = 'Monday to Thursday, 8pm–9pm'
 export const LIVE_SESSION_NOTE = 'Sessions are recorded, so you can catch up if you miss one.'
+/** Recording of the live session, for anyone who missed it. */
+export const LIVE_SESSION_RECORDING_URL = 'https://drive.google.com/file/d/1XA_r-AQ9ODalohBq2FSDSj6cEsM3aMie/view?usp=sharing'
+export const LIVE_SESSION_RECORDING_FILE_ID = '1XA_r-AQ9ODalohBq2FSDSj6cEsM3aMie'
 
 /** Headline price for full access (discounted from ACCESS_PRICE_ORIGINAL). */
 export const ACCESS_PRICE = 'R99'

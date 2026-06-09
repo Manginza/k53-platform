@@ -7,7 +7,7 @@
  * in the root layout without making every page dynamic.
  */
 import { useEffect, useState } from 'react'
-import { LIVE_SESSION_URL, LIVE_SESSION_SCHEDULE, LIVE_SESSION_NOTE } from '@/lib/contact'
+import { LIVE_SESSION_URL, LIVE_SESSION_SCHEDULE, LIVE_SESSION_NOTE, LIVE_SESSION_RECORDING_URL } from '@/lib/contact'
 
 const DISMISS_KEY = 'sk_session_popup'
 
@@ -62,6 +62,15 @@ export default function LiveSessionPopup() {
           className="block w-full bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-700 transition-colors"
         >
           Join on Google Meet →
+        </a>
+        <a
+          href={LIVE_SESSION_RECORDING_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={dismiss}
+          className="block w-full border-2 border-indigo-200 text-indigo-700 font-semibold py-2.5 rounded-xl mt-2 hover:bg-indigo-50 transition-colors text-sm"
+        >
+          📹 Missed a session? Watch the recording
         </a>
         <button onClick={dismiss} className="block w-full text-gray-500 font-medium py-3 mt-1 hover:text-gray-700 text-sm">
           Maybe later
