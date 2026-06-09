@@ -1,7 +1,8 @@
 /**
  * POST /api/yoco/create-checkout
  *
- * Creates a Yoco Hosted Checkout for the R150 / 60-day pass. Requires a
+ * Creates a Yoco Hosted Checkout for the full-access / 60-day pass (price from
+ * ACCESS_PRICE_CENTS). Requires a
  * logged-in account (register-before-pay). The buyer's user id is put in the
  * Yoco metadata so the payment can be tied back to their account and access
  * granted on return. Affiliate attribution (30%) is included if a ref cookie
