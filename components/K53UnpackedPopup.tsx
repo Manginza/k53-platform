@@ -2,9 +2,9 @@
 
 /**
  * K53UnpackedPopup — a one-time "new feature" announcement for the K53 Unpacked
- * manual (Live Notes). Shows once per visitor (dismiss is remembered in
- * localStorage), to everyone — paid members go straight in, free users land on
- * the upgrade page. Bump POPUP_VERSION to re-announce in future.
+ * manual (Live Notes). Shown once per visitor (dismiss is remembered in
+ * localStorage) to full-access (paid) members only, via /api/me/access — so the
+ * app stays static. Bump POPUP_VERSION to re-announce in future.
  */
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
@@ -22,9 +22,13 @@ export default function K53UnpackedPopup() {
     // Don't announce the feature while the user is already inside it.
     if (window.location.pathname.startsWith('/live-notes/k53')) return
 
-    // Small delay so it doesn't appear before the page has settled.
-    const t = setTimeout(() => setOpen(true), 1000)
-    return () => clearTimeout(t)
+    // Full-access (paid) members only.
+    let cancelled = false
+    fetch('/api/me/access')
+      .then(r => r.json())
+      .then(d => { if (!cancelled && d?.fullAccess) setOpen(true) })
+      .catch(() => {})
+    return () => { cancelled = true }
   }, [])
 
   function dismiss() {
