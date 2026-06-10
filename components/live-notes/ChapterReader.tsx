@@ -22,6 +22,7 @@ interface Props {
   imageFolder?: string     // storage folder under the public `resources` bucket
   imageExt?: string        // image file extension (no dot)
   progressTable?: string   // user-progress table name
+  quizAlwaysAvailable?: boolean  // when true, the quiz link shows without requiring "mark as read"
 }
 
 const ZOOM_STEP = 0.25
@@ -34,6 +35,7 @@ export default function ChapterReader({
   imageFolder = 'Live Notes',
   imageExt = 'jpg',
   progressTable = 'ln_user_chapter_progress',
+  quizAlwaysAvailable = false,
 }: Props) {
   const supabase = createClient()
 
@@ -52,7 +54,7 @@ export default function ChapterReader({
   const totalPages  = pages.length
   const currentPage = pages[currentIdx]
   const isLastPage  = currentIdx === totalPages - 1
-  const canTakeQuiz = marked && chapter.chapter_number !== null
+  const canTakeQuiz = (quizAlwaysAvailable || marked) && chapter.chapter_number !== null
 
   const go = useCallback((dir: 1 | -1) => {
     setCurrentIdx(i => Math.max(0, Math.min(totalPages - 1, i + dir)))

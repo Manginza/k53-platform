@@ -92,12 +92,15 @@ export default async function K53UnpackedPage() {
           else                  statusEl = <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full whitespace-nowrap">Not started</span>
 
           return (
-            <Link
+            <div
               key={ch.id}
-              href={`/live-notes/k53/chapter/${ch.chapter_number}`}
-              className="flex items-center justify-between p-3 sm:p-4 bg-white rounded-xl border-2 border-gray-200 hover:border-green-500 hover:bg-green-50 transition-all group"
+              className="flex items-center justify-between gap-2 p-3 sm:p-4 bg-white rounded-xl border-2 border-gray-200 hover:border-green-500 transition-all"
             >
-              <div className="flex items-center gap-3 min-w-0 flex-1">
+              {/* Left: read the chapter */}
+              <Link
+                href={`/live-notes/k53/chapter/${ch.chapter_number}`}
+                className="flex items-center gap-3 min-w-0 flex-1 group"
+              >
                 <div className={`flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold ${
                   isPassed ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-500 group-hover:bg-green-100 group-hover:text-green-700'
                 }`}>
@@ -112,18 +115,24 @@ export default async function K53UnpackedPage() {
                     {ch.section_reference ? ` · ${ch.section_reference}` : ''}
                   </div>
                 </div>
-              </div>
+              </Link>
 
-              <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+              {/* Right: status + direct quiz link */}
+              <div className="flex items-center gap-2 flex-shrink-0">
                 {hasScore && (
                   <span className={`text-xs font-bold hidden sm:block ${isPassed ? 'text-green-700' : 'text-yellow-700'}`}>
                     {Math.round(ch.bestScore!)}%
                   </span>
                 )}
-                <div className="hidden xs:block sm:block">{statusEl}</div>
-                <span className="text-gray-300 group-hover:text-green-600 text-lg font-light">›</span>
+                <div className="hidden sm:block">{statusEl}</div>
+                <Link
+                  href={`/live-notes/k53/chapter/${ch.chapter_number}/quiz`}
+                  className="text-xs font-bold px-3 py-1.5 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors whitespace-nowrap"
+                >
+                  Quiz →
+                </Link>
               </div>
-            </Link>
+            </div>
           )
         })}
       </div>

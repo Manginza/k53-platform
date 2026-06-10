@@ -72,6 +72,7 @@ export default async function K53ChapterPage({ params }: Props) {
       imageFolder="K53 Unpacked"
       imageExt="png"
       progressTable="ku_user_chapter_progress"
+      quizAlwaysAvailable
     />
   )
 }
