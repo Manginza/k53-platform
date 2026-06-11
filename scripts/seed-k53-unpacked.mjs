@@ -1,7 +1,9 @@
 // seed-k53-unpacked.mjs — Seeds the "K53 Unpacked" manual:
 //   chapters, pages, quizzes, questions, options for the ku_* tables.
 //
-// Requires migration scripts/migrations/15_k53_unpacked_schema.sql to have been run first.
+// Requires migrations 15_k53_unpacked_schema.sql and (for question images)
+// 16_k53_unpacked_question_images.sql to have been run first. Question images
+// themselves are uploaded by scripts/upload-k53-sign-images.mjs.
 //
 // Run (PowerShell):
 //   $env:SUPABASE_SERVICE_ROLE_KEY="<service-role-key>"; node scripts/seed-k53-unpacked.mjs
@@ -136,19 +138,19 @@ const QUIZ_DATA = {
 
   // 5 — Regulatory signs
   5: [
-    { text: 'At a STOP sign you must…', a: 'Slow down and proceed if clear', b: 'Come to a complete halt behind the stop line and remain stationary until it is safe to move off', c: 'Stop only if other vehicles are present', d: 'Yield to traffic from the left', correct: 'B', exp: 'A Stop sign requires a complete halt at the stop line; you may move off only when it is safe to do so.', page: 16 },
+    { img: 'sign-stop.svg', text: 'At a STOP sign you must…', a: 'Slow down and proceed if clear', b: 'Come to a complete halt behind the stop line and remain stationary until it is safe to move off', c: 'Stop only if other vehicles are present', d: 'Yield to traffic from the left', correct: 'B', exp: 'A Stop sign requires a complete halt at the stop line; you may move off only when it is safe to do so.', page: 16 },
     { text: 'At a three-way or four-way stop, when may you move off?', a: 'Immediately after stopping', b: 'After all vehicles that stopped before you have moved off', c: 'When the vehicle on your left moves', d: 'After waiting exactly five seconds', correct: 'B', exp: 'At multi-way stops you may move off only after all the vehicles that stopped before you have moved off.', page: 16 },
-    { text: 'A YIELD sign requires you to…', a: 'Always stop completely', b: 'Give way to all pedestrians and traffic close enough to be a hazard before you cross or join', c: 'Sound your hooter and proceed', d: 'Ignore pedestrians', correct: 'B', exp: 'At a Yield sign you give way to pedestrians and to traffic on the road you are crossing or joining if they are close enough to be a hazard; you stop only if necessary.', page: 16 },
+    { img: 'sign-yield.svg', text: 'A YIELD sign requires you to…', a: 'Always stop completely', b: 'Give way to all pedestrians and traffic close enough to be a hazard before you cross or join', c: 'Sound your hooter and proceed', d: 'Ignore pedestrians', correct: 'B', exp: 'At a Yield sign you give way to pedestrians and to traffic on the road you are crossing or joining if they are close enough to be a hazard; you stop only if necessary.', page: 16 },
     { text: 'A round sign with a red border and a vehicle symbol crossed out (or a red bar) generally indicates…', a: 'A command you must carry out', b: 'A prohibition — that action or vehicle is not allowed', c: 'Guidance to a destination', d: 'A warning of a hazard', correct: 'B', exp: 'Prohibition signs (red border/red bar) tell you what you may not do; disobeying them is an offence.', page: 16 },
     { text: 'A blue round sign with a white arrow or symbol is a…', a: 'Prohibition sign', b: 'Command sign telling you what you must do', c: 'Warning sign', d: 'Tourism sign', correct: 'B', exp: 'Command (mandatory) signs are blue and round and tell you what you must do, e.g. keep left, proceed straight.', page: 16 },
-    { text: 'A “No entry” sign is usually found…', a: 'At the start of a freeway', b: 'At the end of a one-way street or an off-ramp', c: 'At every intersection', d: 'Only in parking areas', correct: 'B', exp: 'A No-entry sign is typically placed where you may not enter, such as the end of a one-way street or an off-ramp.', page: 16 },
+    { img: 'sign-no-entry.svg', text: 'A “No entry” sign is usually found…', a: 'At the start of a freeway', b: 'At the end of a one-way street or an off-ramp', c: 'At every intersection', d: 'Only in parking areas', correct: 'B', exp: 'A No-entry sign is typically placed where you may not enter, such as the end of a one-way street or an off-ramp.', page: 16 },
     { text: 'A reservation sign (e.g. a bus or taxi lane) means…', a: 'Any vehicle may use that part of the road', b: 'Only the indicated class of vehicle may use that part of the road', c: 'The lane is closed to everyone', d: 'You may park there', correct: 'B', exp: 'Reservation signs reserve a portion of the road for a specific class of road user; other vehicles may not use it.', page: 17 },
-    { text: 'At a manually-operated Stop/Go sign, when may you proceed?', a: 'When the STOP side is showing', b: 'When the GO side is shown to you', c: 'As soon as you have slowed down', d: 'Only after hooting', correct: 'B', exp: 'A Stop/Go sign is turned by an operator. You stop when STOP faces you and proceed only when GO is shown.', page: 16 },
-    { text: 'A blue round command sign showing a number such as “50” means you must…', a: 'Not exceed 50 km/h', b: 'Not drive slower than 50 km/h (minimum speed)', c: 'Stop within 50 m', d: 'Keep 50 m following distance', correct: 'B', exp: 'A blue (command) speed sign sets a minimum speed — you must travel at the indicated speed or faster.', page: 17 },
-    { text: 'A blue round sign showing headlamps instructs you to…', a: 'Switch off your headlamps', b: 'Switch on your headlamps now', c: 'Flash your headlamps', d: 'Use only your parking lights', correct: 'B', exp: 'This command sign requires you to switch your headlamps on immediately, e.g. before a tunnel or in poor visibility.', page: 17 },
-    { text: 'A “No U-turn” prohibition sign means you may not…', a: 'Turn left', b: 'Turn the vehicle around to face the opposite direction', c: 'Reverse', d: 'Change lanes', correct: 'B', exp: 'A No-U-turn sign prohibits turning your vehicle around so that it faces the opposite direction.', page: 17 },
-    { text: 'You see a “No stopping” sign. May you stop briefly to drop off a passenger?', a: 'Yes, if you are quick', b: 'No — no stopping is allowed except to obey a signal/officer or to avoid an accident', c: 'Yes, with hazards on', d: 'Only after 18:00', correct: 'B', exp: 'No stopping means you may not stop at all there, except to obey a traffic signal or officer, or to avoid a collision.', page: 17 },
-    { text: 'A “No overtaking” prohibition sign that shows a distance (e.g. 500 m) means…', a: 'You may overtake after 500 m only', b: 'You may not overtake for the distance indicated', c: 'Overtaking is recommended', d: 'Goods vehicles may overtake', correct: 'B', exp: 'The sign prohibits overtaking for the distance shown; the restriction applies from the sign onward.', page: 17 },
+    { img: 'sign-stop-go.svg', text: 'At a manually-operated Stop/Go sign, when may you proceed?', a: 'When the STOP side is showing', b: 'When the GO side is shown to you', c: 'As soon as you have slowed down', d: 'Only after hooting', correct: 'B', exp: 'A Stop/Go sign is turned by an operator. You stop when STOP faces you and proceed only when GO is shown.', page: 16 },
+    { img: 'sign-min-speed.svg', text: 'A blue round command sign showing a number such as “50” means you must…', a: 'Not exceed 50 km/h', b: 'Not drive slower than 50 km/h (minimum speed)', c: 'Stop within 50 m', d: 'Keep 50 m following distance', correct: 'B', exp: 'A blue (command) speed sign sets a minimum speed — you must travel at the indicated speed or faster.', page: 17 },
+    { img: 'sign-headlamps.svg', text: 'A blue round sign showing headlamps instructs you to…', a: 'Switch off your headlamps', b: 'Switch on your headlamps now', c: 'Flash your headlamps', d: 'Use only your parking lights', correct: 'B', exp: 'This command sign requires you to switch your headlamps on immediately, e.g. before a tunnel or in poor visibility.', page: 17 },
+    { img: 'sign-no-uturn.svg', text: 'A “No U-turn” prohibition sign means you may not…', a: 'Turn left', b: 'Turn the vehicle around to face the opposite direction', c: 'Reverse', d: 'Change lanes', correct: 'B', exp: 'A No-U-turn sign prohibits turning your vehicle around so that it faces the opposite direction.', page: 17 },
+    { img: 'sign-no-stopping.svg', text: 'You see a “No stopping” sign. May you stop briefly to drop off a passenger?', a: 'Yes, if you are quick', b: 'No — no stopping is allowed except to obey a signal/officer or to avoid an accident', c: 'Yes, with hazards on', d: 'Only after 18:00', correct: 'B', exp: 'No stopping means you may not stop at all there, except to obey a traffic signal or officer, or to avoid a collision.', page: 17 },
+    { img: 'sign-no-overtaking.svg', text: 'A “No overtaking” prohibition sign that shows a distance (e.g. 500 m) means…', a: 'You may overtake after 500 m only', b: 'You may not overtake for the distance indicated', c: 'Overtaking is recommended', d: 'Goods vehicles may overtake', correct: 'B', exp: 'The sign prohibits overtaking for the distance shown; the restriction applies from the sign onward.', page: 17 },
     { text: 'A regulatory sign with a yellow background is…', a: 'A guidance sign', b: 'A temporary regulatory sign that must still be obeyed and takes precedence over the permanent sign', c: 'Out of order and can be ignored', d: 'Only advisory', correct: 'B', exp: 'Yellow = temporary. A temporary regulatory sign must be obeyed and overrides the equivalent permanent sign.', page: 16 },
     { text: 'At a pedestrian-priority sign, the maximum speed and who may drive there is…', a: '30 km/h, any vehicle', b: '15 km/h, and only delivery, maintenance or emergency vehicles', c: '40 km/h, buses only', d: '60 km/h, all vehicles', correct: 'B', exp: 'In a pedestrian-priority area you must yield to pedestrians, not exceed 15 km/h, and only delivery/maintenance/emergency vehicles may drive or park there.', page: 16 },
     { text: 'Which selective-restriction sign meaning is correct?', a: 'A sign showing days and times applies only during those days and times', b: 'A time sign applies all day every day', c: 'A “mini-buses only” sign applies to all vehicles', d: 'A night-time sign applies only in daytime', correct: 'A', exp: 'Selective-restriction (combination) signs apply the rule selectively — e.g. only during the days/times shown, only to a vehicle class, or only for the distance shown.', page: 20 },
@@ -161,9 +163,8 @@ const QUIZ_DATA = {
     { text: 'A warning sign showing a series of bends tells you that…', a: 'The road ends ahead', b: 'There is a winding road or series of curves ahead — reduce speed', c: 'You may overtake freely', d: 'There is a parking area ahead', correct: 'B', exp: 'A winding-road warning indicates a series of curves; slow down because there may be more curves after the first.', page: 28 },
     { text: 'When you see a “pedestrians ahead” warning sign you should…', a: 'Speed up to clear the area', b: 'Be alert and ready to slow down or stop for pedestrians', c: 'Sound your hooter continuously', d: 'Overtake immediately', correct: 'B', exp: 'A pedestrian warning sign tells you pedestrians may be in or near the road; be ready to slow down or stop.', page: 28 },
     { text: 'A warning sign for a steep descent reminds you that…', a: 'You should increase speed', b: 'Your stopping distance is longer, especially when heavily laden — select a lower gear', c: 'Brakes are not needed', d: 'You may engage neutral', correct: 'B', exp: 'On a steep descent allow for a longer stopping distance and use a lower gear, particularly with a heavy load.', page: 28 },
-    { text: 'A hazard marker plate (e.g. chevrons or stripes) is used to…', a: 'Give the speed limit', b: 'Indicate the position of a hazard or obstruction and the direction to pass it', c: 'Reserve a lane for buses', d: 'Mark a tourism route', correct: 'B', exp: 'Hazard marker plates indicate the exact position of a hazard or obstruction and which way to pass it.', page: 28 },
-    { text: 'At a warning sign for a railway crossing with no stop line, if you must stop you should stop no closer than…', a: '1 metre from the nearest rail', b: '2 metres from the nearest rail', c: '3 metres from the nearest rail', d: 'Right next to the boom', correct: 'C', exp: 'Where there is no stop line, stop no closer than 3 m from the nearest rail and never on the track.', page: 29 },
-    { text: 'A warning sign showing a T-junction (the road you are on ends ahead) means you must…', a: 'Continue straight', b: 'Turn sharply to the left or right, depending on the junction', c: 'Stop and reverse', d: 'Make a U-turn', correct: 'B', exp: 'A T-junction warning means your road ends ahead and you will have to turn left or right; look out for any Stop or Yield sign.', page: 32 },
+    { img: 'sign-railway.svg', text: 'At a warning sign for a railway crossing with no stop line, if you must stop you should stop no closer than…', a: '1 metre from the nearest rail', b: '2 metres from the nearest rail', c: '3 metres from the nearest rail', d: 'Right next to the boom', correct: 'C', exp: 'Where there is no stop line, stop no closer than 3 m from the nearest rail and never on the track.', page: 29 },
+    { img: 'sign-t-junction.svg', text: 'A warning sign showing a T-junction (the road you are on ends ahead) means you must…', a: 'Continue straight', b: 'Turn sharply to the left or right, depending on the junction', c: 'Stop and reverse', d: 'Make a U-turn', correct: 'B', exp: 'A T-junction warning means your road ends ahead and you will have to turn left or right; look out for any Stop or Yield sign.', page: 32 },
     { text: 'A “Stop sign ahead” / “robot ahead” traffic-control warning sign tells you to…', a: 'Speed up to clear the junction', b: 'Slow down and be prepared to give way or stop', c: 'Ignore it on a clear day', d: 'Sound your hooter', correct: 'B', exp: 'Traffic-control warning signs warn that a regulatory control (Stop, Yield, robot, scholar patrol) is ahead — slow down and be prepared to give way or stop.', page: 29 },
     { text: 'A warning sign indicating the traffic signals (robots) ahead are out of order means you should…', a: 'Treat the intersection as a freeway', b: 'Approach the junction with extreme caution', c: 'Stop permanently', d: 'Reverse away', correct: 'B', exp: 'When warned that the traffic lights are out of order, approach the junction with extreme caution as it is uncontrolled.', page: 29 },
     { text: 'A warning sign for a traffic-calming hump (speed hump) in the road ahead means you should…', a: 'Maintain speed', b: 'Reduce speed considerably before passing over the hump, or your vehicle may be damaged', c: 'Accelerate over it', d: 'Stop on the hump', correct: 'B', exp: 'A speed-hump warning indicates the position of a calming hump; reduce speed considerably before crossing it.', page: 35 },
@@ -189,7 +190,6 @@ const QUIZ_DATA = {
 
   // 8 — Guidance signs
   8: [
-    { text: 'What do guidance signs tell you?', a: 'What you may not do', b: 'Guidance about distances, directions and places', c: 'The position of a hazard', d: 'The speed limit', correct: 'B', exp: 'Guidance signs give guidance about distances and directions to places and destinations.', page: 40 },
     { text: 'Guidance (direction) signs on freeways are usually which colour?', a: 'Red with white text', b: 'Blue or green with white text', c: 'Yellow with black text', d: 'Brown with white text', correct: 'B', exp: 'Freeway and major-route guidance signs use blue or green backgrounds with white lettering.', page: 40 },
     { text: 'A tourism sign is usually which colour, and what does it show?', a: 'Brown — places of interest to travellers', b: 'Red — prohibitions', c: 'Blue — speed limits', d: 'Yellow — temporary works', correct: 'A', exp: 'Tourism signs are brown and point to attractions and information especially useful to travellers.', page: 40 },
     { text: 'An advance direction sign is placed…', a: 'After the intersection', b: 'Before the intersection so you can choose the correct lane and route in time', c: 'Only at toll plazas', d: 'On the road surface only', correct: 'B', exp: 'Advance direction signs appear before an intersection or exit so drivers can position themselves correctly.', page: 40 },
@@ -204,11 +204,11 @@ const QUIZ_DATA = {
 
   // 9 — Road surface markings
   9: [
-    { text: 'A solid white line in the centre of the road means…', a: 'You may cross it to overtake whenever you wish', b: 'You may not cross or straddle it except to enter a property or pass a stationary obstruction, when safe', c: 'It marks a parking bay', d: 'It is only a guide and can be ignored', correct: 'B', exp: 'A solid (no-crossing) line may not be crossed except to access a property or pass a stationary obstruction, and only when safe.', page: 49 },
+    { img: 'marking-solid-line.svg', text: 'A solid white line in the centre of the road means…', a: 'You may cross it to overtake whenever you wish', b: 'You may not cross or straddle it except to enter a property or pass a stationary obstruction, when safe', c: 'It marks a parking bay', d: 'It is only a guide and can be ignored', correct: 'B', exp: 'A solid (no-crossing) line may not be crossed except to access a property or pass a stationary obstruction, and only when safe.', page: 49 },
     { text: 'A broken white line down the middle of the road means…', a: 'You may never cross it', b: 'You may cross it to overtake or turn when it is safe to do so', c: 'The road is one-way', d: 'No stopping at any time', correct: 'B', exp: 'A broken dividing line may be crossed to overtake or turn when it is safe.', page: 49 },
     { text: 'A yellow line marking the left edge of the road (the edge line) means…', a: 'You may drive on the shoulder at any time', b: 'It marks the edge of the roadway and you should not normally cross it to the left', c: 'Parking is reserved for buses', d: 'The road ahead is closed', correct: 'B', exp: 'The yellow edge line marks the left edge of the roadway; you generally may not drive to the left of it except under the road-shoulder exception.', page: 50 },
     { text: 'Painted island / chevron markings on the road surface should be…', a: 'Driven over to save time', b: 'Used for parking', c: 'Kept clear — do not drive on or straddle them', d: 'Treated as a pedestrian crossing', correct: 'C', exp: 'Painted islands separate or guide traffic and must not be driven on or straddled.', page: 49 },
-    { text: 'A box junction (cross-hatched yellow lines) painted in an intersection means you must…', a: 'Stop inside the box and wait', b: 'Not enter the box unless your exit is clear so you will not block the intersection', c: 'Park inside the box', d: 'Yield to traffic from the left', correct: 'B', exp: 'You may only enter a yellow box junction if your exit is clear; you must never stop and block the intersection.', page: 52 },
+    { img: 'marking-box-junction.svg', text: 'A box junction (cross-hatched yellow lines) painted in an intersection means you must…', a: 'Stop inside the box and wait', b: 'Not enter the box unless your exit is clear so you will not block the intersection', c: 'Park inside the box', d: 'Yield to traffic from the left', correct: 'B', exp: 'You may only enter a yellow box junction if your exit is clear; you must never stop and block the intersection.', page: 52 },
     { text: 'A word or symbol painted on the road (e.g. “SLOW”, a bus or an arrow) is there to…', a: 'Be ignored', b: 'Give you additional information or an instruction — read it and act accordingly', c: 'Mark a tourism route', d: 'Indicate a toll plaza', correct: 'B', exp: 'Word and symbol markings supply additional information or instructions; read the message and respond to the indicated situation.', page: 53 },
     { text: 'A lane with a bus symbol painted in it (a reserved lane) means…', a: 'Buses must avoid the lane', b: 'Only buses may drive, stop or park in that lane — no other vehicle may use it', c: 'Any vehicle may use it off-peak', d: 'It is for parking only', correct: 'B', exp: 'A reserved-lane symbol (bus, taxi, bicycle, etc.) means only that class of vehicle may drive, stop or park in the lane.', page: 48 },
     { text: 'Zig-zag lines painted on the approach to a pedestrian crossing mean you may…', a: 'Overtake and stop freely', b: 'Not overtake or stop within the zig-zag zone, and you must give way to pedestrians on the crossing', c: 'Park there', d: 'Speed up across the crossing', correct: 'B', exp: 'Zig-zag lines mark the pedestrian-crossing approach; do not overtake or stop in that zone and give way to pedestrians.', page: 48 },
@@ -223,7 +223,7 @@ const QUIZ_DATA = {
     { text: 'On a two-way road in South Africa you must normally drive…', a: 'On the right-hand side', b: 'On the left-hand side', c: 'In the centre of the road', d: 'On whichever side is clear', correct: 'B', exp: 'The “rule of the road” is to drive on the left-hand side of a two-way road.', page: 54 },
     { text: 'What is the general speed limit on a public road in an urban area, unless a sign says otherwise?', a: '40 km/h', b: '60 km/h', c: '80 km/h', d: '100 km/h', correct: 'B', exp: 'The general urban speed limit is 60 km/h; outside urban areas 100 km/h; on freeways 120 km/h.', page: 54 },
     { text: 'The general speed limit on a freeway (unless signposted otherwise) is…', a: '100 km/h', b: '110 km/h', c: '120 km/h', d: '140 km/h', correct: 'C', exp: 'The general freeway speed limit is 120 km/h. A goods vehicle over 9 000 kg is limited to 80 km/h and a bus/mini-bus carrying passengers to 100 km/h.', page: 54 },
-    { text: 'If a road sign shows a speed limit different from the general limit, which applies?', a: 'The general limit always applies', b: 'The speed shown on the sign takes precedence', c: 'You may choose either', d: 'The lower of the two, always', correct: 'B', exp: 'A sign showing a different speed limit always takes precedence over and overrides the general speed limit.', page: 54 },
+    { img: 'sign-speed-60.svg', text: 'If a road sign shows a speed limit different from the general limit, which applies?', a: 'The general limit always applies', b: 'The speed shown on the sign takes precedence', c: 'You may choose either', d: 'The lower of the two, always', correct: 'B', exp: 'A sign showing a different speed limit always takes precedence over and overrides the general speed limit.', page: 54 },
     { text: 'You may NOT overtake when…', a: 'The road ahead is clear and straight', b: 'Approaching a blind rise or curve where your view is limited and oncoming traffic is possible', c: 'A broken line is painted down the centre', d: 'The vehicle ahead is far away', correct: 'B', exp: 'Do not overtake on a blind rise, on a curve, or anywhere your view of oncoming traffic is limited, nor where a sign or marking prohibits it.', page: 55 },
     { text: 'When another vehicle is overtaking you, you should…', a: 'Accelerate to stop them passing', b: 'Move over to the left to let them pass and not accelerate', c: 'Move to the right', d: 'Brake hard immediately', correct: 'B', exp: 'When being overtaken, move over to the left to allow the other vehicle to pass and do not accelerate.', page: 55 },
     { text: 'At a roundabout (traffic circle) you must, unless a sign or officer directs otherwise…', a: 'Yield to traffic approaching from the left', b: 'Yield to traffic approaching from the right', c: 'Always stop before entering', d: 'Have right of way over all traffic', correct: 'B', exp: 'At a roundabout you give way to all traffic already in the circle and approaching from your right, unless a sign or traffic officer instructs otherwise.', page: 56 },
@@ -235,6 +235,20 @@ const QUIZ_DATA = {
     { text: 'For an ordinary (non-professional) driver, the blood-alcohol concentration must be LESS than…', a: '0.05 g per 100 ml of blood', b: '0.08 g per 100 ml of blood', c: '0.10 g per 100 ml of blood', d: 'There is no limit', correct: 'A', exp: 'An ordinary driver’s blood-alcohol level must be below 0.05 g per 100 ml; for a professional driver the limit is lower (0.02 g per 100 ml).', page: 63 },
     { text: 'Who is responsible for ensuring that all occupants of a vehicle wear their seat belts?', a: 'Each passenger individually', b: 'The driver', c: 'The traffic officer', d: 'No one — it is optional', correct: 'B', exp: 'The driver is responsible for ensuring that all occupants wear the seat belts fitted to the vehicle (exempted only while reversing).', page: 63 },
     { text: 'Which of the following is NOT allowed on a freeway?', a: 'A light motor car', b: 'A motorcycle with an engine of 50 cc or less, a pedal cycle or an animal-drawn vehicle', c: 'A bus carrying passengers', d: 'A goods vehicle', correct: 'B', exp: 'Freeways exclude small/slow vehicles such as motorcycles ≤50 cc, pedal cycles, animal-drawn vehicles, tractors (except for maintenance) and very light vehicles.', page: 60 },
+    { img: 'hand-slow.svg', text: 'The driver ahead puts their right arm out of the window, palm facing down, and moves it slowly up and down. What does this hand signal mean?', a: 'They are about to turn right', b: 'They are slowing down or stopping', c: 'They are about to turn left', d: 'You may overtake them', correct: 'B', exp: 'The right arm held out with the palm down, moved slowly up and down, is the hand signal for “I am slowing down / stopping.”', page: 58 },
+    { img: 'hand-right.svg', text: 'A driver holds their right arm straight out of the window, horizontally, and keeps it still. What are they signalling?', a: 'They intend to turn right', b: 'They are slowing down', c: 'They intend to turn left', d: 'Their hazard lights are on', correct: 'A', exp: 'A right arm held straight out horizontally signals the intention to turn right.', page: 58 },
+    { img: 'hand-left.svg', text: 'A driver extends their right arm out of the window and moves it in anti-clockwise circles. What does this hand signal mean?', a: 'They intend to turn left', b: 'They are warning you of a hazard ahead', c: 'They intend to turn right', d: 'They want you to stop', correct: 'A', exp: 'The right arm moved in anti-clockwise circles is the hand signal for the intention to turn left.', page: 58 },
+    { text: 'How close to a pedestrian crossing may you stop your vehicle, on the side from which you approach it?', a: 'No closer than 9 m', b: 'No closer than 2 m', c: 'Right up to the crossing line', d: 'No closer than 50 m', correct: 'A', exp: 'You may not stop within 9 m of a pedestrian crossing on the approach side.', page: 56 },
+    { text: 'You may not stop your vehicle closer than how far from an intersection?', a: '5 m', b: '1 m', c: '15 m', d: '25 m', correct: 'A', exp: 'Stopping closer than 5 m from an intersection is prohibited (unless permitted by a sign or to comply with the law).', page: 56 },
+    { text: 'How close to a fire hydrant may you park your vehicle?', a: 'Not within 1.5 m', b: 'Right next to it', c: 'Not within 20 m', d: 'Not within 100 m', correct: 'A', exp: 'You may not park within 1.5 m of a fire hydrant.', page: 56 },
+    { text: 'When may you NOT stop opposite another vehicle that is standing on the other side of the road?', a: 'Where the roadway is less than 9 m wide', b: 'Where the roadway is wider than 12 m', c: 'It is never allowed under any circumstances', d: 'Only at night', correct: 'A', exp: 'You may not stop on the opposite side of the road to another stationary vehicle where the roadway is less than 9 m wide, as this blocks the road.', page: 56 },
+    { text: 'What is the maximum allowed distance between a towing vehicle and a vehicle being towed by a rope?', a: '3.5 m', b: '1 m', c: '10 m', d: 'There is no limit', correct: 'A', exp: 'When towing with a rope or chain, the distance between the two vehicles may not exceed 3.5 m.', page: 64 },
+    { text: 'May passengers be carried in a vehicle that is being towed by means of a rope?', a: 'No — no person may be carried in a vehicle towed by a rope or chain', b: 'Yes, up to two passengers', c: 'Yes, if they wear seat belts', d: 'Only adults may be carried', correct: 'A', exp: 'No person may be carried in a vehicle being towed by a rope or chain; the towed vehicle must still be steered by a licensed driver.', page: 64 },
+    { text: 'When must your vehicle’s headlamps be switched on?', a: 'Between sunset and sunrise, and at any time visibility is less than 150 m', b: 'Only after 22:00', c: 'Only on freeways', d: 'Only when it is raining', correct: 'A', exp: 'Headlamps must be on from sunset to sunrise and whenever visibility is reduced to less than 150 m (e.g. fog, smoke, heavy rain).', page: 60 },
+    { text: 'When must you dip (lower) your headlights from main beam?', a: 'When another vehicle approaches from the front, or when following close behind another vehicle, so you do not blind the driver', b: 'Only when a traffic officer instructs you to', c: 'Never on rural roads', d: 'Only inside tunnels', correct: 'A', exp: 'Dip your headlights for oncoming traffic and when driving behind another vehicle, so other drivers are not dazzled.', page: 60 },
+    { img: 'sign-triangle-warning.svg', text: 'Your vehicle breaks down on the roadway. At least how far behind the vehicle must you place your emergency warning triangle?', a: '45 m', b: '5 m', c: '10 m', d: '500 m', correct: 'A', exp: 'The red emergency warning triangle must be placed at least 45 m behind the broken-down vehicle to warn approaching traffic in time.', page: 64 },
+    { text: 'An ambulance approaches from behind with its siren sounding and emergency lights flashing. What must you do?', a: 'Give immediate right of way — move as far left as is safe and stop if necessary', b: 'Maintain your speed and course', c: 'Speed up so it does not need to pass you', d: 'Stop immediately wherever you are, even in the middle of an intersection', correct: 'A', exp: 'You must give an immediate, safe right of way to an emergency vehicle sounding its siren — move out of its path (normally to the left) and stop if necessary.', page: 60 },
+    { text: 'You approach an uncontrolled intersection — no signs, signals or markings. What is the rule?', a: 'Slow down and yield to any vehicle approaching from your right, and to vehicles that entered the intersection first', b: 'The larger vehicle always has right of way', c: 'You always have right of way over joining traffic', d: 'Sound your hooter and proceed without slowing', correct: 'A', exp: 'At an uncontrolled intersection you must slow down and yield to traffic approaching from your right and to any vehicle that entered the intersection before you.', page: 57 },
   ],
 
   // 11 — Learner's licence mock test (self-contained questions from the manual's practice tests)
@@ -251,7 +265,13 @@ const QUIZ_DATA = {
     { text: 'What is considered the single most important “rule of the road”?', a: 'Always be courteous and considerate', b: 'Never exceed the speed limit', c: 'Keep to the left-hand side of the road', d: 'Always use your indicators', correct: 'C', exp: 'The fundamental rule of the road in South Africa is to keep to the left-hand side of the road.', page: 75 },
     { text: 'On dipped (low) beam, your headlights may shine no further ahead than about…', a: '45 metres', b: '90 metres', c: '150 metres', d: '200 metres', correct: 'A', exp: 'Dipped-beam headlights must not illuminate the road further than about 45 m ahead, so as not to dazzle oncoming drivers.', page: 75 },
     { text: 'You have right of way at an intersection when…', a: 'You are already within a traffic circle, or you were first to reach the stop line at a four-way stop', b: 'You are the largest vehicle', c: 'You are in the biggest hurry', d: 'You are turning right across oncoming traffic', correct: 'A', exp: 'You have right of way when you are already in the traffic circle, or when you reached the stop line first at a four-way stop. When turning right you must yield to oncoming traffic.', page: 73 },
-    { text: 'What must you do at a flashing red traffic light?', a: 'Drive through without stopping', b: 'Stop, then proceed when it is safe — treat it like a stop sign', c: 'Speed up to clear the intersection', d: 'Wait for it to turn green before moving', correct: 'B', exp: 'A flashing red traffic signal must be treated as a stop sign: come to a complete stop, then proceed when it is safe.', page: 73 },
+    { img: 'robot-flashing-red.svg', text: 'What must you do at a flashing red traffic light?', a: 'Drive through without stopping', b: 'Stop, then proceed when it is safe — treat it like a stop sign', c: 'Speed up to clear the intersection', d: 'Wait for it to turn green before moving', correct: 'B', exp: 'A flashing red traffic signal must be treated as a stop sign: come to a complete stop, then proceed when it is safe.', page: 73 },
+    { img: 'robot-red.svg', text: 'The traffic light shows a steady red light. What must you do?', a: 'Stop completely behind the stop line and wait until the light changes to green', b: 'Slow down and proceed if the way is clear', c: 'Stop only if other vehicles are present', d: 'Proceed — a red light applies only to heavy vehicles', correct: 'A', exp: 'A steady red light means stop completely behind the stop line and remain stationary until the light turns green.', page: 113 },
+    { img: 'robot-green.svg', text: 'The traffic light shows a steady green light. You may…', a: 'Proceed — but still yield to pedestrians and to vehicles lawfully still in the intersection', b: 'Proceed without checking the intersection at all', c: 'Not proceed until the light flashes', d: 'Only turn left', correct: 'A', exp: 'A green light means you may proceed — but only once pedestrians and vehicles still lawfully in the intersection have cleared.', page: 113 },
+    { img: 'robot-amber.svg', text: 'The traffic light turns to a steady amber (yellow) light as you approach. What must you do?', a: 'Stop — unless you are so close that stopping suddenly would be dangerous', b: 'Always accelerate to get through before red', c: 'Stop in the middle of the intersection', d: 'Treat it exactly like a green light', correct: 'A', exp: 'A steady amber light means stop, unless you are already so close to the line that you cannot stop safely — in which case proceed with caution.', page: 113 },
+    { img: 'robot-green-arrow.svg', text: 'The signal shows a green arrow. What does it mean?', a: 'You may proceed with care, but only in the direction shown by the arrow', b: 'All traffic in every direction may proceed', c: 'Stop and wait for the full green light', d: 'The lane ahead is closed', correct: 'A', exp: 'A green arrow allows you to proceed carefully in the direction of the arrow only.', page: 113 },
+    { img: 'robot-red-arrow.svg', text: 'The signal shows a steady red arrow. What does it mean?', a: 'Do not proceed in the direction of the arrow until the signal changes', b: 'You may turn in the arrow’s direction if the way is clear', c: 'The lane is reserved for buses only', d: 'The signal is out of order', correct: 'A', exp: 'A steady red arrow prohibits movement in the direction of the arrow until the signal changes.', page: 113 },
+    { img: 'robot-flashing-amber.svg', text: 'The traffic signal shows a flashing amber (yellow) light. What must you do?', a: 'Proceed with caution, yielding to pedestrians and to other traffic at the intersection', b: 'Stop and wait until it turns green', c: 'Speed up to clear the area quickly', d: 'Make a U-turn and find another route', correct: 'A', exp: 'A flashing amber signal means proceed carefully through the intersection, giving way to pedestrians and other vehicles.', page: 113 },
   ],
 
   // 12 — K53 driving test overview
@@ -328,15 +348,53 @@ const QUIZ_DATA = {
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
 
-const labelToOpts = (q) =>
-  ['A', 'B', 'C', 'D']
+// Exam-level pass marks per chapter (real exam: rules 22/28≈78%, signs 23/28≈82%, controls 6/8=75%)
+const PASS_THRESHOLDS = {
+  1: 78, 2: 75, 3: 78,                 // overview / controls / defensive driving
+  4: 80, 5: 80, 6: 80, 7: 80, 8: 80, 9: 80,  // signs, signals & markings
+  10: 78, 11: 78,                      // rules of the road / mock test
+  12: 75, 13: 75, 14: 75, 15: 75,      // K53 practical driving test
+}
+
+// Public URL base for question images (uploaded by upload-k53-sign-images.mjs)
+const IMG_BASE = `${SUPABASE_URL}/storage/v1/object/public/resources/K53%20Unpacked/signs/`
+
+// Deterministic per-question option shuffle. The authored data is heavily
+// biased toward one correct letter; shuffling at seed time spreads correct
+// answers evenly across A–D so the quizzes can't be passed by pattern-guessing.
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = a + 0x6D2B79F5 | 0
+    let t = Math.imul(a ^ a >>> 15, 1 | a)
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t
+    return ((t ^ t >>> 14) >>> 0) / 4294967296
+  }
+}
+
+const labelToOpts = (q, seed) => {
+  const opts = ['A', 'B', 'C', 'D']
     .filter(lbl => q[lbl.toLowerCase()] !== undefined)
-    .map(lbl => ({ option_label: lbl, option_text: q[lbl.toLowerCase()], is_correct: q.correct === lbl }))
+    .map(lbl => ({ option_text: q[lbl.toLowerCase()], is_correct: q.correct === lbl }))
+  const rnd = mulberry32(seed)
+  for (let i = opts.length - 1; i > 0; i--) {
+    const j = Math.floor(rnd() * (i + 1));
+    [opts[i], opts[j]] = [opts[j], opts[i]]
+  }
+  return opts.map((o, i) => ({ option_label: 'ABCD'[i], ...o }))
+}
 
 // ─── SEED ────────────────────────────────────────────────────────────────────
 
 async function seed() {
   console.log('🌱 Seeding "K53 Unpacked"…\n')
+
+  // 0. Does ku_questions.image_url exist yet? (migration 16)
+  const probe = await fetch(`${SUPABASE_URL}/rest/v1/ku_questions?select=image_url&limit=1`, { headers: H })
+  const hasImageCol = probe.ok
+  if (!hasImageCol) {
+    console.warn('  ⚠ ku_questions.image_url column not found — seeding WITHOUT question images.')
+    console.warn('    Run scripts/migrations/16_k53_unpacked_question_images.sql in the SQL Editor, then re-run this seed.\n')
+  }
 
   // 1. Clear existing K53-Unpacked data (cascades clear pages/quizzes/questions/options)
   console.log('  Clearing existing K53-Unpacked data…')
@@ -344,8 +402,12 @@ async function seed() {
   await del('ku_user_chapter_progress', 'id=not.is.null')
   await del('ku_chapters',              'manual_slug=eq.k53-unpacked')
 
-  // 2. Chapters
-  const chapters = await post('ku_chapters', CHAPTERS.map(c => ({ manual_slug: 'k53-unpacked', pass_threshold: 70, ...c })))
+  // 2. Chapters (exam-level pass marks per chapter)
+  const chapters = await post('ku_chapters', CHAPTERS.map(c => ({
+    manual_slug: 'k53-unpacked',
+    pass_threshold: PASS_THRESHOLDS[c.chapter_number] ?? 70,
+    ...c,
+  })))
   console.log(`  ✓ ${chapters.length} chapters`)
 
   // 3. Pages
@@ -391,17 +453,40 @@ async function seed() {
       explanation:     q.exp,
       source_page:     q.page,
       difficulty:      'medium',
+      ...(hasImageCol ? { image_url: q.img ? IMG_BASE + q.img : null } : {}),
     })))
     totalQ += inserted.length
 
     const optionRows = []
     for (let i = 0; i < inserted.length; i++) {
-      for (const opt of labelToOpts(qData[i])) optionRows.push({ question_id: inserted[i].id, ...opt })
+      // Seed the shuffle with chapter+index so reseeding is reproducible
+      // (constants chosen so no chapter has >45% of answers on one letter)
+      for (const opt of labelToOpts(qData[i], ch.chapter_number * 8887 + (i + 1) * 7)) {
+        optionRows.push({ question_id: inserted[i].id, ...opt })
+      }
     }
     await post('ku_question_options', optionRows)
     totalOpt += optionRows.length
     process.stdout.write(`  ✓ Ch ${ch.chapter_number}: ${inserted.length} questions, ${optionRows.length} options\n`)
   }
+
+  // 6. Question-image map → storage (public, next to the sign images). Used by
+  // the app as a fallback when the ku_questions.image_url column (migration 16)
+  // hasn't been added yet, so question pictures work either way.
+  const imageMap = {}
+  for (const ch of studyChapters) {
+    const qData = QUIZ_DATA[ch.chapter_number]
+    if (!qData) continue
+    qData.forEach((q, i) => { if (q.img) imageMap[`${ch.chapter_number}:${i + 1}`] = q.img })
+  }
+  const mapPath = encodeURIComponent('K53 Unpacked') + '/signs/question-images.json'
+  const mapRes = await fetch(`${SUPABASE_URL}/storage/v1/object/resources/${mapPath}`, {
+    method: 'POST',
+    headers: { apikey: KEY, Authorization: `Bearer ${KEY}`, 'Content-Type': 'application/json', 'x-upsert': 'true' },
+    body: JSON.stringify(imageMap),
+  })
+  if (!mapRes.ok) console.warn(`  ⚠ could not upload image map: ${mapRes.status} ${await mapRes.text()}`)
+  else console.log(`  ✓ image map for ${Object.keys(imageMap).length} questions uploaded to storage`)
 
   console.log(`\n✅ Done.  Chapters: ${chapters.length}  Pages: ${pageRows.length}  Quizzes: ${quizzes.length}  Questions: ${totalQ}  Options: ${totalOpt}`)
 }

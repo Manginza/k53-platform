@@ -5,7 +5,10 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
 
 interface Option   { id: string; option_label: string; option_text: string }
-interface Question { id: string; question_number: number; question_text: string; options: Option[] }
+interface Question {
+  id: string; question_number: number; question_text: string; options: Option[]
+  image_url?: string | null   // exam-style sign/signal picture (K53 Unpacked)
+}
 interface Quiz     { id: string; title: string; instructions: string | null }
 
 interface Props {
@@ -132,6 +135,19 @@ export default function QuizPlayer({
           <div className="text-xs font-semibold text-green-600 mb-2 sm:mb-3 uppercase tracking-wide">
             Question {currentIdx + 1} of {total}
           </div>
+
+          {/* Exam-style picture (road sign / signal / hand signal) */}
+          {current.image_url && (
+            <div className="flex justify-center mb-4 sm:mb-5">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={current.image_url}
+                alt="Road sign or signal referred to in this question"
+                className="h-28 sm:h-36 object-contain"
+              />
+            </div>
+          )}
+
           <p className="text-gray-900 font-semibold text-base sm:text-lg leading-relaxed mb-5 sm:mb-6">
             {current.question_text}
           </p>

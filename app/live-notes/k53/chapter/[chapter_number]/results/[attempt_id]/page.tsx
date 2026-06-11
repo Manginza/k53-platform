@@ -17,6 +17,7 @@ interface AnswerDetail {
 
 type ReviewItem = {
   number: number; text: string; explanation: string
+  imageUrl: string | null
   selectedLabel: string; selectedText: string
   correctLabel: string; correctText: string
   isCorrect: boolean
@@ -46,10 +47,31 @@ export default async function K53ResultsPage({ params }: Props) {
     ...detail.map(d => d.correct_option_id),
   ]))
 
-  const [{ data: questions }, { data: options }] = await Promise.all([
-    supabase.from('ku_questions').select('id, question_number, question_text, explanation').in('id', questionIds),
+  // image_url requires migration 16 — fall back to a select without it.
+  type QuestionRow = {
+    id: string; question_number: number; question_text: string
+    explanation: string; image_url?: string | null
+  }
+  const [qRes, { data: options }] = await Promise.all([
+    supabase.from('ku_questions').select('id, question_number, question_text, explanation, image_url').in('id', questionIds),
     supabase.from('ku_question_options').select('id, option_label, option_text').in('id', optionIds),
   ])
+  let questions = qRes.data as QuestionRow[] | null
+  if (!questions) {
+    questions = (await supabase
+      .from('ku_questions').select('id, question_number, question_text, explanation').in('id', questionIds)).data as QuestionRow[] | null
+  }
+
+  // Question pictures: prefer the image_url column (migration 16); otherwise
+  // fall back to the seed-written map stored alongside the images.
+  const IMG_BASE = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/resources/K53%20Unpacked/signs/`
+  let imageMap: Record<string, string> = {}
+  if (!questions?.some(q => q.image_url)) {
+    try {
+      const res = await fetch(IMG_BASE + 'question-images.json', { cache: 'no-store' })
+      if (res.ok) imageMap = await res.json()
+    } catch {}
+  }
 
   const review: ReviewItem[] = detail
     .map((d): ReviewItem | null => {
@@ -57,10 +79,12 @@ export default async function K53ResultsPage({ params }: Props) {
       const selectedOption = options?.find(o => o.id === d.selected_option_id)
       const correctOption  = options?.find(o => o.id === d.correct_option_id)
       if (!question) return null
+      const mapped = imageMap[`${chapterNum}:${question.question_number}`]
       return {
         number:        question.question_number,
         text:          question.question_text,
         explanation:   question.explanation,
+        imageUrl:      question.image_url ?? (mapped ? IMG_BASE + mapped : null),
         selectedLabel: selectedOption?.option_label ?? '?',
         selectedText:  selectedOption?.option_text ?? 'Not answered',
         correctLabel:  correctOption?.option_label ?? '?',
@@ -85,6 +109,15 @@ export default async function K53ResultsPage({ params }: Props) {
     .limit(1)
     .maybeSingle()
   const maxChapter = lastChapter?.chapter_number ?? chapterNum
+
+  // This chapter's actual pass mark (exam-level thresholds vary per chapter)
+  const { data: thisChapter } = await supabase
+    .from('ku_chapters')
+    .select('pass_threshold')
+    .eq('chapter_number', chapterNum)
+    .eq('is_front_matter', false)
+    .maybeSingle()
+  const passMark = thisChapter?.pass_threshold ?? 70
 
   return (
     <main className="max-w-2xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
@@ -118,7 +151,7 @@ export default async function K53ResultsPage({ params }: Props) {
             <div className="text-gray-500 text-sm sm:text-base">
               {correct} / {total} correct
             </div>
-            <div className="text-xs text-gray-400 mt-1">Pass mark: 70%</div>
+            <div className="text-xs text-gray-400 mt-1">Pass mark: {passMark}%</div>
           </div>
         </div>
       </div>
@@ -170,6 +203,17 @@ export default async function K53ResultsPage({ params }: Props) {
                 {item.number}. {item.text}
               </p>
             </div>
+
+            {item.imageUrl && (
+              <div className="ml-7 mb-2 flex">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={item.imageUrl}
+                  alt="Road sign or signal referred to in this question"
+                  className="h-20 object-contain"
+                />
+              </div>
+            )}
 
             <div className="ml-7 space-y-1 text-xs sm:text-sm">
               {!item.isCorrect && (
