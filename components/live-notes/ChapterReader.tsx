@@ -25,7 +25,7 @@ interface Props {
   quizAlwaysAvailable?: boolean  // when true, the quiz link shows without requiring "mark as read"
 }
 
-const ZOOM_STEP = 0.25
+const ZOOM_STEP = 0.05
 const ZOOM_MIN  = 0.5
 const ZOOM_MAX  = 4
 
