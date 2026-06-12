@@ -178,40 +178,35 @@ export default function ChapterReader({
           Ctrl+scroll to zoom · Arrow keys to navigate · Esc to close
         </div>
 
-        {/* FS image scroll area */}
+        {/* FS image scroll area.
+            Zoom grows the image's REAL height (not a CSS transform) so the
+            scroll container's scrollHeight grows with it — every edge of the
+            page stays reachable by scrolling at any zoom. `display:grid` +
+            `margin:auto` centres the page while keeping all overflow scrollable. */}
         <div
           ref={fsScrollRef}
-          className="flex-1 overflow-auto flex items-start justify-center bg-gray-950"
-          style={{ cursor: zoom > 1 ? 'grab' : 'default' }}
+          className="flex-1 overflow-auto bg-gray-950 p-3 sm:p-4"
+          style={{ display: 'grid', cursor: zoom > 1 ? 'grab' : 'default' }}
         >
-          <div
-            className="p-4 sm:p-6 lg:p-10"
+          {/* eslint-disable @next/next/no-img-element */}
+          <img
+            key={currentPage.page_number}
+            src={pageUrl(currentPage.page_number)}
+            alt={currentPage.alt_text ?? `Manual page ${currentPage.page_number}`}
             style={{
-              minWidth: zoom > 1 ? `${zoom * 100}%` : undefined,
-              display: 'flex',
-              justifyContent: 'center',
+              margin: 'auto',
+              // 100% zoom ≈ fits the available area; each step scales this height
+              height: `calc((100vh - 150px) * ${zoom})`,
+              width: 'auto',
+              // cap width to the screen only at fit; allow overflow (scroll) when zoomed
+              maxWidth: zoom <= 1 ? '100%' : 'none',
+              objectFit: 'contain',
+              display: 'block',
+              transition: 'height 0.12s ease',
+              boxShadow: '0 8px 40px rgba(0,0,0,0.8)',
+              borderRadius: '4px',
             }}
-          >
-            {/* eslint-disable @next/next/no-img-element */}
-            <img
-              key={currentPage.page_number}
-              src={pageUrl(currentPage.page_number)}
-              alt={currentPage.alt_text ?? `Manual page ${currentPage.page_number}`}
-              style={{
-                transform: `scale(${zoom})`,
-                transformOrigin: 'top center',
-                transition: 'transform 0.15s ease',
-                // When zoom > 1, let transform expand it; don't constrain width
-                maxWidth: zoom <= 1 ? '100%' : 'none',
-                display: 'block',
-                // At zoom = 1, fill most of the viewport height nicely
-                maxHeight: zoom <= 1 ? 'calc(100vh - 130px)' : 'none',
-                objectFit: 'contain',
-                boxShadow: '0 8px 40px rgba(0,0,0,0.8)',
-                borderRadius: '4px',
-              }}
-            />
-          </div>
+          />
         </div>
 
         {/* FS bottom navigation */}
