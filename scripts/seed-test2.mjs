@@ -37,7 +37,7 @@ const rulesQuestions = [
     option_a: 'Not more than 450mm from the edge of the roadway',
     option_b: 'Not more than 1m from the edge of the roadway',
     option_c: 'A vehicle may not park on a public road unless in a parking bay',
-    correct_answer: 'A',
+    correct_answer: 'C',
   },
   {
     question: 'You may not...\n(i) Run the engine unattended\n(ii) Use your vehicle without a cap on the fuel tank\n(iii) Spin the wheels of your vehicle when pulling off\n\nSELECT THE CORRECT COMBINATION',
@@ -100,7 +100,7 @@ const rulesQuestions = [
     option_a: '2.6m',
     option_b: '4.3m high',
     option_c: 'Half of your vehicle\'s height',
-    correct_answer: 'A',
+    correct_answer: 'B',
   },
   {
     question: 'A safe following distance means that if the vehicle in front of you suddenly stops, you could...',
@@ -184,7 +184,7 @@ const rulesQuestions = [
     option_a: 'Someone must hear it from a distance of at least 50m',
     option_b: 'The tone and pitch of the sound may not change',
     option_c: 'You may use it to get the attention of someone you would like to offer a lift',
-    correct_answer: 'A',
+    correct_answer: 'B',
   },
   {
     question: 'You must stop your vehicle...\n(i) On a public road at the signal of a person herding sheep\n(ii) On a freeway when directed to do so by a traffic officer\n(iii) On any road to avoid an accident\n\nSELECT THE CORRECT COMBINATION',
@@ -318,7 +318,7 @@ const signsQuestions = [
     option_a: 'An alternative route marker',
     option_b: 'A map-type trailblazer',
     option_c: 'An advance trailblazer',
-    correct_answer: 'B',
+    correct_answer: 'C',
     image_ref: '2c8.12.img.png',
   },
   {
@@ -374,7 +374,7 @@ const signsQuestions = [
     option_a: 'The road is a one-way road',
     option_b: 'Overtaking is prohibited for the next 2km',
     option_c: 'The road is narrow and cannot handle two motor cars side by side',
-    correct_answer: 'A',
+    correct_answer: 'B',
     image_ref: '2c8.19.img.png',
   },
   {
@@ -382,7 +382,7 @@ const signsQuestions = [
     option_a: 'Yield and carry on when it is safe to do so',
     option_b: 'Know that they are warned of a stop sign ahead',
     option_c: 'Stop behind the stop line and give right of way to vehicles from the right',
-    correct_answer: 'C',
+    correct_answer: 'B',
     image_ref: '2c8.20.img.png',
   },
   {
@@ -398,7 +398,7 @@ const signsQuestions = [
     option_a: 'Turning left is prohibited',
     option_b: 'You should turn left',
     option_c: 'The road turning to the left is a one-way road',
-    correct_answer: 'A',
+    correct_answer: 'B',
     image_ref: '2c8.22.img.png',
   },
   {
@@ -422,7 +422,7 @@ const signsQuestions = [
     option_a: 'The road ends ahead',
     option_b: 'Only cars may enter',
     option_c: 'There is a one-way road ahead',
-    correct_answer: 'C',
+    correct_answer: 'A',
     image_ref: '2c8.24.1.img.png',
   },
   {
@@ -430,7 +430,7 @@ const signsQuestions = [
     option_a: 'Cars from turning right at this point',
     option_b: 'Cars from turning right ahead',
     option_c: 'All vehicles from turning right',
-    correct_answer: 'C',
+    correct_answer: 'B',
     image_ref: '2c8.25.img.png',
   },
   {
