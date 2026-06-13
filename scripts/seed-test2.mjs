@@ -163,7 +163,7 @@ const rulesQuestions = [
     option_a: '(ii) only is correct',
     option_b: '(i) and (ii) only are correct',
     option_c: 'All of the above are correct',
-    correct_answer: 'C',
+    correct_answer: 'B',
   },
   {
     question: 'When you are involved in an accident you...\n(i) Must immediately stop your vehicle\n(ii) Must see if someone is injured\n(iii) May use a bit of alcohol for the shock\n\nSELECT THE CORRECT COMBINATION',
@@ -238,7 +238,7 @@ const signsQuestions = [
     option_a: '4',
     option_b: '11',
     option_c: '3',
-    correct_answer: 'B',
+    correct_answer: 'C',
     image_ref: '2c8.2.img.png',
   },
   {
@@ -446,7 +446,7 @@ const signsQuestions = [
     option_a: '2',
     option_b: '5',
     option_c: '1',
-    correct_answer: 'B',
+    correct_answer: 'A',
     image_ref: '2c8.27.img.png',
   },
   {
