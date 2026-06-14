@@ -20,6 +20,13 @@ const youtubeVideos = [
   { id: 'DEJSLtsCpBU', url: 'https://youtu.be/DEJSLtsCpBU' },
 ]
 
+// Live-session recordings pinned in the recordings section (in addition to the
+// admin-set latest recording pulled from the database).
+const liveRecordings = [
+  { id: '1RMFnYkvQadmvsKaBru8oAFvq6GorpdPZ', url: 'https://drive.google.com/file/d/1RMFnYkvQadmvsKaBru8oAFvq6GorpdPZ/view?usp=sharing' },
+  { id: '1ALmgr1xumOVmxhMNDmHrKzBkpCJA8MKk', url: 'https://drive.google.com/file/d/1ALmgr1xumOVmxhMNDmHrKzBkpCJA8MKk/view?usp=sharing' },
+]
+
 const driveVideos = [
   { id: '1K-rAzIiVPLbMzYHpDLd0puSiOJ8FyuHZ', url: 'https://drive.google.com/file/d/1K-rAzIiVPLbMzYHpDLd0puSiOJ8FyuHZ/view?usp=sharing' },
   { id: '1RMFnYkvQadmvsKaBru8oAFvq6GorpdPZ', url: 'https://drive.google.com/file/d/1RMFnYkvQadmvsKaBru8oAFvq6GorpdPZ/view?usp=sharing' },
@@ -68,6 +75,9 @@ export default async function VideosPage() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <DriveCard fileId={recording.fileId} index={0} url={recording.url} />
+          {liveRecordings.map((v, i) => (
+            <DriveCard key={v.id} fileId={v.id} index={i + 1} url={v.url} />
+          ))}
         </div>
       </section>
 
