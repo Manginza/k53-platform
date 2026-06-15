@@ -8,7 +8,6 @@ import ReferralCapture from "@/components/ReferralCapture";
 import CookieBanner from "@/components/CookieBanner";
 import LiveSessionPopup from "@/components/LiveSessionPopup";
 import K53UnpackedPopup from "@/components/K53UnpackedPopup";
-import BonusContentPopup from "@/components/BonusContentPopup";
 
 const geistSans = localFont({
     src: "./fonts/GeistVF.woff",
@@ -90,7 +89,6 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                         <CookieBanner />
                         <LiveSessionPopup />
                         <K53UnpackedPopup />
-                        <BonusContentPopup />
                 </body>
           </html>
         );
