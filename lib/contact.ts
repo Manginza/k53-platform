@@ -17,7 +17,7 @@ export const WHATSAPP_QUERIES_URL =
 
 /** Live online evening study sessions (shown to paid members after checkout). */
 export const LIVE_SESSION_URL = 'https://meet.google.com/yxw-dqij-zgq'
-export const LIVE_SESSION_SCHEDULE = 'Monday to Thursday, 8pm–9pm'
+export const LIVE_SESSION_SCHEDULE = 'Every day, 8pm–9pm'
 export const LIVE_SESSION_NOTE = 'Sessions are recorded, so you can catch up if you miss one.'
 /** Recording of the live session, for anyone who missed it. */
 export const LIVE_SESSION_RECORDING_URL = 'https://drive.google.com/file/d/1DCXbLDIO0Ev03h6PLRenAVZu6GiS4Akc/view?usp=sharing'

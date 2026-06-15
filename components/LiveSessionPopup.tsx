@@ -1,39 +1,52 @@
 'use client'
 
 /**
- * LiveSessionPopup — a one-per-day reminder shown to full-access members on
- * session days (Mon–Thu) about tonight's 8pm live study session. Dismissible;
- * won't reappear the same day. Self-gating via /api/me/access so it can live
- * in the root layout without making every page dynamic.
+ * LiveSessionPopup — a one-per-day reminder shown to full-access members,
+ * every day from 6pm onwards, about tonight's 8pm live Learner's Licence
+ * course session. Dismissible; won't reappear the same day. Self-gating via
+ * /api/me/access so it can live in the root layout without making every page
+ * dynamic. If the tab is already open before 6pm, it pops at 6pm.
  */
 import { useEffect, useState } from 'react'
 import { LIVE_SESSION_URL, LIVE_SESSION_SCHEDULE, LIVE_SESSION_NOTE, LIVE_SESSION_RECORDING_URL } from '@/lib/contact'
 
 const DISMISS_KEY = 'sk_session_popup'
+const ACTIVATE_HOUR = 18 // 6pm — the popup becomes active every day at this hour
 
 export default function LiveSessionPopup() {
   const [open, setOpen] = useState(false)
   const [recordingUrl, setRecordingUrl] = useState(LIVE_SESSION_RECORDING_URL)
 
   useEffect(() => {
-    // Only on session days: Mon(1) – Thu(4) in the visitor's local time.
-    const day = new Date().getDay()
-    if (day < 1 || day > 4) return
-
     // Already dismissed today?
     const today = new Date().toDateString()
     try { if (localStorage.getItem(DISMISS_KEY) === today) return } catch {}
 
     let cancelled = false
+    let timer: ReturnType<typeof setTimeout> | undefined
+
+    // Full-access members only; activates every day from 6pm (visitor's local time).
     fetch('/api/me/access')
       .then(r => r.json())
       .then(d => {
         if (cancelled || !d?.fullAccess) return
         if (d.recordingUrl) setRecordingUrl(d.recordingUrl)
-        setOpen(true)
+
+        const now = new Date()
+        const activateAt = new Date()
+        activateAt.setHours(ACTIVATE_HOUR, 0, 0, 0)
+
+        if (now >= activateAt) {
+          setOpen(true)                                   // already past 6pm → show now
+        } else {
+          timer = setTimeout(                             // open the tab early? pop at 6pm
+            () => { if (!cancelled) setOpen(true) },
+            activateAt.getTime() - now.getTime(),
+          )
+        }
       })
       .catch(() => {})
-    return () => { cancelled = true }
+    return () => { cancelled = true; if (timer) clearTimeout(timer) }
   }, [])
 
   function dismiss() {
@@ -52,9 +65,9 @@ export default function LiveSessionPopup() {
         <button onClick={dismiss} aria-label="Close" className="absolute top-3 right-4 text-gray-400 hover:text-gray-700 text-2xl leading-none">×</button>
 
         <div className="text-5xl mb-3">📹</div>
-        <h2 className="text-2xl font-extrabold text-gray-900 mb-1">Live study session tonight!</h2>
+        <h2 className="text-2xl font-extrabold text-gray-900 mb-1">Learner&apos;s Licence session tonight!</h2>
         <p className="text-sm text-gray-600 mb-1">
-          Join us this evening at <strong>8pm</strong>.
+          Join our Learner&apos;s Licence course session this evening at <strong>8pm</strong>.
         </p>
         <p className="text-xs text-gray-500 mb-1">{LIVE_SESSION_SCHEDULE}</p>
         <p className="text-xs text-gray-400 mb-5">{LIVE_SESSION_NOTE}</p>
