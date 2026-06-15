@@ -16,7 +16,7 @@ create table if not exists public.app_settings (
 
 -- Seed the current recording link (kept if it already exists).
 insert into public.app_settings (key, value)
-values ('live_recording_url', 'https://drive.google.com/file/d/1XA_r-AQ9ODalohBq2FSDSj6cEsM3aMie/view?usp=sharing')
+values ('live_recording_url', 'https://drive.google.com/file/d/1irb-OSgV6TthrO3ru6XQ5Y7EUGzw8ygz/view?usp=sharing')
 on conflict (key) do nothing;
 
 -- RLS on, no policies: only the service-role key (server routes) reads/writes.
