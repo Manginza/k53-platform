@@ -9,6 +9,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const staticPaths = [
     '',                 // home
     '/centers',         // find nearest writing centre — SEO priority page
+    '/driving-schools', // driving school locator
     '/pricing',
     '/courses',
     '/live-notes',
@@ -44,5 +45,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.6,
   }))
 
-  return [...staticEntries, ...provinceEntries, ...ruleEntries]
+  const schoolProvinceEntries: MetadataRoute.Sitemap = [
+    'Gauteng', 'Western Cape', 'KwaZulu-Natal', 'Eastern Cape',
+    'Mpumalanga', 'Limpopo', 'Free State', 'North West', 'Northern Cape',
+  ].map(prov => ({
+    url: `${BASE}/driving-schools?province=${encodeURIComponent(prov)}`,
+    lastModified: now,
+    changeFrequency: 'monthly' as const,
+    priority: 0.8,
+  }))
+
+  return [...staticEntries, ...provinceEntries, ...schoolProvinceEntries, ...ruleEntries]
 }
