@@ -27,6 +27,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: p === '' ? 1 : 0.7,
   }))
 
+  const provinceEntries: MetadataRoute.Sitemap = [
+    'Gauteng', 'Western Cape', 'KwaZulu-Natal', 'Eastern Cape',
+    'Mpumalanga', 'Limpopo', 'Free State', 'North West', 'Northern Cape',
+  ].map(prov => ({
+    url: `${BASE}/centers?province=${encodeURIComponent(prov)}`,
+    lastModified: now,
+    changeFrequency: 'monthly' as const,
+    priority: 0.8,
+  }))
+
   const ruleEntries: MetadataRoute.Sitemap = RULES_CHAPTERS.map(c => ({
     url: `${BASE}/live-notes/rules/${c.slug}`,
     lastModified: now,
@@ -34,5 +44,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.6,
   }))
 
-  return [...staticEntries, ...ruleEntries]
+  return [...staticEntries, ...provinceEntries, ...ruleEntries]
 }

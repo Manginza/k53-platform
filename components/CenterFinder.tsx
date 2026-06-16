@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 // ─── SA location → approx coordinates lookup (no external API needed) ─────
@@ -224,20 +225,22 @@ const PROVINCES = [
   'Northern Cape',
 ]
 
-export default function CenterFinder() {
+export default function CenterFinder({ initialProvince = '' }: { initialProvince?: string }) {
+  const router = useRouter()
+
   const [query,    setQuery]    = useState('')
-  const [province, setProvince] = useState('All provinces')
+  const [province, setProvince] = useState(initialProvince || 'All provinces')
   const [results,  setResults]  = useState<Center[] | null>(null)
   const [loading,  setLoading]  = useState(false)
   const [error,    setError]    = useState<string | null>(null)
   const [searched, setSearched] = useState(false)
 
-  const fetchNearest = useCallback(async (lat: number, lng: number, prov: string) => {
+  const fetchNearest = useCallback(async (lat: number, lng: number, prov: string, limit = 5) => {
     setLoading(true)
     setError(null)
     try {
       const params = new URLSearchParams({
-        lat: String(lat), lng: String(lng), limit: '5',
+        lat: String(lat), lng: String(lng), limit: String(limit),
         ...(prov !== 'All provinces' ? { province: prov } : {}),
       })
       const res = await fetch(`/api/centers/nearest?${params}`)
@@ -251,6 +254,26 @@ export default function CenterFinder() {
       setLoading(false)
     }
   }, [])
+
+  // Auto-fetch on mount when a province is pre-selected via URL param
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!initialProvince) return
+    const coords = findCoords(initialProvince.toLowerCase())
+    if (coords) fetchNearest(coords.lat, coords.lng, initialProvince, 20)
+  }, []) // intentionally only on mount — URL param sets initial state once
+
+  function handleProvinceChange(newProvince: string) {
+    setProvince(newProvince)
+    const url = newProvince === 'All provinces'
+      ? '/centers'
+      : `/centers?province=${encodeURIComponent(newProvince)}`
+    router.replace(url, { scroll: false })
+    if (newProvince !== 'All provinces') {
+      const coords = findCoords(newProvince.toLowerCase())
+      if (coords) fetchNearest(coords.lat, coords.lng, newProvince, 20)
+    }
+  }
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault()
@@ -307,7 +330,7 @@ export default function CenterFinder() {
         <div className="flex flex-col sm:flex-row gap-2">
           <select
             value={province}
-            onChange={e => setProvince(e.target.value)}
+            onChange={e => handleProvinceChange(e.target.value)}
             className="flex-1 border border-gray-300 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             {PROVINCES.map(p => <option key={p}>{p}</option>)}
@@ -348,7 +371,7 @@ export default function CenterFinder() {
       {!loading && results && results.length > 0 && (
         <div className="mt-8 space-y-4">
           <h2 className="text-lg font-bold text-gray-900">
-            {results.length} nearest centre{results.length !== 1 ? 's' : ''}
+            {results.length} {province !== 'All provinces' ? `centre${results.length !== 1 ? 's' : ''} in ${province}` : `nearest centre${results.length !== 1 ? 's' : ''}`}
           </h2>
 
           {results.map((c, i) => (
