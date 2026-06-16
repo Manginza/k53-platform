@@ -8,6 +8,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const staticPaths = [
     '',                 // home
+    '/centers',         // find nearest writing centre — SEO priority page
     '/pricing',
     '/courses',
     '/live-notes',
