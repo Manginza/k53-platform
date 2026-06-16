@@ -189,7 +189,7 @@ export default function CentersPage({
             <a href="https://enatis.com" target="_blank" rel="noopener noreferrer" className="underline font-semibold">
               eNaTIS portal
             </a>
-            . In Gauteng, online pre-booking is mandatory.
+            . Online booking via eNaTIS is currently available in Gauteng (mandatory) and the Eastern Cape. All other provinces use walk-in or phone bookings.
           </p>
         </section>
 

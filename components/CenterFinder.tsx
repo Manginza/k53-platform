@@ -200,37 +200,37 @@ const BOOKING_INFO: Record<string, { status: BookingStatus; note: string }> = {
     status: 'mandatory',
     note: 'Online pre-booking is mandatory for all Gauteng DLTCs (Joburg, Pretoria, Ekurhuleni, Sedibeng, West Rand). You cannot walk in — you must book via eNaTIS first.',
   },
-  'Western Cape': {
+  'Eastern Cape': {
     status: 'available',
-    note: 'Online booking is available for City of Cape Town DLTCs and most Western Cape centres via the eNaTIS portal.',
+    note: 'Online booking is available for Eastern Cape DLTCs via the eNaTIS portal. Book your learner\'s licence test online before visiting the centre.',
+  },
+  'Western Cape': {
+    status: 'walkin',
+    note: 'Western Cape DLTCs use walk-in or phone bookings. Online booking is not yet available via eNaTIS for this province — call your nearest centre to schedule.',
   },
   'KwaZulu-Natal': {
-    status: 'available',
-    note: 'Online booking is available at eThekwini (Durban) and other KZN DLTCs via the eNaTIS portal.',
-  },
-  'Eastern Cape': {
-    status: 'partial',
-    note: 'Online booking is available at select Eastern Cape DLTCs. Contact your nearest centre to confirm before visiting.',
+    status: 'walkin',
+    note: 'KwaZulu-Natal DLTCs use walk-in or phone bookings. Call your nearest centre to schedule your learner\'s licence test.',
   },
   'Mpumalanga': {
-    status: 'partial',
-    note: 'Some Mpumalanga DLTCs accept online bookings via eNaTIS. Call your centre to confirm.',
+    status: 'walkin',
+    note: 'Mpumalanga DLTCs use walk-in or phone bookings. Call your nearest centre to schedule your learner\'s licence test.',
   },
   'Free State': {
     status: 'walkin',
-    note: 'Free State DLTCs typically use walk-in or phone bookings. Call your nearest centre to schedule a test.',
+    note: 'Free State DLTCs use walk-in or phone bookings. Call your nearest centre to schedule your learner\'s licence test.',
   },
   'Limpopo': {
     status: 'walkin',
-    note: 'Limpopo DLTCs typically use walk-in or phone bookings. Call your nearest centre to schedule a test.',
+    note: 'Limpopo DLTCs use walk-in or phone bookings. Call your nearest centre to schedule your learner\'s licence test.',
   },
   'North West': {
     status: 'walkin',
-    note: 'North West DLTCs typically use walk-in or phone bookings. Call your nearest centre to schedule a test.',
+    note: 'North West DLTCs use walk-in or phone bookings. Call your nearest centre to schedule your learner\'s licence test.',
   },
   'Northern Cape': {
     status: 'walkin',
-    note: 'Northern Cape DLTCs typically use walk-in or phone bookings. Call your nearest centre to schedule a test.',
+    note: 'Northern Cape DLTCs use walk-in or phone bookings. Call your nearest centre to schedule your learner\'s licence test.',
   },
 }
 
