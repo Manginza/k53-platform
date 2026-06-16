@@ -41,24 +41,14 @@ export default function Footer() {
             © {new Date().getFullYear()} K53 Learner&apos;s. All rights reserved.
           </p>
           <div className="flex flex-wrap gap-4 text-xs text-gray-500 justify-center md:justify-end">
+            <Link href="/resources" className="hover:text-gray-300 transition-colors">Resources</Link>
+            <Link href="/admin" className="hover:text-gray-300 transition-colors">Admin</Link>
             <Link href="/about" className="hover:text-gray-300 transition-colors">About Us</Link>
             <Link href="/contact" className="hover:text-gray-300 transition-colors">Contact Us</Link>
             <Link href="/privacy-policy" className="hover:text-gray-300 transition-colors">Privacy Policy</Link>
             <Link href="/terms-and-conditions" className="hover:text-gray-300 transition-colors">Terms & Conditions</Link>
             <Link href="/cookie-policy" className="hover:text-gray-300 transition-colors">Cookie Policy</Link>
           </div>
-
-          {/* Discreet admin login — blends into the footer */}
-          <Link
-            href="/login"
-            aria-label="Admin login"
-            title="Admin login"
-            className="w-7 h-7 rounded-full bg-gray-800 hover:bg-gray-700 border border-gray-700 flex items-center justify-center text-gray-600 hover:text-gray-400 transition-colors"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 11c0-1.657 0-3 0-3a3 3 0 016 0v3m-9 0h12a1 1 0 011 1v6a1 1 0 01-1 1H7a1 1 0 01-1-1v-6a1 1 0 011-1z" />
-            </svg>
-          </Link>
         </div>
       </div>
     </footer>

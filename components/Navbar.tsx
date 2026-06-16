@@ -16,7 +16,6 @@ const LINKS = [
   { href: '/live-notes',       label: 'Live Notes' },
   { href: '/live-notes/rules', label: 'Road Rules' },
   { href: '/videos',           label: 'Videos' },
-  { href: '/resources',        label: 'Resources' },
 ]
 
 export default function Navbar() {
@@ -81,17 +80,12 @@ export default function Navbar() {
         {/* Desktop right side */}
         <div className="hidden md:flex items-center gap-2 shrink-0">
           {isAdmin ? (
-            <>
-              <Link href="/admin" className="text-sm font-medium text-blue-100 hover:text-white transition-colors px-2">
-                Admin
-              </Link>
-              <button
-                onClick={logout}
-                className="bg-white text-blue-700 font-semibold px-3 py-1.5 rounded-lg text-xs hover:bg-blue-100 transition-colors"
-              >
-                Logout
-              </button>
-            </>
+            <button
+              onClick={logout}
+              className="bg-white text-blue-700 font-semibold px-3 py-1.5 rounded-lg text-xs hover:bg-blue-100 transition-colors"
+            >
+              Logout
+            </button>
           ) : (
             <Link
               href="/pricing"
@@ -139,17 +133,12 @@ export default function Navbar() {
 
           <div className="border-t border-blue-700 pt-3">
             {isAdmin ? (
-              <div className="space-y-2">
-                <Link href="/admin" className="block px-3 py-3 rounded-xl text-sm font-medium text-blue-100 hover:bg-blue-700 hover:text-white transition-colors">
-                  Admin dashboard
-                </Link>
-                <button
-                  onClick={logout}
-                  className="w-full bg-white text-blue-700 font-semibold py-3 rounded-xl text-sm hover:bg-blue-100 transition-colors"
-                >
-                  Logout
-                </button>
-              </div>
+              <button
+                onClick={logout}
+                className="w-full bg-white text-blue-700 font-semibold py-3 rounded-xl text-sm hover:bg-blue-100 transition-colors"
+              >
+                Logout
+              </button>
             ) : (
               <Link
                 href="/pricing"
