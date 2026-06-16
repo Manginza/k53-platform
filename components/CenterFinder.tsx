@@ -191,6 +191,49 @@ const LOCATION_LOOKUP: Record<string, { lat: number; lng: number; province?: str
   'northern cape': { lat: -28.7282, lng: 24.7499 },
 }
 
+// ─── Online booking availability per province ─────────────────────────────────
+const NATIS_URL = 'https://online.natis.gov.za/#/auth/identify'
+
+type BookingStatus = 'mandatory' | 'available' | 'partial' | 'walkin'
+const BOOKING_INFO: Record<string, { status: BookingStatus; note: string }> = {
+  'Gauteng': {
+    status: 'mandatory',
+    note: 'Online pre-booking is mandatory for all Gauteng DLTCs (Joburg, Pretoria, Ekurhuleni, Sedibeng, West Rand). You cannot walk in — you must book via eNaTIS first.',
+  },
+  'Western Cape': {
+    status: 'available',
+    note: 'Online booking is available for City of Cape Town DLTCs and most Western Cape centres via the eNaTIS portal.',
+  },
+  'KwaZulu-Natal': {
+    status: 'available',
+    note: 'Online booking is available at eThekwini (Durban) and other KZN DLTCs via the eNaTIS portal.',
+  },
+  'Eastern Cape': {
+    status: 'partial',
+    note: 'Online booking is available at select Eastern Cape DLTCs. Contact your nearest centre to confirm before visiting.',
+  },
+  'Mpumalanga': {
+    status: 'partial',
+    note: 'Some Mpumalanga DLTCs accept online bookings via eNaTIS. Call your centre to confirm.',
+  },
+  'Free State': {
+    status: 'walkin',
+    note: 'Free State DLTCs typically use walk-in or phone bookings. Call your nearest centre to schedule a test.',
+  },
+  'Limpopo': {
+    status: 'walkin',
+    note: 'Limpopo DLTCs typically use walk-in or phone bookings. Call your nearest centre to schedule a test.',
+  },
+  'North West': {
+    status: 'walkin',
+    note: 'North West DLTCs typically use walk-in or phone bookings. Call your nearest centre to schedule a test.',
+  },
+  'Northern Cape': {
+    status: 'walkin',
+    note: 'Northern Cape DLTCs typically use walk-in or phone bookings. Call your nearest centre to schedule a test.',
+  },
+}
+
 function findCoords(query: string) {
   const q = query.toLowerCase().trim()
   if (LOCATION_LOOKUP[q]) return LOCATION_LOOKUP[q]
@@ -373,6 +416,86 @@ export default function CenterFinder({ initialProvince = '' }: { initialProvince
           <h2 className="text-lg font-bold text-gray-900">
             {results.length} {province !== 'All provinces' ? `centre${results.length !== 1 ? 's' : ''} in ${province}` : `nearest centre${results.length !== 1 ? 's' : ''}`}
           </h2>
+
+          {/* Online booking banner — province-aware */}
+          {(() => {
+            const effectiveProv = province !== 'All provinces' ? province : (results[0]?.province ?? '')
+            const info = BOOKING_INFO[effectiveProv]
+            if (!info) return null
+
+            if (info.status === 'mandatory') {
+              return (
+                <div className="bg-green-50 border border-green-300 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+                  <div className="flex-1">
+                    <p className="text-sm font-bold text-green-800 flex items-center gap-1.5">
+                      <span>🌐</span> Online booking available — {effectiveProv}
+                    </p>
+                    <p className="text-xs text-green-700 mt-0.5 leading-relaxed">{info.note}</p>
+                  </div>
+                  <a
+                    href={NATIS_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="shrink-0 bg-green-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-green-700 transition-colors text-center"
+                  >
+                    Book your test online ↗
+                  </a>
+                </div>
+              )
+            }
+
+            if (info.status === 'available') {
+              return (
+                <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+                  <div className="flex-1">
+                    <p className="text-sm font-bold text-blue-800 flex items-center gap-1.5">
+                      <span>🌐</span> Online booking available — {effectiveProv}
+                    </p>
+                    <p className="text-xs text-blue-700 mt-0.5 leading-relaxed">{info.note}</p>
+                  </div>
+                  <a
+                    href={NATIS_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="shrink-0 bg-blue-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-blue-700 transition-colors text-center"
+                  >
+                    Book your test online ↗
+                  </a>
+                </div>
+              )
+            }
+
+            if (info.status === 'partial') {
+              return (
+                <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+                  <div className="flex-1">
+                    <p className="text-sm font-bold text-amber-800 flex items-center gap-1.5">
+                      <span>🌐</span> Online booking — check availability
+                    </p>
+                    <p className="text-xs text-amber-700 mt-0.5 leading-relaxed">{info.note}</p>
+                  </div>
+                  <a
+                    href={NATIS_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="shrink-0 bg-amber-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-amber-700 transition-colors text-center"
+                  >
+                    Try online booking ↗
+                  </a>
+                </div>
+              )
+            }
+
+            // walkin — no button, just a soft tip
+            return (
+              <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4">
+                <p className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
+                  <span>📞</span> Booking tip — {effectiveProv}
+                </p>
+                <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{info.note}</p>
+              </div>
+            )
+          })()}
 
           {results.map((c, i) => (
             <div
