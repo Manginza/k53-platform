@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import BookSlideshow from '@/components/BookSlideshow'
 import BuyAccessButton from '@/components/BuyAccessButton'
@@ -6,10 +7,104 @@ import { WHATSAPP_URL, ACCESS_PRICE, ACCESS_PRICE_ORIGINAL, ACCESS_DURATION_DAYS
 
 export const dynamic = 'force-dynamic'
 
+export const metadata: Metadata = {
+  title: "Free K53 Learner's Licence Practice Tests South Africa | SK Driving",
+  description: "Study for your South African learner's licence with free K53 practice tests. Covers road signs, vehicle controls, and rules of the road for Code 8, Code 10 and Code 14. Pass first time.",
+  keywords: [
+    "learners licence test South Africa", "K53 practice test", "free learners licence test",
+    "K53 questions and answers", "learners licence road signs", "learners licence rules of the road",
+    "Code 8 learners licence", "Code 10 learners licence", "how to pass learners licence",
+    "learners licence study guide South Africa", "K53 learner driver manual",
+    "learners test questions South Africa", "learners licence test online free",
+  ],
+  alternates: { canonical: 'https://www.skdriving.co.za' },
+  openGraph: {
+    title: "Free K53 Learner's Licence Practice Tests | SK Driving",
+    description: "Pass your South African learner's licence first time. Free K53 practice tests for Code 8, Code 10 and Code 14 — road signs, vehicle controls, rules of the road.",
+    url: 'https://www.skdriving.co.za',
+  },
+}
+
+// JSON-LD structured data
+const websiteSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: "SK Driving — K53 Learner's Licence Practice Tests",
+  url: 'https://www.skdriving.co.za',
+  description: "Free K53 learner's licence practice tests for South Africa. Road signs, vehicle controls and rules of the road for Code 8, Code 10 and Code 14.",
+  inLanguage: 'en-ZA',
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: 'https://www.skdriving.co.za/centers?province={search_term_string}',
+    'query-input': 'required name=search_term_string',
+  },
+}
+
+const appSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: "K53 Learner's Licence Practice Tests",
+  applicationCategory: 'EducationalApplication',
+  operatingSystem: 'Web',
+  url: 'https://www.skdriving.co.za/courses',
+  description: "Interactive K53 practice tests for the South African learner's licence — road signs, vehicle controls, rules of the road.",
+  offers: {
+    '@type': 'Offer',
+    price: '0',
+    priceCurrency: 'ZAR',
+    description: "Free learner's licence practice tests",
+  },
+}
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: "How many questions are on the South African learner's licence test?",
+      acceptedAnswer: { '@type': 'Answer', text: 'The K53 learner\'s licence test has 64 questions divided into three sections: Road signs (28 questions, pass mark 23), Rules of the road (28 questions, pass mark 22), and Vehicle controls (8 questions, pass mark 6). You must pass all three sections to pass the test.' },
+    },
+    {
+      '@type': 'Question',
+      name: "What mark do you need to pass the learner's licence test?",
+      acceptedAnswer: { '@type': 'Answer', text: 'You need to pass all three sections of the K53 test: at least 23/28 (82%) for road signs, at least 22/28 (79%) for rules of the road, and at least 6/8 (75%) for vehicle controls. Failing even one section means you fail the entire test.' },
+    },
+    {
+      '@type': 'Question',
+      name: 'What is the difference between a Code 8 and Code 10 learner\'s licence?',
+      acceptedAnswer: { '@type': 'Answer', text: 'A Code 8 (B) licence covers light motor vehicles up to 3,500 kg GVM — cars, minibuses, and light bakkies. A Code 10 (C1) licence covers medium heavy vehicles between 3,500 kg and 16,000 kg GVM, such as trucks and large buses. Code 10 holders can also legally drive Code 8 vehicles.' },
+    },
+    {
+      '@type': 'Question',
+      name: "How do I book a learner's licence test in South Africa?",
+      acceptedAnswer: { '@type': 'Answer', text: 'Book online via the eNaTIS portal at https://online.natis.gov.za. In Gauteng and the Eastern Cape, online booking is available. In other provinces, visit your nearest DLTC (Driving Licence Testing Centre) to book in person. You must confirm your booking at the DLTC within 3 business days and pay the booking fee.' },
+    },
+    {
+      '@type': 'Question',
+      name: "What documents do I need for the learner's licence test?",
+      acceptedAnswer: { '@type': 'Answer', text: 'You need: your original green barcoded ID book or Smart ID card (plus 2 certified copies), 2–4 recent ID-sized photographs, proof of residential address not older than 3 months, and a completed Form LL1. If you booked online, also bring your printed eNaTIS booking confirmation.' },
+    },
+    {
+      '@type': 'Question',
+      name: "Can I practise for the K53 learner's licence test online?",
+      acceptedAnswer: { '@type': 'Answer', text: 'Yes. SK Driving offers free K53 practice tests online covering all three sections — road signs, rules of the road, and vehicle controls. Practising regularly with timed tests is the best way to prepare and pass first time.' },
+    },
+    {
+      '@type': 'Question',
+      name: "How many times can I fail the learner's licence test?",
+      acceptedAnswer: { '@type': 'Answer', text: "There is no legal limit on how many times you can attempt the learner's licence test in South Africa. However, you must book and pay the test fee each time you attempt it. Most candidates who practise with K53 test questions beforehand pass within one or two attempts." },
+    },
+  ],
+}
+
 export default async function Home() {
   const fullAccess = await hasFullAccess()
   return (
     <main>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(appSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       {/* Hero */}
       <section className="bg-blue-700 text-white py-14 sm:py-20 px-4 sm:px-6 text-center">
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-4 tracking-tight leading-tight">
@@ -142,6 +237,59 @@ export default async function Home() {
         >
           View Practice Tests
         </Link>
+      </section>
+
+      {/* FAQ — visible content + JSON-LD FAQPage rich result */}
+      <section className="max-w-3xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+        <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-8 text-center">
+          Learner&apos;s Licence — Frequently Asked Questions
+        </h2>
+        <div className="space-y-5">
+          {[
+            {
+              q: "How many questions are on the South African learner's licence test?",
+              a: "The K53 test has 64 questions in three sections: Road signs (28 questions, pass mark 23), Rules of the road (28 questions, pass mark 22), and Vehicle controls (8 questions, pass mark 6). You must pass all three sections.",
+            },
+            {
+              q: "What mark do you need to pass the learner's licence test?",
+              a: "You need 23/28 (82%) for road signs, 22/28 (79%) for rules of the road, and 6/8 (75%) for vehicle controls. Failing any one section means you fail the entire test.",
+            },
+            {
+              q: "What is the difference between a Code 8 and Code 10 learner's licence?",
+              a: "Code 8 (B) covers light vehicles up to 3,500 kg — cars, minibuses, and light bakkies. Code 10 (C1) covers medium heavy vehicles from 3,500 kg to 16,000 kg such as trucks and large buses. A Code 10 holder can also legally drive Code 8 vehicles.",
+            },
+            {
+              q: "How do I book a learner's licence test in South Africa?",
+              a: "Book via the eNaTIS portal (online.natis.gov.za). Online booking is available in Gauteng and the Eastern Cape. In other provinces, visit your nearest DLTC to book in person. Confirm and pay within 3 business days of booking.",
+            },
+            {
+              q: "What documents do I need for the learner's licence test?",
+              a: "You need your original ID book or Smart ID card (plus 2 certified copies), 2–4 recent ID-sized photos, proof of address not older than 3 months, and a completed Form LL1. If booked online, bring your printed eNaTIS confirmation slip.",
+            },
+            {
+              q: "Can I practise for the K53 learner's licence test online?",
+              a: "Yes — SK Driving offers free K53 practice tests online covering all three sections. Practising with timed tests regularly is the best way to prepare and pass first time.",
+            },
+            {
+              q: "How many times can I fail the learner's licence test?",
+              a: "There is no legal limit on attempts. You must rebook and pay the fee each time. Most candidates who practise with K53 test questions beforehand pass within one or two attempts.",
+            },
+          ].map(({ q, a }) => (
+            <details key={q} className="bg-white border border-gray-200 rounded-2xl px-5 py-4 group">
+              <summary className="font-semibold text-gray-900 text-sm sm:text-base cursor-pointer list-none flex items-center justify-between gap-3">
+                {q}
+                <span className="shrink-0 text-gray-400 group-open:rotate-180 transition-transform">▾</span>
+              </summary>
+              <p className="mt-3 text-sm text-gray-600 leading-relaxed">{a}</p>
+            </details>
+          ))}
+        </div>
+
+        <div className="mt-10 text-center">
+          <Link href="/courses" className="inline-block bg-blue-700 text-white font-bold px-8 py-4 rounded-full hover:bg-blue-800 transition-colors">
+            Start Free Practice Tests →
+          </Link>
+        </div>
       </section>
     </main>
   )

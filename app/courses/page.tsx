@@ -1,8 +1,26 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { hasFullAccess } from '@/lib/access'
 import LiveSessionCard from '@/components/LiveSessionCard'
 import type { Course } from '@/lib/types'
+
+export const metadata: Metadata = {
+  title: "K53 Practice Tests — Code 8, Code 10 & Code 14",
+  description: "Free K53 learner's licence practice tests for South Africa. Choose Code 8 (light vehicle), Code 10 (truck/bus), or Code 14 (articulated). Road signs, rules of the road, vehicle controls.",
+  keywords: [
+    "K53 practice test", "learners licence test questions", "Code 8 learners test",
+    "Code 10 learners test", "Code 14 learners test", "K53 road signs questions",
+    "learners licence vehicle controls", "K53 rules of the road questions",
+    "free K53 test South Africa", "learners licence mock test",
+  ],
+  alternates: { canonical: 'https://www.skdriving.co.za/courses' },
+  openGraph: {
+    title: "K53 Practice Tests — Code 8, Code 10 & Code 14 | SK Driving",
+    description: "Free K53 learner's licence practice tests for all licence codes. Road signs, vehicle controls and rules of the road.",
+    url: 'https://www.skdriving.co.za/courses',
+  },
+}
 
 // Reads access (cookies) to show paid members the live-session link.
 export const dynamic = 'force-dynamic'

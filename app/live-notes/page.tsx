@@ -1,7 +1,25 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-server'
 import { hasFullAccess } from '@/lib/access'
 import LockedContent from '@/components/LockedContent'
+
+export const metadata: Metadata = {
+  title: "K53 Study Notes — Road Signs Manual & Rules of the Road",
+  description: "Study the full South African K53 Road Traffic Signs Manual and Rules of the Road chapter by chapter. 18 chapters, 56 pages, with a quiz after each chapter to test your knowledge.",
+  keywords: [
+    "K53 road signs manual", "learners licence study notes", "K53 study guide South Africa",
+    "road traffic signs South Africa", "learners licence road signs", "K53 rules of the road",
+    "South African road signs", "K53 learner driver manual", "learners licence chapters",
+    "K53 chapter quiz",
+  ],
+  alternates: { canonical: 'https://www.skdriving.co.za/live-notes' },
+  openGraph: {
+    title: "K53 Study Notes — Road Signs Manual & Rules of the Road | SK Driving",
+    description: "Study the full South African K53 manual chapter by chapter. Road signs, rules of the road — with a quiz after each chapter.",
+    url: 'https://www.skdriving.co.za/live-notes',
+  },
+}
 
 export const dynamic = 'force-dynamic'
 
