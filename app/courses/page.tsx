@@ -26,6 +26,22 @@ export default async function CoursesPage() {
       <h1 className="text-3xl font-bold mb-2 text-gray-900">Practice Tests</h1>
       <p className="text-gray-500 mb-6">Choose a licence type to start practising</p>
 
+      {/* Session notice */}
+      <div className="mb-8 bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4">
+        <p className="text-sm font-bold text-amber-800 mb-1">⚠️ Session notice</p>
+        <p className="text-sm text-amber-700 leading-relaxed">
+          We apologise — live sessions will <strong>not be available this Wednesday and Thursday</strong>.
+          Sessions will resume on <strong>Monday</strong>. We&apos;re sorry for the inconvenience.
+          In the meantime, you can catch up on the recording videos below — more recordings will be uploaded soon.
+        </p>
+        <a
+          href="/videos"
+          className="inline-block mt-3 text-xs font-bold text-amber-800 underline hover:text-amber-900"
+        >
+          Watch session recordings →
+        </a>
+      </div>
+
       {fullAccess && <LiveSessionCard className="mb-8" />}
 
       {courses && courses.length > 0 ? (
