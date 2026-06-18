@@ -64,34 +64,27 @@ export default function LiveSessionPopup() {
       <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-7 text-center animate-[fadeIn_0.2s_ease-out]">
         <button onClick={dismiss} aria-label="Close" className="absolute top-3 right-4 text-gray-400 hover:text-gray-700 text-2xl leading-none">×</button>
 
-        <div className="text-5xl mb-3">📹</div>
-        <h2 className="text-2xl font-extrabold text-gray-900 mb-1">Learner&apos;s Licence session tonight!</h2>
-        <p className="text-sm text-gray-600 mb-1">
-          Join our Learner&apos;s Licence course session this evening at <strong>8pm</strong>.
+        <div className="text-5xl mb-3">⚠️</div>
+        <h2 className="text-xl font-extrabold text-gray-900 mb-2">Session Notice</h2>
+        <p className="text-sm text-gray-700 leading-relaxed mb-2">
+          We apologise — live sessions will <strong>not be available this Wednesday and Thursday</strong>.
         </p>
-        <p className="text-xs text-gray-500 mb-1">{LIVE_SESSION_SCHEDULE}</p>
-        <p className="text-xs text-gray-400 mb-5">{LIVE_SESSION_NOTE}</p>
+        <p className="text-sm text-gray-700 mb-4">
+          Sessions will resume on <strong>Monday</strong>. Sorry for the inconvenience.
+        </p>
+        <p className="text-xs text-gray-500 mb-5">
+          In the meantime, catch up on the recording videos — more will be uploaded soon.
+        </p>
 
         <a
-          href={LIVE_SESSION_URL}
-          target="_blank"
-          rel="noopener noreferrer"
+          href="/videos"
           onClick={dismiss}
           className="block w-full bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-700 transition-colors"
         >
-          Join on Google Meet →
-        </a>
-        <a
-          href={recordingUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={dismiss}
-          className="block w-full border-2 border-indigo-200 text-indigo-700 font-semibold py-2.5 rounded-xl mt-2 hover:bg-indigo-50 transition-colors text-sm"
-        >
-          📹 Missed a session? Watch the recording
+          Watch Session Recordings →
         </a>
         <button onClick={dismiss} className="block w-full text-gray-500 font-medium py-3 mt-1 hover:text-gray-700 text-sm">
-          Maybe later
+          OK, got it
         </button>
       </div>
     </div>
