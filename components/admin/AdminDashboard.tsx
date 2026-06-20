@@ -18,6 +18,10 @@ export interface PayoutRow {
   bankAccountName: string; bankName: string; accountNumber: string; accountType: string
   pendingCents: number; earnedCents: number; paidCents: number
 }
+export interface CommissionRow {
+  id: string; affiliate_id: string; amount_cents: number; commission_cents: number
+  status: string; created_at: string
+}
 export interface TrainerRow {
   id: string; name: string; email: string; slug: string; province: string; phone: string
   learner_price_cents: number; is_active: boolean; fee_paid_until: string | null; created_at: string
@@ -32,12 +36,13 @@ function rand(cents: number) {
 }
 
 export default function AdminDashboard({
-  adminEmail, initialGrants, initialLinks, initialPayouts, initialRecordingUrl = '', initialTrainers = [],
+  adminEmail, initialGrants, initialLinks, initialPayouts, initialCommissions = [], initialRecordingUrl = '', initialTrainers = [],
 }: {
   adminEmail: string
   initialGrants: AdminGrant[]
   initialLinks: SignupLink[]
   initialPayouts: PayoutRow[]
+  initialCommissions?: CommissionRow[]
   initialRecordingUrl?: string
   initialTrainers?: TrainerRow[]
 }) {
@@ -111,10 +116,28 @@ export default function AdminDashboard({
 
   // ── Affiliate payouts ───────────────────────────────────────────────────────
   const [payouts, setPayouts] = useState(initialPayouts)
+  const [commissions] = useState(initialCommissions)
   const [payBusy, setPayBusy] = useState<string | null>(null)
+  const [expandedAff, setExpandedAff] = useState<string | null>(null)
+  const [addingAff, setAddingAff] = useState(false)
+  const [affForm, setAffForm] = useState({ firstName: '', lastName: '', email: '', bankAccountName: '', bankName: '', accountNumber: '', accountType: 'cheque' })
+  const [affBusy, setAffBusy] = useState(false); const [affErr, setAffErr] = useState(''); const [affOk, setAffOk] = useState('')
+
   const totalOwed = useMemo(() => payouts.reduce((s, r) => s + r.pendingCents, 0), [payouts])
+  const totalEarned = useMemo(() => payouts.reduce((s, r) => s + r.earnedCents, 0), [payouts])
+  const totalPaid = useMemo(() => payouts.reduce((s, r) => s + r.paidCents, 0), [payouts])
+
+  const commsByAff = useMemo(() => {
+    const m = new Map<string, CommissionRow[]>()
+    for (const c of commissions) {
+      if (!m.has(c.affiliate_id)) m.set(c.affiliate_id, [])
+      m.get(c.affiliate_id)!.push(c)
+    }
+    return m
+  }, [commissions])
+
   async function markPaid(r: PayoutRow) {
-    if (!confirm(`Mark ${rand(r.pendingCents)} as paid to ${r.name}? Only after the bank transfer is done.`)) return
+    if (!confirm(`Mark ${rand(r.pendingCents)} as paid to ${r.name}?\n\nBank: ${r.bankName}\nAcc: ${r.accountNumber}\nHolder: ${r.bankAccountName}\n\nOnly confirm after the bank transfer is done.`)) return
     setPayBusy(r.id)
     try {
       const res = await fetch('/api/admin/payouts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ affiliateId: r.id }) })
@@ -123,8 +146,24 @@ export default function AdminDashboard({
       else alert(body.error ?? 'Could not mark as paid.')
     } finally { setPayBusy(null) }
   }
+
   function copyBank(r: PayoutRow) {
-    copy(`${r.bankAccountName}\n${r.bankName} (${r.accountType})\nAcc: ${r.accountNumber}\nAmount: ${rand(r.pendingCents)}`, `bank-${r.id}`)
+    const text = `Affiliate: ${r.name}\nEmail: ${r.email}\nCode: ${r.code}\nAmount due: ${rand(r.pendingCents)}\n\nBank: ${r.bankName}\nAccount type: ${r.accountType}\nAccount holder: ${r.bankAccountName}\nAccount number: ${r.accountNumber}`
+    copy(text, `bank-${r.id}`)
+  }
+
+  async function addAffiliate(e: React.FormEvent) {
+    e.preventDefault(); setAffBusy(true); setAffErr(''); setAffOk('')
+    try {
+      const res = await fetch('/api/admin/affiliates', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(affForm) })
+      const body = await res.json()
+      if (!res.ok) throw new Error(body.error ?? 'Could not add affiliate.')
+      const a = body.affiliate
+      setPayouts(ps => [{ id: a.id, name: [a.first_name, a.last_name].filter(Boolean).join(' ') || '—', email: a.email ?? '', code: a.code, bankAccountName: a.bank_account_name ?? '', bankName: a.bank_name ?? '', accountNumber: a.account_number ?? '', accountType: a.account_type ?? '', pendingCents: 0, earnedCents: 0, paidCents: 0 }, ...ps])
+      setAffOk(`Affiliate added. Invite email sent to ${affForm.email}.`)
+      setAffForm({ firstName: '', lastName: '', email: '', bankAccountName: '', bankName: '', accountNumber: '', accountType: 'cheque' })
+      setAddingAff(false)
+    } catch (err) { setAffErr(err instanceof Error ? err.message : 'Something went wrong.') } finally { setAffBusy(false) }
   }
 
   // ── Trainers ──────────────────────────────────────────────────────────────
@@ -300,41 +339,160 @@ export default function AdminDashboard({
         )}
       </section>
 
-      {/* ── 3. Affiliate payouts ── */}
-      <section className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="font-extrabold text-gray-900">Affiliate payouts</h2>
-          <span className="text-sm text-amber-700 font-semibold">Owed: {rand(totalOwed)}</span>
+      {/* ── Affiliate dashboard ── */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <h2 className="font-extrabold text-gray-900">Affiliates ({payouts.length})</h2>
+          <button onClick={() => setAddingAff(a => !a)} className="text-xs font-bold bg-blue-700 text-white px-4 py-2 rounded-xl hover:bg-blue-800 transition-colors">
+            {addingAff ? 'Cancel' : '+ Add affiliate'}
+          </button>
         </div>
-        <div className="bg-white rounded-2xl shadow-md overflow-hidden">
-          {payouts.length === 0 ? <p className="text-sm text-gray-500 px-5 py-8 text-center">No affiliates yet.</p> : (
-            <div className="overflow-x-auto"><table className="w-full text-sm">
-              <thead className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide"><tr>
-                <th className="text-left px-4 py-2 font-semibold">Affiliate</th>
-                <th className="text-left px-4 py-2 font-semibold">Bank details</th>
-                <th className="text-right px-4 py-2 font-semibold">Owed</th>
-                <th className="text-right px-4 py-2 font-semibold">Earned / Paid</th>
-                <th className="text-right px-4 py-2 font-semibold">Action</th>
-              </tr></thead>
-              <tbody className="divide-y divide-gray-100">
-                {payouts.map(r => (
-                  <tr key={r.id} className={r.pendingCents > 0 ? 'bg-amber-50/40' : ''}>
-                    <td className="px-4 py-3"><div className="font-semibold text-gray-900">{r.name}</div><div className="text-xs text-gray-400">{r.email} · <span className="font-mono">{r.code}</span></div></td>
-                    <td className="px-4 py-3 text-gray-600"><div>{r.bankAccountName || '—'}</div><div className="text-xs text-gray-400">{r.bankName} {r.accountType && `· ${r.accountType}`}</div><div className="text-xs text-gray-400 font-mono">{r.accountNumber}</div></td>
-                    <td className="px-4 py-3 text-right font-extrabold text-gray-900">{rand(r.pendingCents)}</td>
-                    <td className="px-4 py-3 text-right text-xs text-gray-500"><div>{rand(r.earnedCents)} earned</div><div>{rand(r.paidCents)} paid</div></td>
-                    <td className="px-4 py-3 text-right whitespace-nowrap">
-                      {r.pendingCents > 0 ? (<>
-                        <button onClick={() => copyBank(r)} className="text-xs font-semibold text-gray-600 hover:underline mr-3">{copied === `bank-${r.id}` ? 'Copied!' : 'Copy'}</button>
-                        <button onClick={() => markPaid(r)} disabled={payBusy === r.id} className="text-xs font-semibold bg-green-600 text-white px-3 py-1.5 rounded-lg hover:bg-green-700 disabled:opacity-60">{payBusy === r.id ? '…' : 'Mark paid'}</button>
-                      </>) : <span className="text-xs text-gray-400">—</span>}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table></div>
-          )}
+
+        {/* Summary cards */}
+        <div className="grid grid-cols-3 gap-3">
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-center">
+            <p className="text-xl font-extrabold text-amber-800">{rand(totalOwed)}</p>
+            <p className="text-xs text-amber-600 mt-0.5 font-semibold">Total owed now</p>
+          </div>
+          <div className="bg-white border border-gray-200 rounded-2xl p-4 text-center shadow-sm">
+            <p className="text-xl font-extrabold text-gray-800">{rand(totalEarned)}</p>
+            <p className="text-xs text-gray-500 mt-0.5">Total earned (lifetime)</p>
+          </div>
+          <div className="bg-green-50 border border-green-200 rounded-2xl p-4 text-center">
+            <p className="text-xl font-extrabold text-green-800">{rand(totalPaid)}</p>
+            <p className="text-xs text-green-600 mt-0.5">Total paid out</p>
+          </div>
         </div>
+
+        {/* Add affiliate form */}
+        {addingAff && (
+          <div className="bg-white rounded-2xl shadow-md p-5">
+            <p className="text-xs text-gray-500 mb-3">An invite email is sent so the affiliate can set their password and access their dashboard.</p>
+            <form onSubmit={addAffiliate} className="space-y-3">
+              <div className="grid sm:grid-cols-2 gap-3">
+                <input value={affForm.firstName} onChange={e => setAffForm(f => ({ ...f, firstName: e.target.value }))} required placeholder="First name *" className="border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <input value={affForm.lastName} onChange={e => setAffForm(f => ({ ...f, lastName: e.target.value }))} required placeholder="Last name *" className="border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <input value={affForm.email} onChange={e => setAffForm(f => ({ ...f, email: e.target.value }))} type="email" required placeholder="Email address *" className="border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <input value={affForm.bankAccountName} onChange={e => setAffForm(f => ({ ...f, bankAccountName: e.target.value }))} placeholder="Account holder name" className="border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <input value={affForm.bankName} onChange={e => setAffForm(f => ({ ...f, bankName: e.target.value }))} placeholder="Bank name (e.g. FNB)" className="border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <input value={affForm.accountNumber} onChange={e => setAffForm(f => ({ ...f, accountNumber: e.target.value }))} placeholder="Account number" inputMode="numeric" className="border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              {affErr && <p className="text-xs text-red-600">{affErr}</p>}
+              {affOk && <p className="text-xs text-green-600">{affOk}</p>}
+              <button type="submit" disabled={affBusy} className="bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl hover:bg-blue-800 disabled:opacity-50 text-sm">
+                {affBusy ? 'Adding…' : 'Add Affiliate & Send Invite'}
+              </button>
+            </form>
+          </div>
+        )}
+
+        {/* Per-affiliate cards */}
+        {payouts.length === 0 ? (
+          <p className="text-sm text-gray-500 text-center py-6">No affiliates yet.</p>
+        ) : (
+          <div className="space-y-3">
+            {payouts.map(r => {
+              const affComms = commsByAff.get(r.id) ?? []
+              const isExpanded = expandedAff === r.id
+              const missingBank = !r.bankAccountName || !r.bankName || !r.accountNumber
+              return (
+                <div key={r.id} className={`bg-white rounded-2xl shadow-sm border ${r.pendingCents > 0 ? 'border-amber-300' : 'border-gray-200'}`}>
+                  {/* Header row */}
+                  <div className="p-4 flex items-start justify-between gap-4 flex-wrap">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-bold text-gray-900">{r.name}</span>
+                        <span className="font-mono text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{r.code}</span>
+                        {missingBank && <span className="text-xs bg-red-100 text-red-600 font-semibold px-2 py-0.5 rounded-full">⚠ No bank details</span>}
+                      </div>
+                      <p className="text-xs text-gray-500 mt-0.5">{r.email}</p>
+                    </div>
+                    <div className="flex items-center gap-3 shrink-0">
+                      {r.pendingCents > 0 && (
+                        <span className="text-sm font-extrabold text-amber-700">{rand(r.pendingCents)} due</span>
+                      )}
+                      <button onClick={() => setExpandedAff(isExpanded ? null : r.id)} className="text-xs text-blue-600 hover:underline font-semibold">
+                        {isExpanded ? 'Close ▲' : 'Details ▼'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Expanded detail */}
+                  {isExpanded && (
+                    <div className="border-t border-gray-100 p-4 space-y-4">
+                      {/* Stats row */}
+                      <div className="grid grid-cols-3 gap-3 text-center">
+                        <div className="bg-amber-50 rounded-xl p-3"><p className="font-extrabold text-amber-800">{rand(r.pendingCents)}</p><p className="text-xs text-amber-600 mt-0.5">Pending</p></div>
+                        <div className="bg-gray-50 rounded-xl p-3"><p className="font-extrabold text-gray-800">{rand(r.earnedCents)}</p><p className="text-xs text-gray-500 mt-0.5">Earned</p></div>
+                        <div className="bg-green-50 rounded-xl p-3"><p className="font-extrabold text-green-800">{rand(r.paidCents)}</p><p className="text-xs text-green-600 mt-0.5">Paid out</p></div>
+                      </div>
+
+                      {/* Bank details */}
+                      <div className="bg-gray-50 rounded-xl p-4">
+                        <p className="text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">Bank details</p>
+                        {missingBank ? (
+                          <p className="text-sm text-red-500">No bank details on file. Affiliate must update from their dashboard.</p>
+                        ) : (
+                          <dl className="grid grid-cols-2 gap-y-1.5 text-sm">
+                            <dt className="text-gray-500">Account holder</dt><dd className="text-gray-800 font-medium text-right">{r.bankAccountName}</dd>
+                            <dt className="text-gray-500">Bank</dt><dd className="text-gray-800 text-right">{r.bankName}</dd>
+                            <dt className="text-gray-500">Account number</dt><dd className="text-gray-800 font-mono text-right">{r.accountNumber}</dd>
+                            <dt className="text-gray-500">Account type</dt><dd className="text-gray-800 text-right capitalize">{r.accountType || '—'}</dd>
+                          </dl>
+                        )}
+                      </div>
+
+                      {/* Actions */}
+                      {r.pendingCents > 0 && !missingBank && (
+                        <div className="flex gap-2">
+                          <button onClick={() => copyBank(r)} className="flex-1 text-sm font-semibold border-2 border-gray-300 rounded-xl py-2.5 hover:border-blue-400 transition-colors">
+                            {copied === `bank-${r.id}` ? '✓ Copied!' : '📋 Copy bank details'}
+                          </button>
+                          <button onClick={() => markPaid(r)} disabled={payBusy === r.id}
+                            className="flex-1 text-sm font-bold bg-green-600 text-white rounded-xl py-2.5 hover:bg-green-700 disabled:opacity-60 transition-colors">
+                            {payBusy === r.id ? 'Saving…' : `✓ Mark ${rand(r.pendingCents)} as paid`}
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Commission history */}
+                      {affComms.length > 0 && (
+                        <div>
+                          <p className="text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">Commission history ({affComms.length})</p>
+                          <div className="rounded-xl overflow-hidden border border-gray-200">
+                            <table className="w-full text-xs">
+                              <thead className="bg-gray-50 text-gray-400">
+                                <tr>
+                                  <th className="text-left px-3 py-2 font-medium">Date</th>
+                                  <th className="text-right px-3 py-2 font-medium">Payment</th>
+                                  <th className="text-right px-3 py-2 font-medium">Commission</th>
+                                  <th className="text-right px-3 py-2 font-medium">Status</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-gray-100">
+                                {affComms.slice(0, 20).map(c => (
+                                  <tr key={c.id}>
+                                    <td className="px-3 py-2 text-gray-600">{new Date(c.created_at).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
+                                    <td className="px-3 py-2 text-right text-gray-500">{rand(c.amount_cents)}</td>
+                                    <td className="px-3 py-2 text-right font-semibold text-gray-800">{rand(c.commission_cents)}</td>
+                                    <td className="px-3 py-2 text-right">
+                                      <span className={`px-2 py-0.5 rounded-full font-medium ${c.status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>{c.status}</span>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      )}
+                      {affComms.length === 0 && <p className="text-xs text-gray-400 text-center py-2">No commissions yet.</p>}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
       </section>
 
       {/* ── Trainers ── */}

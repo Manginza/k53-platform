@@ -1,15 +1,9 @@
-/**
- * /admin — admin hub (allowlisted accounts only). Three sections:
- *   1. Member access (grant by email + signup links)
- *   2. Signup links (unique single-use registration links)
- *   3. Affiliate payouts (affiliates, bank details, amount owed, mark paid)
- */
 import { redirect } from 'next/navigation'
 import { getAdminUser } from '@/lib/admin'
 import { createAdminClient } from '@/lib/supabase-admin'
 import { getLatestRecordingUrl } from '@/lib/settings'
 import AdminDashboard, {
-  type AdminGrant, type SignupLink, type PayoutRow, type TrainerRow,
+  type AdminGrant, type SignupLink, type PayoutRow, type TrainerRow, type CommissionRow,
 } from '@/components/admin/AdminDashboard'
 
 export const dynamic = 'force-dynamic'
@@ -19,15 +13,20 @@ export default async function AdminPage() {
   if (!admin) redirect('/login')
 
   const db = createAdminClient()
-  const [{ data: grants }, { data: list }, { data: links }, { data: affiliates }, { data: pending }, { data: trainers }] =
-    await Promise.all([
-      db.from('access_grants').select('*').order('updated_at', { ascending: false }).limit(500),
-      db.auth.admin.listUsers({ perPage: 1000 }),
-      db.from('registration_tokens').select('*').eq('source', 'admin').order('created_at', { ascending: false }).limit(500),
-      db.from('affiliates').select('*').order('created_at', { ascending: false }).limit(1000),
-      db.from('affiliate_commissions').select('affiliate_id, commission_cents').eq('status', 'pending'),
-      db.from('trainers').select('id,name,email,slug,province,phone,learner_price_cents,is_active,fee_paid_until,created_at').order('created_at', { ascending: false }),
-    ])
+  const [
+    { data: grants }, { data: list }, { data: links },
+    { data: affiliates }, { data: allCommissions }, { data: trainers },
+  ] = await Promise.all([
+    db.from('access_grants').select('*').order('updated_at', { ascending: false }).limit(500),
+    db.auth.admin.listUsers({ perPage: 1000 }),
+    db.from('registration_tokens').select('*').eq('source', 'admin').order('created_at', { ascending: false }).limit(500),
+    db.from('affiliates').select('*').order('created_at', { ascending: false }).limit(1000),
+    db.from('affiliate_commissions')
+      .select('id,affiliate_id,commission_cents,amount_cents,status,created_at,yoco_payment_id')
+      .order('created_at', { ascending: false })
+      .limit(2000),
+    db.from('trainers').select('id,name,email,slug,province,phone,learner_price_cents,is_active,fee_paid_until,created_at').order('created_at', { ascending: false }),
+  ])
 
   const emailById = new Map((list?.users ?? []).map(u => [u.id, u.email ?? '']))
 
@@ -39,18 +38,22 @@ export default async function AdminPage() {
   }))
 
   const linkRows: SignupLink[] = (links ?? []).map(t => ({
-    id: t.id,
-    token: t.token,
-    label: t.label,
-    status: t.status,
+    id: t.id, token: t.token, label: t.label, status: t.status,
     usedByEmail: t.used_by_user_id ? (emailById.get(t.used_by_user_id) ?? null) : null,
     expires_at: t.expires_at,
   }))
 
+  const commissionRows: CommissionRow[] = (allCommissions ?? []).map(c => ({
+    id: c.id, affiliate_id: c.affiliate_id,
+    amount_cents: c.amount_cents, commission_cents: c.commission_cents,
+    status: c.status, created_at: c.created_at,
+  }))
+
   const pendingByAff = new Map<string, number>()
-  for (const c of pending ?? []) {
-    pendingByAff.set(c.affiliate_id, (pendingByAff.get(c.affiliate_id) ?? 0) + (c.commission_cents ?? 0))
+  for (const c of allCommissions ?? []) {
+    if (c.status !== 'paid') pendingByAff.set(c.affiliate_id, (pendingByAff.get(c.affiliate_id) ?? 0) + (c.commission_cents ?? 0))
   }
+
   const payoutRows: PayoutRow[] = (affiliates ?? []).map(a => ({
     id: a.id,
     name: [a.first_name, a.last_name].filter(Boolean).join(' ') || '—',
@@ -66,18 +69,11 @@ export default async function AdminPage() {
   }))
   payoutRows.sort((a, b) => b.pendingCents - a.pendingCents || b.earnedCents - a.earnedCents)
 
-  const recordingUrl = await getLatestRecordingUrl()
-
   const trainerRows: TrainerRow[] = (trainers ?? []).map(t => ({
-    id: t.id,
-    name: t.name,
-    email: t.email,
-    slug: t.slug,
-    province: t.province ?? '',
-    phone: t.phone ?? '',
+    id: t.id, name: t.name, email: t.email, slug: t.slug,
+    province: t.province ?? '', phone: t.phone ?? '',
     learner_price_cents: t.learner_price_cents ?? 0,
-    is_active: t.is_active,
-    fee_paid_until: t.fee_paid_until ?? null,
+    is_active: t.is_active, fee_paid_until: t.fee_paid_until ?? null,
     created_at: t.created_at,
   }))
 
@@ -87,7 +83,8 @@ export default async function AdminPage() {
       initialGrants={grantRows}
       initialLinks={linkRows}
       initialPayouts={payoutRows}
-      initialRecordingUrl={recordingUrl}
+      initialCommissions={commissionRows}
+      initialRecordingUrl={await getLatestRecordingUrl()}
       initialTrainers={trainerRows}
     />
   )
