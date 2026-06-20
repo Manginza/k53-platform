@@ -8,29 +8,24 @@
  * dynamic. If the tab is already open before 6pm, it pops at 6pm.
  */
 import { useEffect, useState } from 'react'
-import { LIVE_SESSION_URL, LIVE_SESSION_SCHEDULE, LIVE_SESSION_NOTE, LIVE_SESSION_RECORDING_URL } from '@/lib/contact'
 
 const DISMISS_KEY = 'sk_session_popup'
-const ACTIVATE_HOUR = 18 // 6pm — the popup becomes active every day at this hour
+const ACTIVATE_HOUR = 18
 
 export default function LiveSessionPopup() {
   const [open, setOpen] = useState(false)
-  const [recordingUrl, setRecordingUrl] = useState(LIVE_SESSION_RECORDING_URL)
 
   useEffect(() => {
-    // Already dismissed today?
     const today = new Date().toDateString()
     try { if (localStorage.getItem(DISMISS_KEY) === today) return } catch {}
 
     let cancelled = false
     let timer: ReturnType<typeof setTimeout> | undefined
 
-    // Full-access members only; activates every day from 6pm (visitor's local time).
     fetch('/api/me/access')
       .then(r => r.json())
       .then(d => {
         if (cancelled || !d?.fullAccess) return
-        if (d.recordingUrl) setRecordingUrl(d.recordingUrl)
 
         const now = new Date()
         const activateAt = new Date()
