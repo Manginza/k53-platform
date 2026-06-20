@@ -33,6 +33,9 @@ export default function Footer() {
             <Link href="/affiliate" className="text-sm text-gray-400 hover:text-white transition-colors">
               Earn 30% — become an affiliate →
             </Link>
+            <Link href="/trainer" className="text-sm text-gray-400 hover:text-white transition-colors">
+              Become a Trainer →
+            </Link>
           </div>
         </div>
 
