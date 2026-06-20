@@ -196,6 +196,17 @@ export default function SchoolFinder({ initialProvince = '' }: { initialProvince
     return `https://www.google.com/maps/search/?api=1&query=${q}`
   }
 
+  function whatsAppUrl(phone: string) {
+    const digits = phone.replace(/\D/g, '')
+    const intl = digits.startsWith('0') ? '27' + digits.slice(1) : digits
+    return `https://wa.me/${intl}`
+  }
+
+  function isMobile(phone: string) {
+    const digits = phone.replace(/\D/g, '')
+    return digits.length >= 9 && /^(0?[67]\d)/.test(digits)
+  }
+
   return (
     <div className="max-w-2xl mx-auto">
       {/* Search form */}
@@ -304,9 +315,24 @@ export default function SchoolFinder({ initialProvince = '' }: { initialProvince
 
                   <div className="flex flex-wrap gap-3 mt-2">
                     {s.phone && (
-                      <a href={`tel:${s.phone}`} className="text-sm text-blue-600 hover:underline">
-                        {s.phone}
-                      </a>
+                      <>
+                        <a href={`tel:${s.phone}`} className="text-sm text-blue-600 hover:underline">
+                          {s.phone}
+                        </a>
+                        {isMobile(s.phone) && (
+                          <a
+                            href={whatsAppUrl(s.phone)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 text-xs font-semibold bg-green-500 text-white px-3 py-1 rounded-full hover:bg-green-600 transition-colors"
+                          >
+                            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                              <path d="M17.47 14.38c-.3-.15-1.74-.86-2-.95-.27-.1-.47-.15-.66.15-.2.3-.77.95-.94 1.15-.17.2-.35.22-.64.07-.3-.15-1.25-.46-2.38-1.47-.88-.78-1.47-1.75-1.64-2.05-.17-.3-.02-.46.13-.6.13-.14.3-.35.44-.53.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.66-1.6-.9-2.18-.24-.57-.48-.5-.66-.5l-.57-.01c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.06 2.88 1.21 3.08c.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.7.63.71.23 1.36.2 1.87.12.57-.08 1.74-.71 1.98-1.4.24-.68.24-1.27.17-1.4-.07-.13-.27-.2-.57-.35zM12.05 21.5h-.01a9.5 9.5 0 01-4.84-1.33l-.35-.2-3.6.94.96-3.5-.23-.36a9.46 9.46 0 01-1.45-5.05c0-5.24 4.27-9.5 9.52-9.5 2.54 0 4.93.99 6.73 2.79a9.45 9.45 0 012.79 6.72c0 5.24-4.27 9.5-9.52 9.5zm8.07-16.56A11.43 11.43 0 0012.05 3C5.8 3 .72 8.08.72 14.33c0 2 .53 3.96 1.53 5.69L.64 26l6.13-1.61a11.4 11.4 0 005.28 1.34h.01c6.25 0 11.33-5.08 11.33-11.33 0-3.03-1.18-5.87-3.32-8.01z"/>
+                            </svg>
+                            WhatsApp
+                          </a>
+                        )}
+                      </>
                     )}
                     {s.email && (
                       <a href={`mailto:${s.email}`} className="text-sm text-blue-600 hover:underline">
