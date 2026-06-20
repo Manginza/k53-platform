@@ -18,6 +18,10 @@ export interface PayoutRow {
   bankAccountName: string; bankName: string; accountNumber: string; accountType: string
   pendingCents: number; earnedCents: number; paidCents: number
 }
+export interface TrainerRow {
+  id: string; name: string; email: string; slug: string; province: string; phone: string
+  learner_price_cents: number; is_active: boolean; fee_paid_until: string | null; created_at: string
+}
 
 function fmtDate(iso: string | null): string {
   if (!iso) return 'Lifetime'
@@ -28,13 +32,14 @@ function rand(cents: number) {
 }
 
 export default function AdminDashboard({
-  adminEmail, initialGrants, initialLinks, initialPayouts, initialRecordingUrl = '',
+  adminEmail, initialGrants, initialLinks, initialPayouts, initialRecordingUrl = '', initialTrainers = [],
 }: {
   adminEmail: string
   initialGrants: AdminGrant[]
   initialLinks: SignupLink[]
   initialPayouts: PayoutRow[]
   initialRecordingUrl?: string
+  initialTrainers?: TrainerRow[]
 }) {
   const router = useRouter()
   const origin = useMemo(() => (typeof window !== 'undefined' ? window.location.origin : ''), [])
@@ -120,6 +125,39 @@ export default function AdminDashboard({
   }
   function copyBank(r: PayoutRow) {
     copy(`${r.bankAccountName}\n${r.bankName} (${r.accountType})\nAcc: ${r.accountNumber}\nAmount: ${rand(r.pendingCents)}`, `bank-${r.id}`)
+  }
+
+  // ── Trainers ──────────────────────────────────────────────────────────────
+  const [trainers, setTrainers] = useState(initialTrainers)
+  const [tName, setTName] = useState(''); const [tEmail, setTEmail] = useState(''); const [tSlug, setTSlug] = useState('')
+  const [tProvince, setTProvince] = useState(''); const [tPhone, setTPhone] = useState(''); const [tPrice, setTPrice] = useState('')
+  const [tPaidUntil, setTPaidUntil] = useState(''); const [tBusy, setTBusy] = useState(false); const [tErr, setTErr] = useState(''); const [tOk, setTOk] = useState('')
+  function slugify(s: string) { return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') }
+
+  async function addTrainer(e: React.FormEvent) {
+    e.preventDefault(); setTBusy(true); setTErr(''); setTOk('')
+    try {
+      const res = await fetch('/api/admin/trainers', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: tName, email: tEmail, slug: tSlug, province: tProvince, phone: tPhone, learner_price_cents: tPrice ? Math.round(parseFloat(tPrice) * 100) : 0, fee_paid_until: tPaidUntil || null }),
+      })
+      const body = await res.json()
+      if (!res.ok) throw new Error(body.error ?? 'Could not add trainer.')
+      setTrainers(ts => [body.trainer, ...ts])
+      setTOk(`Trainer added. Invite email sent to ${tEmail}.`)
+      setTName(''); setTEmail(''); setTSlug(''); setTProvince(''); setTPhone(''); setTPrice(''); setTPaidUntil('')
+    } catch (err) { setTErr(err instanceof Error ? err.message : 'Something went wrong.') } finally { setTBusy(false) }
+  }
+
+  async function toggleTrainer(t: TrainerRow) {
+    const res = await fetch('/api/admin/trainers', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: t.id, is_active: !t.is_active, fee_paid_until: t.fee_paid_until }) })
+    if (res.ok) setTrainers(ts => ts.map(x => x.id === t.id ? { ...x, is_active: !x.is_active } : x))
+  }
+
+  async function deleteTrainer(id: string) {
+    if (!confirm('Delete this trainer? This cannot be undone.')) return
+    const res = await fetch('/api/admin/trainers', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
+    if (res.ok) setTrainers(ts => ts.filter(x => x.id !== id))
   }
 
   const linkStatus = (l: SignupLink) => {
@@ -295,6 +333,81 @@ export default function AdminDashboard({
                 ))}
               </tbody>
             </table></div>
+          )}
+        </div>
+      </section>
+
+      {/* ── Trainers ── */}
+      <section className="space-y-3">
+        <h2 className="font-extrabold text-gray-900">Trainers ({trainers.length})</h2>
+        <div className="bg-white rounded-2xl shadow-md p-5 space-y-4">
+          <form onSubmit={addTrainer} className="space-y-3">
+            <p className="text-xs text-gray-500">Add a trainer manually. An invite email is sent so they can set their password.</p>
+            <div className="grid sm:grid-cols-2 gap-3">
+              <input value={tName} onChange={e => { setTName(e.target.value); if (!tSlug || tSlug === slugify(tName)) setTSlug(slugify(e.target.value)) }} required placeholder="Full name *"
+                className="border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <input value={tEmail} onChange={e => setTEmail(e.target.value)} type="email" required placeholder="Email address *"
+                className="border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <div className="flex items-center border border-gray-300 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500">
+                <span className="px-3 py-2.5 text-xs text-gray-400 bg-gray-50 border-r border-gray-300 whitespace-nowrap">/t/</span>
+                <input value={tSlug} onChange={e => setTSlug(slugify(e.target.value))} required placeholder="page-url *"
+                  className="flex-1 px-3 py-2.5 text-sm focus:outline-none" />
+              </div>
+              <input value={tProvince} onChange={e => setTProvince(e.target.value)} placeholder="Province"
+                className="border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <input value={tPhone} onChange={e => setTPhone(e.target.value)} placeholder="Phone"
+                className="border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <input value={tPrice} onChange={e => setTPrice(e.target.value)} type="number" min="0" placeholder="Learner price (R)"
+                className="border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <div>
+                <label className="text-xs text-gray-500 block mb-1">Fee paid until</label>
+                <input value={tPaidUntil} onChange={e => setTPaidUntil(e.target.value)} type="date"
+                  className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+            </div>
+            {tErr && <p className="text-xs text-red-600">{tErr}</p>}
+            {tOk && <p className="text-xs text-green-600">{tOk}</p>}
+            <button type="submit" disabled={tBusy} className="bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl hover:bg-blue-800 disabled:opacity-50 text-sm transition-colors">
+              {tBusy ? 'Adding…' : 'Add Trainer & Send Invite'}
+            </button>
+          </form>
+
+          {trainers.length > 0 && (
+            <div className="overflow-x-auto mt-2">
+              <table className="w-full text-xs">
+                <thead><tr className="text-left text-gray-400 border-b border-gray-100">
+                  <th className="pb-2 pr-4 font-medium">Name</th>
+                  <th className="pb-2 pr-4 font-medium">Page</th>
+                  <th className="pb-2 pr-4 font-medium">Province</th>
+                  <th className="pb-2 pr-4 font-medium">Price</th>
+                  <th className="pb-2 pr-4 font-medium">Paid until</th>
+                  <th className="pb-2 pr-4 font-medium">Status</th>
+                  <th className="pb-2 font-medium"></th>
+                </tr></thead>
+                <tbody>
+                  {trainers.map(t => (
+                    <tr key={t.id} className="border-b border-gray-50 hover:bg-gray-50">
+                      <td className="py-2 pr-4 font-medium text-gray-900">{t.name}<br /><span className="text-gray-400 font-normal">{t.email}</span></td>
+                      <td className="py-2 pr-4">
+                        <a href={`/t/${t.slug}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">/t/{t.slug}</a>
+                      </td>
+                      <td className="py-2 pr-4 text-gray-500">{t.province || '—'}</td>
+                      <td className="py-2 pr-4 text-gray-700">{t.learner_price_cents ? `R${(t.learner_price_cents / 100).toFixed(0)}` : '—'}</td>
+                      <td className="py-2 pr-4 text-gray-500">{t.fee_paid_until ? new Date(t.fee_paid_until).toLocaleDateString('en-ZA') : '—'}</td>
+                      <td className="py-2 pr-4">
+                        <button onClick={() => toggleTrainer(t)}
+                          className={`px-2.5 py-1 rounded-full font-bold text-[11px] ${t.is_active ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-gray-100 text-gray-500 hover:bg-green-100 hover:text-green-700'}`}>
+                          {t.is_active ? 'Active' : 'Inactive'}
+                        </button>
+                      </td>
+                      <td className="py-2 text-right">
+                        <button onClick={() => deleteTrainer(t.id)} className="text-red-400 hover:text-red-600 px-2 py-1 rounded hover:bg-red-50">Delete</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       </section>

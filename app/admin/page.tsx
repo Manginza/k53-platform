@@ -9,7 +9,7 @@ import { getAdminUser } from '@/lib/admin'
 import { createAdminClient } from '@/lib/supabase-admin'
 import { getLatestRecordingUrl } from '@/lib/settings'
 import AdminDashboard, {
-  type AdminGrant, type SignupLink, type PayoutRow,
+  type AdminGrant, type SignupLink, type PayoutRow, type TrainerRow,
 } from '@/components/admin/AdminDashboard'
 
 export const dynamic = 'force-dynamic'
@@ -19,13 +19,14 @@ export default async function AdminPage() {
   if (!admin) redirect('/login')
 
   const db = createAdminClient()
-  const [{ data: grants }, { data: list }, { data: links }, { data: affiliates }, { data: pending }] =
+  const [{ data: grants }, { data: list }, { data: links }, { data: affiliates }, { data: pending }, { data: trainers }] =
     await Promise.all([
       db.from('access_grants').select('*').order('updated_at', { ascending: false }).limit(500),
       db.auth.admin.listUsers({ perPage: 1000 }),
       db.from('registration_tokens').select('*').eq('source', 'admin').order('created_at', { ascending: false }).limit(500),
       db.from('affiliates').select('*').order('created_at', { ascending: false }).limit(1000),
       db.from('affiliate_commissions').select('affiliate_id, commission_cents').eq('status', 'pending'),
+      db.from('trainers').select('id,name,email,slug,province,phone,learner_price_cents,is_active,fee_paid_until,created_at').order('created_at', { ascending: false }),
     ])
 
   const emailById = new Map((list?.users ?? []).map(u => [u.id, u.email ?? '']))
@@ -67,6 +68,19 @@ export default async function AdminPage() {
 
   const recordingUrl = await getLatestRecordingUrl()
 
+  const trainerRows: TrainerRow[] = (trainers ?? []).map(t => ({
+    id: t.id,
+    name: t.name,
+    email: t.email,
+    slug: t.slug,
+    province: t.province ?? '',
+    phone: t.phone ?? '',
+    learner_price_cents: t.learner_price_cents ?? 0,
+    is_active: t.is_active,
+    fee_paid_until: t.fee_paid_until ?? null,
+    created_at: t.created_at,
+  }))
+
   return (
     <AdminDashboard
       adminEmail={admin.email ?? ''}
@@ -74,6 +88,7 @@ export default async function AdminPage() {
       initialLinks={linkRows}
       initialPayouts={payoutRows}
       initialRecordingUrl={recordingUrl}
+      initialTrainers={trainerRows}
     />
   )
 }
