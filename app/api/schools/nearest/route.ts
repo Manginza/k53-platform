@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
 
   const results = (data ?? [])
     .map(s => ({ ...s, distanceKm: haversineKm(lat, lng, s.lat, s.lng) }))
-    .sort((a, b) => a.distanceKm - b.distanceKm)
+    .sort((a, b) => (b.is_verified ? 1 : 0) - (a.is_verified ? 1 : 0) || a.distanceKm - b.distanceKm)
     .slice(0, limit)
     .map(s => ({ ...s, distanceKm: Math.round(s.distanceKm * 10) / 10 }))
 
