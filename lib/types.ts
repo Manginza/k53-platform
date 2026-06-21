@@ -17,6 +17,7 @@ export interface QuizQuestion {
   correct_answer: 'A' | 'B' | 'C'
   image_url: string | null
   image_ref: string | null
+  explanation?: string | null
 }
 
 // ─── Affiliate / Referral ──────────────────────────────────────────────────────

@@ -6,18 +6,18 @@ import LiveSessionCard from '@/components/LiveSessionCard'
 import type { Course } from '@/lib/types'
 
 export const metadata: Metadata = {
-  title: "K53 Practice Tests — Code 8, Code 10 & Code 14",
-  description: "Free K53 learner's licence practice tests for South Africa. Choose Code 8 (light vehicle), Code 10 (truck/bus), or Code 14 (articulated). Road signs, rules of the road, vehicle controls.",
+  title: "Online K53 Learners Course — Code 8 & Code 10 Practice Tests",
+  description: "South Africa's best online learners licence course. Structured K53 practice tests for Code 8 and Code 10 — road signs, rules of the road, vehicle controls. Pass your learners test first time.",
   keywords: [
-    "K53 practice test", "learners licence test questions", "Code 8 learners test",
-    "Code 10 learners test", "Code 14 learners test", "K53 road signs questions",
-    "learners licence vehicle controls", "K53 rules of the road questions",
-    "free K53 test South Africa", "learners licence mock test",
+    "a learners course", "online learners licence course", "K53 learners course South Africa",
+    "learners licence practice test", "K53 practice test", "Code 8 learners test",
+    "Code 10 learners test", "K53 road signs questions", "learners licence study online",
+    "free learners course South Africa", "learners licence mock test",
   ],
   alternates: { canonical: 'https://www.skdriving.co.za/courses' },
   openGraph: {
-    title: "K53 Practice Tests — Code 8, Code 10 & Code 14 | SK Driving",
-    description: "Free K53 learner's licence practice tests for all licence codes. Road signs, vehicle controls and rules of the road.",
+    title: "Online K53 Learners Course — Code 8 & Code 10 | SK Driving",
+    description: "The best online K53 learners licence course in South Africa. Practice road signs, rules of the road and vehicle controls for Code 8 and Code 10.",
     url: 'https://www.skdriving.co.za/courses',
   },
 }
@@ -41,8 +41,23 @@ export default async function CoursesPage() {
 
   return (
     <main className="max-w-4xl mx-auto px-6 py-12">
-      <h1 className="text-3xl font-bold mb-2 text-gray-900">Practice Tests</h1>
-      <p className="text-gray-500 mb-6">Choose a licence type to start practising</p>
+      <h1 className="text-3xl font-bold mb-2 text-gray-900">Online K53 Learners Course</h1>
+      <p className="text-gray-500 mb-4">Choose your licence code below and start practising — you need 75% to pass the official test</p>
+
+      {/* Curriculum overview */}
+      <div className="grid grid-cols-3 gap-3 mb-6">
+        {[
+          { icon: '📋', title: 'Rules of the Road', desc: '28 questions · pass mark 22' },
+          { icon: '🚦', title: 'Road Signs & Markings', desc: '28 questions · pass mark 23' },
+          { icon: '🚗', title: 'Vehicle Controls', desc: '8 questions · pass mark 6' },
+        ].map(({ icon, title, desc }) => (
+          <div key={title} className="bg-blue-50 border border-blue-100 rounded-xl p-3 text-center">
+            <div className="text-2xl mb-1">{icon}</div>
+            <p className="text-xs font-bold text-blue-900 leading-tight">{title}</p>
+            <p className="text-xs text-blue-600 mt-0.5">{desc}</p>
+          </div>
+        ))}
+      </div>
 
       {/* Session notice */}
       <div className="mb-8 bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4">

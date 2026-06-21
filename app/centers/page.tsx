@@ -52,11 +52,12 @@ const PROVINCE_META: Record<string, { title: string; description: string; keywor
 }
 
 const DEFAULT_META = {
-  title: "Find Your Nearest Learner's Licence Writing Centre | SK Driving",
-  description: "Find the closest official learner's licence writing centre (DLTC) near you in Cape Town, Johannesburg, Durban, Pretoria, and towns across South Africa. View address, contact details, and get directions.",
+  title: "Find Your Nearest Learner's Licence Writing Centre (DLTC) | SK Driving",
+  description: "Find the closest official learner's licence writing centre (DLTC) near you. View address, contact details, how to book, what to bring, and get directions to testing centres across all 9 provinces.",
   keywords: [
-    'learners licence centre', 'learners test centre near me', 'DLTC near me',
-    'driving licence testing centre', 'learners licence writing centre',
+    'learners writing centre', 'a learners writing center', 'learners licence writing centre',
+    'learners test centre near me', 'DLTC near me', 'driving licence testing centre',
+    'where to write learners licence', 'how to book learners licence test',
     'learners licence centre Cape Town', 'learners test centre Johannesburg',
     'learners licence centre Durban', 'learners licence centre Pretoria',
     "learners licence centre Mitchell's Plain", 'learners licence centre Khayelitsha',
@@ -180,21 +181,53 @@ export default function CentersPage({
         </section>
 
         {/* Info strip */}
-        <section className="mt-12 bg-blue-50 border border-blue-100 rounded-2xl p-6 text-sm text-blue-900">
-          <h2 className="font-bold mb-2">About the writing centres</h2>
+        {/* Booking checklist */}
+        <section className="mt-12 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+          <h2 className="font-bold text-gray-900 mb-4">How to book your learner&apos;s writing centre test</h2>
+          <ol className="space-y-3">
+            {[
+              { n: '1', title: 'Book your slot', body: 'Gauteng & Eastern Cape: book online at eNaTIS. All other provinces: visit your nearest DLTC writing centre in person or phone them.' },
+              { n: '2', title: 'Confirm within 3 days', body: 'After booking online, you must visit the DLTC within 3 business days to pay the booking fee (approx. R108 in Gauteng, R68 in the Western Cape). Your slot is cancelled if you miss this window.' },
+              { n: '3', title: 'What to bring on the day', body: 'Original ID book or Smart ID card + 2 certified copies · 2–4 recent ID-sized photos · Proof of address (max 3 months old) · Completed Form LL1 · Proof of online booking (if applicable).' },
+              { n: '4', title: 'Pass the eye test', body: 'A vision screening is done at the DLTC on arrival. You can bring a certificate from a registered optometrist to skip the queue.' },
+              { n: '5', title: 'Write your K53 test', body: 'The computerised test has 64 questions across Road Signs (28), Rules of the Road (28), and Vehicle Controls (8). You must pass all three sections.' },
+            ].map(({ n, title, body }) => (
+              <li key={n} className="flex items-start gap-3">
+                <span className="shrink-0 w-7 h-7 rounded-full bg-blue-700 text-white text-xs font-bold flex items-center justify-center">{n}</span>
+                <div>
+                  <p className="text-sm font-bold text-gray-900">{title}</p>
+                  <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{body}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        {/* About writing centres */}
+        <section className="mt-6 bg-blue-50 border border-blue-100 rounded-2xl p-6 text-sm text-blue-900">
+          <h2 className="font-bold mb-2">About learner&apos;s licence writing centres (DLTCs)</h2>
           <p className="text-blue-800 leading-relaxed">
-            South Africa has over 190 official Driving Licence Testing Centres (DLTCs) regulated under the
-            National Road Traffic Act. To book your learner&apos;s licence test, contact your nearest centre
-            directly or book online via the{' '}
-            <a href="https://enatis.com" target="_blank" rel="noopener noreferrer" className="underline font-semibold">
+            South Africa has over 190 official learner&apos;s licence writing centres — known as Driving Licence Testing Centres (DLTCs) — regulated under the National Road Traffic Act. Online booking via the{' '}
+            <a href="https://online.natis.gov.za/#/auth/identify" target="_blank" rel="noopener noreferrer" className="underline font-semibold">
               eNaTIS portal
             </a>
-            . Online booking via eNaTIS is currently available in Gauteng (mandatory) and the Eastern Cape. All other provinces use walk-in or phone bookings.
+            {' '}is available in Gauteng (mandatory) and the Eastern Cape. All other provinces use walk-in or phone bookings at the writing centre.
           </p>
         </section>
 
+        {/* Pitch SK Driving */}
+        <section className="mt-6 bg-green-50 border border-green-200 rounded-2xl p-5 flex flex-col sm:flex-row items-center gap-4">
+          <div className="flex-1">
+            <p className="text-sm font-bold text-green-900">Preparing for your writing centre test?</p>
+            <p className="text-xs text-green-700 mt-0.5">SK Driving is South Africa&apos;s #1 online K53 learners course. Our practice tests mirror the real DLTC exam — pass your learner&apos;s test first time.</p>
+          </div>
+          <Link href="/courses" className="shrink-0 bg-green-600 text-white font-bold px-6 py-3 rounded-full hover:bg-green-700 transition-colors text-sm whitespace-nowrap">
+            Start Free Practice Tests →
+          </Link>
+        </section>
+
         {/* Final CTA */}
-        <div className="mt-10 text-center">
+        <div className="mt-8 text-center">
           <p className="text-gray-600 mb-4 text-sm">Ready to prepare? Our practice tests mirror the real exam.</p>
           <Link href="/courses" className="inline-block bg-blue-700 text-white font-bold px-10 py-4 rounded-full hover:bg-blue-800 transition-colors">
             Start Practising Now →

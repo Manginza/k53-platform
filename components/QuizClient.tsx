@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import QuizPaywall from '@/components/QuizPaywall'
 import type { QuizQuestion } from '@/lib/types'
+import { EXPLANATIONS } from '@/lib/explanations'
 
 type Option    = 'A' | 'B' | 'C'
 type AnswerMap = Record<number, Option>
@@ -185,6 +186,11 @@ function SplitResultsScreen({
                       <span className="font-bold">{q.correct_answer}</span>
                       {' — '}{optLabel(q, q.correct_answer)}
                     </div>
+                    {(EXPLANATIONS[q.id] ?? q.explanation) && (
+                      <p className="text-gray-500 leading-relaxed pt-1 border-t border-gray-100">
+                        {EXPLANATIONS[q.id] ?? q.explanation}
+                      </p>
+                    )}
                   </div>
                 </div>
               )
@@ -313,6 +319,11 @@ function StandardResultsScreen({
                       <span className="font-bold">{q.correct_answer}</span>
                       {' — '}{optLabel(q, q.correct_answer)}
                     </div>
+                    {(EXPLANATIONS[q.id] ?? q.explanation) && (
+                      <p className="text-gray-500 leading-relaxed pt-1 border-t border-gray-100">
+                        {EXPLANATIONS[q.id] ?? q.explanation}
+                      </p>
+                    )}
                   </div>
                 </div>
               )
@@ -554,17 +565,24 @@ export default function QuizClient({ questions, courseTitle, courseId, testNumbe
         {/* Feedback + next */}
         {revealed && (
           <div className="space-y-3 pt-1">
-            <div className={`flex items-center gap-3 px-5 py-4 rounded-xl font-medium text-sm ${
+            <div className={`px-5 py-4 rounded-xl text-sm ${
               selected === q.correct_answer
                 ? 'bg-green-50 border border-green-200 text-green-800'
                 : 'bg-red-50  border border-red-200  text-red-800'
             }`}>
-              <span className="text-xl">{selected === q.correct_answer ? '✅' : '❌'}</span>
-              <span>
-                {selected === q.correct_answer
-                  ? 'Correct! Well done.'
-                  : `Incorrect. The correct answer is ${q.correct_answer}.`}
-              </span>
+              <div className="flex items-center gap-3 font-medium">
+                <span className="text-xl">{selected === q.correct_answer ? '✅' : '❌'}</span>
+                <span>
+                  {selected === q.correct_answer
+                    ? 'Correct! Well done.'
+                    : `Incorrect. The correct answer is ${q.correct_answer}.`}
+                </span>
+              </div>
+              {(EXPLANATIONS[q.id] ?? q.explanation) && (
+                <p className="mt-2 text-xs leading-relaxed opacity-90 border-t border-current/20 pt-2">
+                  {EXPLANATIONS[q.id] ?? q.explanation}
+                </p>
+              )}
             </div>
 
             <button
