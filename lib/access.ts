@@ -8,9 +8,13 @@
 import { createClient } from '@/lib/supabase-server'
 import { createAdminClient } from '@/lib/supabase-admin'
 import { getAdminUser } from '@/lib/admin'
+import { isFreePromoActive } from '@/lib/contact'
 
 /** Whether the current visitor may see paid content. */
 export async function hasFullAccess(): Promise<boolean> {
+  // 24-hour free-access promotion — everyone gets full access while it runs.
+  if (isFreePromoActive()) return true
+
   if (await getAdminUser()) return true
 
   const supabase = createClient()

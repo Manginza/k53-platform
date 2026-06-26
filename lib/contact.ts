@@ -23,6 +23,17 @@ export const LIVE_SESSION_NOTE = 'Sessions are recorded, so you can catch up if 
 export const LIVE_SESSION_RECORDING_URL = 'https://drive.google.com/file/d/1irb-OSgV6TthrO3ru6XQ5Y7EUGzw8ygz/view?usp=sharing'
 export const LIVE_SESSION_RECORDING_FILE_ID = '1irb-OSgV6TthrO3ru6XQ5Y7EUGzw8ygz'
 
+/**
+ * Free-access promotion. While the current time is before FREE_PROMO_UNTIL,
+ * the entire course (practice tests, Live Notes, Road Rules) is unlocked for
+ * EVERYONE — no payment required. After this timestamp it auto-reverts to the
+ * normal paid model. Set to an empty string to disable the promo entirely.
+ */
+export const FREE_PROMO_UNTIL = '2026-06-27T21:30:00.000Z'
+export function isFreePromoActive(): boolean {
+  return !!FREE_PROMO_UNTIL && Date.now() < Date.parse(FREE_PROMO_UNTIL)
+}
+
 /** Headline price for full access (discounted from ACCESS_PRICE_ORIGINAL). */
 export const ACCESS_PRICE = 'R99'
 export const ACCESS_PRICE_CENTS = 9900            // R99.00 in ZAR cents (Yoco)
