@@ -1,8 +1,11 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-server'
-import { hasFullAccess } from '@/lib/access'
 import LockedContent from '@/components/LockedContent'
+import ContentPreviewGate from '@/components/ContentPreviewGate'
+import { readContentTiming } from '@/lib/content-session'
+
+const LIVE_NOTES_DESC = 'Read the full Road Traffic Signs Manual — all 18 chapters with chapter quizzes — with full access.'
 
 export const metadata: Metadata = {
   title: "K53 Study Notes — Road Signs Manual & Rules of the Road",
@@ -24,13 +27,10 @@ export const metadata: Metadata = {
 export const dynamic = 'force-dynamic'
 
 export default async function LiveNotesPage() {
-  if (!(await hasFullAccess())) {
-    return (
-      <LockedContent
-        feature="Live Notes"
-        description="Read the full Road Traffic Signs Manual — all 18 chapters with chapter quizzes — with full access."
-      />
-    )
+  const timing = await readContentTiming()
+  // Free preview expired → paywall. During the 3-min preview, free users see the content.
+  if (!timing.premium && timing.locked) {
+    return <LockedContent feature="Live Notes" description={LIVE_NOTES_DESC} />
   }
 
   const supabase = createClient()
@@ -63,7 +63,7 @@ export default async function LiveNotesPage() {
   const readCount     = chapterList.filter(c => c.progress?.marked_complete).length
   const passedCount   = chapterList.filter(c => c.passed).length
 
-  return (
+  const body = (
     <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
 
       {/* Header */}
@@ -179,5 +179,12 @@ export default async function LiveNotesPage() {
         })}
       </div>
     </main>
+  )
+
+  if (timing.premium) return body
+  return (
+    <ContentPreviewGate initialSeconds={timing.remaining} feature="Live Notes" description={LIVE_NOTES_DESC}>
+      {body}
+    </ContentPreviewGate>
   )
 }

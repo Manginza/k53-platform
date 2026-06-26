@@ -4,12 +4,15 @@
  */
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { hasFullAccess } from '@/lib/access'
 import LockedContent from '@/components/LockedContent'
+import ContentPreviewGate from '@/components/ContentPreviewGate'
+import { readContentTiming } from '@/lib/content-session'
 import RulesChapterQuiz from '@/components/live-notes/RulesChapterQuiz'
 import { RULES_CHAPTERS, getRuleChapter } from '@/lib/rules-of-the-road'
 
 export const dynamic = 'force-dynamic'
+
+const RULES_DESC = "Study the full Rules of the Road — every chapter with an end-of-chapter learner's-exam quiz — with full access."
 
 export function generateStaticParams() {
   return RULES_CHAPTERS.map(c => ({ slug: c.slug }))
@@ -23,20 +26,16 @@ export default async function RulesChapterPage({ params }: Props) {
   const chapter = getRuleChapter(params.slug)
   if (!chapter) notFound()
 
-  if (!(await hasFullAccess())) {
-    return (
-      <LockedContent
-        feature="Rules of the Road"
-        description="Study the full Rules of the Road — every chapter with an end-of-chapter learner's-exam quiz — with full access."
-      />
-    )
+  const timing = await readContentTiming()
+  if (!timing.premium && timing.locked) {
+    return <LockedContent feature="Rules of the Road" description={RULES_DESC} />
   }
 
   const idx  = RULES_CHAPTERS.findIndex(c => c.slug === chapter.slug)
   const prev = idx > 0 ? RULES_CHAPTERS[idx - 1] : null
   const next = idx < RULES_CHAPTERS.length - 1 ? RULES_CHAPTERS[idx + 1] : null
 
-  return (
+  const body = (
     <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
       <Link href="/live-notes/rules" className="text-green-700 hover:underline text-sm font-medium mb-6 inline-block">
         ← All Rules of the Road chapters
@@ -88,5 +87,12 @@ export default async function RulesChapterPage({ params }: Props) {
         )}
       </div>
     </main>
+  )
+
+  if (timing.premium) return body
+  return (
+    <ContentPreviewGate initialSeconds={timing.remaining} feature="Rules of the Road" description={RULES_DESC}>
+      {body}
+    </ContentPreviewGate>
   )
 }
