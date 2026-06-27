@@ -44,6 +44,7 @@ export default function Footer() {
             © {new Date().getFullYear()} K53 Learner&apos;s. All rights reserved.
           </p>
           <div className="flex flex-wrap gap-4 text-xs text-gray-500 justify-center md:justify-end">
+            <Link href="/manifesto" className="hover:text-gray-300 transition-colors">Manifesto</Link>
             <Link href="/resources" className="hover:text-gray-300 transition-colors">Resources</Link>
             <Link href="/admin" className="hover:text-gray-300 transition-colors">Admin</Link>
             <Link href="/about" className="hover:text-gray-300 transition-colors">About Us</Link>
