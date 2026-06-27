@@ -10,7 +10,7 @@ type Option    = 'A' | 'B' | 'C'
 type AnswerMap = Record<number, Option>
 
 /** Free preview length (seconds) before non-premium users hit the paywall. */
-const FREE_SECONDS = 180
+const FREE_SECONDS = 120
 
 interface Props {
   questions:   QuizQuestion[]

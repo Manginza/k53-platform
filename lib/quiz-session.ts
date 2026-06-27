@@ -17,7 +17,7 @@ import { createClient } from '@/lib/supabase-server'
 import { createAdminClient } from '@/lib/supabase-admin'
 import { hasFullAccess } from '@/lib/access'
 
-export const FREE_PREVIEW_SECONDS = 180
+export const FREE_PREVIEW_SECONDS = 120
 export const ANON_COOKIE = 'qz_sid'
 
 export interface QuizTiming {
