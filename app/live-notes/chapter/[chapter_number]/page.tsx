@@ -1,8 +1,7 @@
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
+import { hasFullAccess } from '@/lib/access'
 import LockedContent from '@/components/LockedContent'
-import ContentPreviewGate from '@/components/ContentPreviewGate'
-import { readContentTiming } from '@/lib/content-session'
 import ChapterReader from '@/components/live-notes/ChapterReader'
 
 export const dynamic = 'force-dynamic'
@@ -14,8 +13,7 @@ interface Props {
 }
 
 export default async function ChapterPage({ params }: Props) {
-  const timing = await readContentTiming()
-  if (!timing.premium && timing.locked) {
+  if (!(await hasFullAccess())) {
     return <LockedContent feature="Live Notes" description={LIVE_NOTES_DESC} />
   }
 
@@ -49,7 +47,7 @@ export default async function ChapterPage({ params }: Props) {
         .maybeSingle()
     : { data: null }
 
-  const body = (
+  return (
     <ChapterReader
       chapter={chapter}
       pages={pages ?? []}
@@ -58,12 +56,5 @@ export default async function ChapterPage({ params }: Props) {
       prevChapter={chapterNum > 1 ? chapterNum - 1 : null}
       nextChapter={chapterNum < 18 ? chapterNum + 1 : null}
     />
-  )
-
-  if (timing.premium) return body
-  return (
-    <ContentPreviewGate initialSeconds={timing.remaining} feature="Live Notes" description={LIVE_NOTES_DESC}>
-      {body}
-    </ContentPreviewGate>
   )
 }

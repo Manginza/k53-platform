@@ -2,9 +2,8 @@
  * /live-notes/rules — index of Rules of the Road chapters. Full-access only.
  */
 import Link from 'next/link'
+import { hasFullAccess } from '@/lib/access'
 import LockedContent from '@/components/LockedContent'
-import ContentPreviewGate from '@/components/ContentPreviewGate'
-import { readContentTiming } from '@/lib/content-session'
 import { RULES_CHAPTERS } from '@/lib/rules-of-the-road'
 
 export const dynamic = 'force-dynamic'
@@ -12,14 +11,13 @@ export const dynamic = 'force-dynamic'
 const RULES_DESC = "Study the full Rules of the Road — every chapter with an end-of-chapter learner's-exam quiz — with full access."
 
 export default async function RulesIndexPage() {
-  const timing = await readContentTiming()
-  if (!timing.premium && timing.locked) {
+  if (!(await hasFullAccess())) {
     return <LockedContent feature="Rules of the Road" description={RULES_DESC} />
   }
 
   const totalQuestions = RULES_CHAPTERS.reduce((n, c) => n + c.quiz.length, 0)
 
-  const body = (
+  return (
     <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
       <Link href="/live-notes" className="text-green-700 hover:underline text-sm font-medium mb-6 inline-block">
         ← Back to Live Notes
@@ -55,12 +53,5 @@ export default async function RulesIndexPage() {
         ))}
       </div>
     </main>
-  )
-
-  if (timing.premium) return body
-  return (
-    <ContentPreviewGate initialSeconds={timing.remaining} feature="Rules of the Road" description={RULES_DESC}>
-      {body}
-    </ContentPreviewGate>
   )
 }

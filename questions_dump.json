@@ -616,17 +616,6 @@
     "image_ref": null
   },
   {
-    "id": 68,
-    "course": "Code 8 — Light Motor Vehicle",
-    "test_number": 2,
-    "question": "How far may you park from the left edge of a roadway outside an urban area?",
-    "option_a": "Not more than 450mm from the edge of the roadway",
-    "option_b": "Not more than 1m from the edge of the roadway",
-    "option_c": "A vehicle may not park on a public road unless in a parking bay",
-    "correct_answer": "A",
-    "image_ref": null
-  },
-  {
     "id": 69,
     "course": "Code 8 — Light Motor Vehicle",
     "test_number": 2,
@@ -712,6 +701,17 @@
     "option_b": "3.5",
     "option_c": "1.8",
     "correct_answer": "B",
+    "image_ref": null
+  },
+  {
+    "id": 68,
+    "course": "Code 8 — Light Motor Vehicle",
+    "test_number": 2,
+    "question": "How far may you park from the left edge of a roadway outside an urban area?",
+    "option_a": "Not more than 450mm from the edge of the roadway",
+    "option_b": "Not more than 1m from the edge of the roadway",
+    "option_c": "A vehicle may not park on a public road unless in a parking bay",
+    "correct_answer": "C",
     "image_ref": null
   },
   {
@@ -891,17 +891,6 @@
     "image_ref": null
   },
   {
-    "id": 89,
-    "course": "Code 8 — Light Motor Vehicle",
-    "test_number": 2,
-    "question": "What is important with regard to the hooter of your vehicle?",
-    "option_a": "Someone must hear it from a distance of at least 50m",
-    "option_b": "The tone and pitch of the sound may not change",
-    "option_c": "You may use it to get the attention of someone you would like to offer a lift",
-    "correct_answer": "A",
-    "image_ref": null
-  },
-  {
     "id": 90,
     "course": "Code 8 — Light Motor Vehicle",
     "test_number": 2,
@@ -1041,7 +1030,7 @@
     "option_a": "2.6m",
     "option_b": "4.3m high",
     "option_c": "Half of your vehicle's height",
-    "correct_answer": "C",
+    "correct_answer": "B",
     "image_ref": null
   },
   {
@@ -1100,15 +1089,15 @@
     "image_ref": "2c8.11.img.png"
   },
   {
-    "id": 106,
+    "id": 113,
     "course": "Code 8 — Light Motor Vehicle",
     "test_number": 2,
-    "question": "What is this road sign called?",
-    "option_a": "An alternative route marker",
-    "option_b": "A map-type trailblazer",
-    "option_c": "An advance trailblazer",
+    "question": "This road sign shows you that...",
+    "option_a": "The road is a one-way road",
+    "option_b": "Overtaking is prohibited for the next 2km",
+    "option_c": "The road is narrow and cannot handle two motor cars side by side",
     "correct_answer": "B",
-    "image_ref": "2c8.12.img.png"
+    "image_ref": "2c8.19.img.png"
   },
   {
     "id": 107,
@@ -1166,17 +1155,6 @@
     "image_ref": "2c8.17.img.png"
   },
   {
-    "id": 113,
-    "course": "Code 8 — Light Motor Vehicle",
-    "test_number": 2,
-    "question": "This road sign shows you that...",
-    "option_a": "The road is a one-way road",
-    "option_b": "Overtaking is prohibited for the next 2km",
-    "option_c": "The road is narrow and cannot handle two motor cars side by side",
-    "correct_answer": "A",
-    "image_ref": "2c8.19.img.png"
-  },
-  {
     "id": 114,
     "course": "Code 8 — Light Motor Vehicle",
     "test_number": 2,
@@ -1184,8 +1162,19 @@
     "option_a": "Yield and carry on when it is safe to do so",
     "option_b": "Know that they are warned of a stop sign ahead",
     "option_c": "Stop behind the stop line and give right of way to vehicles from the right",
-    "correct_answer": "C",
+    "correct_answer": "B",
     "image_ref": "2c8.20.img.png"
+  },
+  {
+    "id": 116,
+    "course": "Code 8 — Light Motor Vehicle",
+    "test_number": 2,
+    "question": "What does this control sign indicate?",
+    "option_a": "Turning left is prohibited",
+    "option_b": "You should turn left",
+    "option_c": "The road turning to the left is a one-way road",
+    "correct_answer": "B",
+    "image_ref": "2c8.22.img.png"
   },
   {
     "id": 115,
@@ -1199,15 +1188,15 @@
     "image_ref": "2c8.21.img.png"
   },
   {
-    "id": 116,
+    "id": 119,
     "course": "Code 8 — Light Motor Vehicle",
     "test_number": 2,
-    "question": "What does this control sign indicate?",
-    "option_a": "Turning left is prohibited",
-    "option_b": "You should turn left",
-    "option_c": "The road turning to the left is a one-way road",
+    "question": "This sign shows you that...",
+    "option_a": "The road ends ahead",
+    "option_b": "Only cars may enter",
+    "option_c": "There is a one-way road ahead",
     "correct_answer": "A",
-    "image_ref": "2c8.22.img.png"
+    "image_ref": "2c8.24.1.img.png"
   },
   {
     "id": 117,
@@ -1221,17 +1210,6 @@
     "image_ref": "2c8.23.img.png"
   },
   {
-    "id": 119,
-    "course": "Code 8 — Light Motor Vehicle",
-    "test_number": 2,
-    "question": "This sign shows you that...",
-    "option_a": "The road ends ahead",
-    "option_b": "Only cars may enter",
-    "option_c": "There is a one-way road ahead",
-    "correct_answer": "C",
-    "image_ref": "2c8.24.1.img.png"
-  },
-  {
     "id": 120,
     "course": "Code 8 — Light Motor Vehicle",
     "test_number": 2,
@@ -1239,7 +1217,7 @@
     "option_a": "Cars from turning right at this point",
     "option_b": "Cars from turning right ahead",
     "option_c": "All vehicles from turning right",
-    "correct_answer": "C",
+    "correct_answer": "B",
     "image_ref": "2c8.25.img.png"
   },
   {
@@ -3595,5 +3573,27 @@
     "option_c": "To turn back.",
     "correct_answer": "B",
     "image_ref": "2c10.22.img.png"
+  },
+  {
+    "id": 89,
+    "course": "Code 8 — Light Motor Vehicle",
+    "test_number": 2,
+    "question": "What is important with regard to the hooter of your vehicle?",
+    "option_a": "Someone must hear it from a distance of at least 50m",
+    "option_b": "The tone and pitch of the sound may not change",
+    "option_c": "You may use it to get the attention of someone you would like to offer a lift",
+    "correct_answer": "B",
+    "image_ref": null
+  },
+  {
+    "id": 106,
+    "course": "Code 8 — Light Motor Vehicle",
+    "test_number": 2,
+    "question": "What is this road sign called?",
+    "option_a": "An alternative route marker",
+    "option_b": "A map-type trailblazer",
+    "option_c": "An advance trailblazer",
+    "correct_answer": "C",
+    "image_ref": "2c8.12.img.png"
   }
 ]
