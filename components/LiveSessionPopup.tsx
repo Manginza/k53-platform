@@ -9,6 +9,7 @@
  */
 import { useEffect, useState } from 'react'
 import { LIVE_SESSION_URL, LIVE_SESSION_SCHEDULE, LIVE_SESSION_NOTE, LIVE_SESSION_RECORDING_URL } from '@/lib/contact'
+import { getAccessStatus } from '@/lib/access-cache'
 
 const DISMISS_KEY = 'sk_session_popup'
 const START_HOUR = 20   // 8pm — popup opens
@@ -25,8 +26,7 @@ export default function LiveSessionPopup() {
     let openTimer:  ReturnType<typeof setTimeout> | undefined
     let closeTimer: ReturnType<typeof setTimeout> | undefined
 
-    fetch('/api/me/access')
-      .then(r => r.json())
+    getAccessStatus()
       .then(d => {
         if (cancelled || !d?.fullAccess) return
 

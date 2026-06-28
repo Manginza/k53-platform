@@ -13,7 +13,13 @@ export async function GET() {
   try {
     const fullAccess = await hasFullAccess()
     const recordingUrl = fullAccess ? await getLatestRecordingUrl() : null
-    return NextResponse.json({ fullAccess, recordingUrl })
+    return NextResponse.json({ fullAccess, recordingUrl }, {
+      headers: {
+        // Private (browser-only cache): reuse for 60 s without a round-trip.
+        // CDN must NOT cache this — it is user-specific.
+        'Cache-Control': 'private, max-age=60, stale-while-revalidate=300',
+      },
+    })
   } catch {
     return NextResponse.json({ fullAccess: false, recordingUrl: null })
   }

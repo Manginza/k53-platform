@@ -59,13 +59,20 @@ export async function POST(req: NextRequest) {
     user ? q.eq('user_id', user.id) : q.eq('session_key', sid)
 
   // Look for an existing window for this identity + test.
-  const { data: existing } = await match(
+  const { data: existing, error: selectErr } = await match(
     admin.from('quiz_sessions')
       .select('started_at')
       .eq('course_id', courseId)
       .eq('test_number', testNumber)
       .limit(1),
   ).maybeSingle()
+
+  // PGRST205 = table not in PostgREST schema cache (cold-start race or missing migration).
+  // Fail open so the user gets a fresh preview rather than a broken quiz.
+  if (selectErr && (selectErr.code === 'PGRST205' || selectErr.message?.includes('schema cache'))) {
+    console.error('[quiz/session] schema cache miss for quiz_sessions — failing open:', selectErr.message)
+    return NextResponse.json({ remaining: FREE_PREVIEW_SECONDS, locked: false })
+  }
 
   let startedAt = existing?.started_at as string | undefined
 

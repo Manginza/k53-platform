@@ -8,6 +8,7 @@
  */
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { getAccessStatus } from '@/lib/access-cache'
 
 const POPUP_VERSION = 'v1'
 const DISMISS_KEY = `sk_feature_k53_unpacked_${POPUP_VERSION}`
@@ -24,10 +25,8 @@ export default function K53UnpackedPopup() {
 
     // Full-access (paid) members only.
     let cancelled = false
-    fetch('/api/me/access')
-      .then(r => r.json())
+    getAccessStatus()
       .then(d => { if (!cancelled && d?.fullAccess) setOpen(true) })
-      .catch(() => {})
     return () => { cancelled = true }
   }, [])
 

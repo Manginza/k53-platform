@@ -4,7 +4,8 @@ import { createAdminClient } from '@/lib/supabase-admin'
 import LearnerPortal from '@/components/trainer/LearnerPortal'
 import Link from 'next/link'
 
-export const dynamic = 'force-dynamic'
+// Trainer public pages are mostly static — revalidate every 5 minutes.
+export const revalidate = 300
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const db = createAdminClient()

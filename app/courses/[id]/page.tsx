@@ -3,7 +3,8 @@ import { notFound } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import type { Course } from '@/lib/types'
 
-export const dynamic = 'force-dynamic'
+// Course data is public and changes rarely — cache for 1 hour, revalidate in background.
+export const revalidate = 3600
 
 interface Props {
   params: { id: string }
