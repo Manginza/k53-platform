@@ -11,7 +11,8 @@ import { useEffect, useState } from 'react'
 import { LIVE_SESSION_URL, LIVE_SESSION_SCHEDULE, LIVE_SESSION_NOTE, LIVE_SESSION_RECORDING_URL } from '@/lib/contact'
 
 const DISMISS_KEY = 'sk_session_popup'
-const ACTIVATE_HOUR = 18
+const START_HOUR = 20   // 8pm — popup opens
+const END_HOUR   = 21   // 9pm — popup closes / never shows after this
 
 export default function LiveSessionPopup() {
   const [open, setOpen] = useState(false)
@@ -21,7 +22,8 @@ export default function LiveSessionPopup() {
     try { if (localStorage.getItem(DISMISS_KEY) === today) return } catch {}
 
     let cancelled = false
-    let timer: ReturnType<typeof setTimeout> | undefined
+    let openTimer:  ReturnType<typeof setTimeout> | undefined
+    let closeTimer: ReturnType<typeof setTimeout> | undefined
 
     fetch('/api/me/access')
       .then(r => r.json())
@@ -29,20 +31,32 @@ export default function LiveSessionPopup() {
         if (cancelled || !d?.fullAccess) return
 
         const now = new Date()
-        const activateAt = new Date()
-        activateAt.setHours(ACTIVATE_HOUR, 0, 0, 0)
+        const startAt = new Date(); startAt.setHours(START_HOUR, 0, 0, 0)
+        const endAt   = new Date(); endAt.setHours(END_HOUR,   0, 0, 0)
 
-        if (now >= activateAt) {
-          setOpen(true)                                   // already past 6pm → show now
+        // Outside the 8pm–9pm window — don't show at all
+        if (now >= endAt) return
+
+        if (now >= startAt) {
+          // Already inside the window → show immediately, close at 9pm
+          setOpen(true)
+          closeTimer = setTimeout(() => { if (!cancelled) setOpen(false) }, endAt.getTime() - now.getTime())
         } else {
-          timer = setTimeout(                             // open the tab early? pop at 6pm
-            () => { if (!cancelled) setOpen(true) },
-            activateAt.getTime() - now.getTime(),
-          )
+          // Before 8pm → schedule open at 8pm and close at 9pm
+          openTimer = setTimeout(() => {
+            if (!cancelled) {
+              setOpen(true)
+              closeTimer = setTimeout(() => { if (!cancelled) setOpen(false) }, endAt.getTime() - startAt.getTime())
+            }
+          }, startAt.getTime() - now.getTime())
         }
       })
       .catch(() => {})
-    return () => { cancelled = true; if (timer) clearTimeout(timer) }
+    return () => {
+      cancelled = true
+      if (openTimer)  clearTimeout(openTimer)
+      if (closeTimer) clearTimeout(closeTimer)
+    }
   }, [])
 
   function dismiss() {
