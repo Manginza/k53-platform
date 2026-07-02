@@ -10,7 +10,7 @@ import LiveSessionPopup from "@/components/LiveSessionPopup";
 import K53UnpackedPopup from "@/components/K53UnpackedPopup";
 import FreePromoBanner from "@/components/FreePromoBanner";
 import FreePromoPopup from "@/components/FreePromoPopup";
-import GoogleTranslate from "@/components/GoogleTranslate";
+import TranslationManager from "@/components/TranslationManager";
 import { LanguageProvider } from "@/lib/language-context";
 
 const geistSans = localFont({
@@ -126,7 +126,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                                   <ReferralCapture />
                         </Suspense>
                         <LanguageProvider>
-                        <GoogleTranslate />
+                        <TranslationManager />
                         <FreePromoBanner />
                         <Navbar />
                   {children}

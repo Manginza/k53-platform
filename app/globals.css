@@ -32,21 +32,3 @@ body {
   to   { opacity: 1; transform: translateY(0)   scale(1); }
 }
 
-/* --- Google Website Translator: hide its injected UI ---------------------- */
-/* We drive the language via our own navbar dropdown + googtrans cookie, so the
-   default Google banner/toolbar and hover tooltip are hidden. */
-.goog-te-banner-frame.skiptranslate,
-.goog-te-gadget,
-#goog-gt-tt,
-.goog-te-balloon-frame { display: none !important; }
-
-.goog-te-gadget-simple { display: none !important; }
-
-/* Google normally shifts the page down to make room for its banner. */
-body { top: 0 !important; position: static !important; }
-
-/* Remove the yellow highlight Google puts on translated text. */
-.goog-text-highlight {
-  background: none !important;
-  box-shadow: none !important;
-}
