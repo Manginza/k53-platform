@@ -29,10 +29,7 @@ export const LIVE_SESSION_RECORDING_FILE_ID = '1irb-OSgV6TthrO3ru6XQ5Y7EUGzw8ygz
  * EVERYONE — no payment required. After this timestamp it auto-reverts to the
  * normal paid model. Set to an empty string to disable the promo entirely.
  */
-// Enable a 24-hour free-access window from the time this module is loaded.
-// The value is an ISO timestamp used by the UI components which render the
-// live countdown. Setting this to a non-empty string enables the promo.
-export const FREE_PROMO_UNTIL = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+export const FREE_PROMO_UNTIL = ''
 export function isFreePromoActive(): boolean {
   return !!FREE_PROMO_UNTIL && Date.now() < Date.parse(FREE_PROMO_UNTIL)
 }
