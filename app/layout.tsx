@@ -10,6 +10,7 @@ import LiveSessionPopup from "@/components/LiveSessionPopup";
 import K53UnpackedPopup from "@/components/K53UnpackedPopup";
 import FreePromoBanner from "@/components/FreePromoBanner";
 import FreePromoPopup from "@/components/FreePromoPopup";
+import { LanguageProvider } from "@/lib/language-context";
 
 const geistSans = localFont({
     src: "./fonts/GeistVF.woff",
@@ -123,6 +124,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                         <Suspense fallback={null}>
                                   <ReferralCapture />
                         </Suspense>
+                        <LanguageProvider>
                         <FreePromoBanner />
                         <Navbar />
                   {children}
@@ -131,6 +133,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                         <FreePromoPopup />
                         <LiveSessionPopup />
                         <K53UnpackedPopup />
+                        </LanguageProvider>
                 </body>
           </html>
         );
