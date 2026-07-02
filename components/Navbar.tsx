@@ -18,6 +18,7 @@ const LINKS = [
 ]
 
 const ABOUT_LINKS = [
+  { href: '/about',      label: 'About Us' },
   { href: '/manifesto',  label: 'Manifesto' },
   { href: '/affiliate',  label: 'Become an Affiliate' },
   { href: '/trainer',    label: 'Become a Trainer' },
