@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { hasFullAccess } from '@/lib/access'
+import { createClient } from '@/lib/supabase-server'
 import LiveSessionCard from '@/components/LiveSessionCard'
 import type { Course } from '@/lib/types'
 
@@ -26,10 +27,19 @@ export const metadata: Metadata = {
 export const dynamic = 'force-dynamic'
 
 export default async function CoursesPage() {
-  const [{ data: courses, error }, fullAccess] = await Promise.all([
+  const [{ data: courses, error }, fullAccessRaw, serverUser] = await Promise.all([
     supabase.from('courses').select('*').not('code', 'is', null).order('id'),
     hasFullAccess(),
+    // get the logged-in user (if any) so we can show the live session to
+    // any authenticated user even when they don't have a paid access pass.
+    (async () => {
+      const s = createClient()
+      const { data: { user } } = await s.auth.getUser()
+      return user
+    })(),
   ])
+
+  const fullAccess = !!serverUser || !!fullAccessRaw
 
   if (error) {
     return (

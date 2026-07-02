@@ -6,12 +6,17 @@
 import { NextResponse } from 'next/server'
 import { hasFullAccess } from '@/lib/access'
 import { getLatestRecordingUrl } from '@/lib/settings'
+import { createClient } from '@/lib/supabase-server'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET() {
   try {
-    const fullAccess = await hasFullAccess()
+    // Visible to paid members OR any logged-in user (so members can join
+    // the live 8pm sessions even if they haven't purchased an access pass).
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    const fullAccess = !!user || await hasFullAccess()
     const recordingUrl = fullAccess ? await getLatestRecordingUrl() : null
     return NextResponse.json({ fullAccess, recordingUrl }, {
       headers: {
