@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import LanguageSelector from './LanguageSelector'
 
-type T = {
+interface Translation {
   title: string
   intro: string
   visionTitle: string
@@ -12,33 +12,34 @@ type T = {
   whyPoints: string[]
 }
 
-const TRANSLATIONS: Record<string, Partial<T>> = {
-  en: {
-    title: 'About Us',
-    intro: `Welcome to the K53 Learner's Licence Platform! Our mission is to provide the most accessible, comprehensive, and easy-to-use study materials for the South African K53 Learner's Licence test.`,
-    visionTitle: 'Our Vision',
-    vision: `We believe that learning the rules of the road should be an engaging and straightforward experience. By combining high-quality study notes with interactive quizzes, we ensure our users are fully prepared to pass their tests on the first try.`,
-    whyTitle: 'Why Choose Us?',
-    whyPoints: [
-      'Comprehensive Coverage: From road signs to vehicle controls, we cover everything.',
-      'Interactive Quizzes: Test your knowledge with our timed, exam-style questions.',
-      'Accessible Anywhere: Study on your phone, tablet, or computer.',
-    ],
-  },
-  // Other languages default to English for now. Provide translations later.
-  af: {},
-  zu: {},
-  xh: {},
-  sot: {},
-  ve: {},
-  ts: {},
-  tn: {},
-  nso: {},
-  ss: {},
+const englishTranslation: Translation = {
+  title: 'About Us',
+  intro: `Welcome to the K53 Learner's Licence Platform! Our mission is to provide the most accessible, comprehensive, and easy-to-use study materials for the South African K53 Learner's Licence test.`,
+  visionTitle: 'Our Vision',
+  vision: `We believe that learning the rules of the road should be an engaging and straightforward experience. By combining high-quality study notes with interactive quizzes, we ensure our users are fully prepared to pass their tests on the first try.`,
+  whyTitle: 'Why Choose Us?',
+  whyPoints: [
+    'Comprehensive Coverage: From road signs to vehicle controls, we cover everything.',
+    'Interactive Quizzes: Test your knowledge with our timed, exam-style questions.',
+    'Accessible Anywhere: Study on your phone, tablet, or computer.',
+  ],
 }
 
-function getFor(lang: string): T {
-  const base = TRANSLATIONS['en'] as T
+const TRANSLATIONS: Record<string, Translation> = {
+  en: englishTranslation,
+  af: englishTranslation,
+  zu: englishTranslation,
+  xh: englishTranslation,
+  sot: englishTranslation,
+  ve: englishTranslation,
+  ts: englishTranslation,
+  tn: englishTranslation,
+  nso: englishTranslation,
+  ss: englishTranslation,
+}
+
+function getFor(lang: string): Translation {
+  const base = TRANSLATIONS['en']
   const t = TRANSLATIONS[lang]
   if (!t || Object.keys(t).length === 0) return base
   return { ...base, ...t }
@@ -46,7 +47,7 @@ function getFor(lang: string): T {
 
 export default function TranslatableAbout() {
   const [lang, setLang] = useState('en')
-  const [t, setT] = useState<T>(getFor('en'))
+  const [t, setT] = useState<Translation>(getFor('en'))
 
   useEffect(() => {
     try {
