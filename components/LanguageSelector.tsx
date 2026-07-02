@@ -1,7 +1,5 @@
 "use client"
 
-import { useEffect, useState } from 'react'
-
 const LANGS: { code: string; label: string }[] = [
   { code: 'en', label: 'English' },
   { code: 'af', label: 'Afrikaans' },
@@ -15,35 +13,26 @@ const LANGS: { code: string; label: string }[] = [
   { code: 'ss', label: 'Swati' },
 ]
 
-const STORAGE_KEY = 'sk_lang'
-
-export default function LanguageSelector({ onChange }: { onChange?: (code: string) => void }) {
-  const [lang, setLang] = useState('en')
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY)
-      if (stored) setLang(stored)
-    } catch {}
-  }, [])
-
-  function change(code: string) {
-    setLang(code)
-    try { localStorage.setItem(STORAGE_KEY, code) } catch {}
-    onChange?.(code)
-  }
-
+export default function LanguageSelector({
+  value,
+  onChange,
+}: {
+  value: string
+  onChange: (code: string) => void
+}) {
   return (
     <div className="inline-block">
       <label className="sr-only">Language</label>
       <select
         aria-label="Language"
-        value={lang}
-        onChange={e => change(e.target.value)}
+        value={value}
+        onChange={e => onChange(e.target.value)}
         className="border rounded-md px-3 py-1 text-sm bg-white"
       >
         {LANGS.map(l => (
-          <option key={l.code} value={l.code}>{l.label}</option>
+          <option key={l.code} value={l.code}>
+            {l.label}
+          </option>
         ))}
       </select>
     </div>

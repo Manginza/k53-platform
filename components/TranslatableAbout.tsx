@@ -1,8 +1,5 @@
 "use client"
 
-import { useEffect, useState } from 'react'
-import LanguageSelector from './LanguageSelector'
-
 interface Translation {
   title: string
   intro: string
@@ -45,41 +42,22 @@ function getFor(lang: string): Translation {
   return { ...base, ...t }
 }
 
-export default function TranslatableAbout() {
-  const [lang, setLang] = useState('en')
-  const [t, setT] = useState<Translation>(getFor('en'))
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('sk_lang')
-      if (stored) setLang(stored)
-    } catch {}
-  }, [])
-
-  useEffect(() => {
-    setT(getFor(lang))
-  }, [lang])
+export default function TranslatableAbout({ lang }: { lang: string }) {
+  const t = getFor(lang)
 
   return (
-    <main className="max-w-4xl mx-auto px-4 py-16 sm:px-6 sm:py-24">
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-extrabold text-gray-900">{t.title}</h1>
-        <LanguageSelector onChange={setLang} />
-      </div>
+    <div className="prose prose-blue max-w-none text-gray-600">
+      <p className="mb-4">{t.intro}</p>
 
-      <div className="prose prose-blue max-w-none text-gray-600">
-        <p className="mb-4">{t.intro}</p>
+      <h2 className="text-xl font-bold text-gray-900 mt-8 mb-4">{t.visionTitle}</h2>
+      <p className="mb-4">{t.vision}</p>
 
-        <h2 className="text-xl font-bold text-gray-900 mt-8 mb-4">{t.visionTitle}</h2>
-        <p className="mb-4">{t.vision}</p>
-
-        <h2 className="text-xl font-bold text-gray-900 mt-8 mb-4">{t.whyTitle}</h2>
-        <ul className="list-disc pl-5 mb-4 space-y-2">
-          {t.whyPoints.map(p => (
-            <li key={p}><span dangerouslySetInnerHTML={{ __html: p }} /></li>
-          ))}
-        </ul>
-      </div>
-    </main>
+      <h2 className="text-xl font-bold text-gray-900 mt-8 mb-4">{t.whyTitle}</h2>
+      <ul className="list-disc pl-5 mb-4 space-y-2">
+        {t.whyPoints.map(p => (
+          <li key={p}><span dangerouslySetInnerHTML={{ __html: p }} /></li>
+        ))}
+      </ul>
+    </div>
   )
 }
