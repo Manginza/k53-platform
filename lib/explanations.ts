@@ -20,7 +20,7 @@ export const EXPLANATIONS: Record<number, string> = {
 
   // ── CODE 10 — TEST 1 (IDs 170–232) ───────────────────────────────────────
 
-  170: 'Sign R215 (Hazardous Substances Vehicles Prohibited) means a vehicle carrying hazardous cargo is PROHIBITED from driving beyond that point. It is not a stopping sign. Answer A is correct: "You are not allowed to drive there." (NRTA Reg 330 & SANS 1091)',
+  170: 'This sign warns that a vehicle carrying hazardous substances may not stop at that point (e.g. near a tunnel, bridge, or built-up area) — it may still pass through, just not stop there. Answer B is correct: "You may not stop there."',
   173: 'This is a "goods vehicle turn left" compulsory direction sign. Delivery vehicles must turn left at the NEXT ROAD, not at a stop sign. Answer C is correct. (NRTA Road Signs Manual)',
   175: 'You may reverse only if it is safe to do so and you are not required to reverse an unreasonable distance. (NRTA Reg 311)',
   176: 'After a licence disc expires, you have a 21-day grace period to renew without penalty. (NRTA Reg 36)',
