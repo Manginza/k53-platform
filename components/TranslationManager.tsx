@@ -44,13 +44,16 @@ export default function TranslationManager() {
     // Translate shortly after React paints this route.
     const first = setTimeout(() => { void translatePage(lang) }, 150)
 
-    // Re-translate content React adds later (popups, async data, quiz items).
+    // Re-translate content React adds or changes later — new nodes (popups,
+    // async data) via childList, and in-place text swaps (e.g. the quiz
+    // reusing the same <p> for question 2, 3, ...) via characterData. Missing
+    // characterData was the bug: only the first question ever got translated.
     let debounce: ReturnType<typeof setTimeout> | undefined
     const observer = new MutationObserver(() => {
       clearTimeout(debounce)
-      debounce = setTimeout(() => { void translatePage(lang) }, 500)
+      debounce = setTimeout(() => { void translatePage(lang) }, 250)
     })
-    observer.observe(document.body, { childList: true, subtree: true })
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true })
 
     return () => {
       clearTimeout(first)
