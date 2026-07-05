@@ -9,6 +9,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { WHATSAPP_QUERIES_URL } from '@/lib/contact'
+import { invalidateAccessCache } from '@/lib/access-cache'
 import LiveSessionCard from '@/components/LiveSessionCard'
 
 type Status = 'confirming' | 'done' | 'manual'
@@ -31,6 +32,11 @@ export default function SubscribeSuccessPage() {
       const body = await res.json()
       if (res.ok && body.granted) {
         try { localStorage.removeItem('sk_checkout') } catch {}
+        // Blow away the client-side "no access" cache — otherwise the
+        // 5-minute sessionStorage entry (and any browser HTTP cache from
+        // before the payment) keeps client-gated pages (Resources, popups)
+        // showing the paywall for minutes after access was granted.
+        invalidateAccessCache()
         setStatus('done')
         router.refresh()
         return

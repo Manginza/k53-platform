@@ -19,6 +19,15 @@ export function createClient() {
           } catch {}
         },
       },
+      global: {
+        // Next.js's Data Cache caches individual fetch() responses at the
+        // request level — separate from page-level rendering mode. Without
+        // this, `hasFullAccess()` and auth reads may return a stale response
+        // captured BEFORE a payment granted access, keeping the paywall in
+        // place even though the DB has been updated. Reads here are always
+        // user-scoped and short-lived, so caching is never desirable.
+        fetch: (url, options) => fetch(url, { ...options, cache: 'no-store' }),
+      },
     }
   )
 }

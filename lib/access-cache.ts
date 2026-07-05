@@ -45,9 +45,13 @@ export async function getAccessStatus(): Promise<AccessStatus> {
   const stored = fromStorage()
   if (stored) return stored
 
-  // 3. Fetch, cache, return
+  // 3. Fetch, cache, return.
+  // `cache: 'no-store'` bypasses the browser HTTP cache — the endpoint sets
+  // Cache-Control: max-age=60, which otherwise held the pre-payment "false"
+  // response for a full minute after a user paid, keeping the paywall shown.
+  // Our sessionStorage layer above is the one caching strategy we want.
   inFlightAt = Date.now()
-  inFlight = fetch('/api/me/access')
+  inFlight = fetch('/api/me/access', { cache: 'no-store' })
     .then(r => r.json() as Promise<AccessStatus>)
     .then(d => { toStorage(d); return d })
     .catch(() => ({ fullAccess: false, recordingUrl: null }))
@@ -56,8 +60,15 @@ export async function getAccessStatus(): Promise<AccessStatus> {
   return inFlight
 }
 
-/** Call this after a successful payment / login so the next check re-fetches. */
+/**
+ * Call after a successful payment / login: clears the sessionStorage cache
+ * AND kicks off a fresh no-store fetch immediately, so the very next
+ * `getAccessStatus()` call sees the new state instead of another 5-minute
+ * window of the old cached value.
+ */
 export function invalidateAccessCache() {
   inFlight = null
   try { sessionStorage.removeItem(STORAGE_KEY) } catch {}
+  // Warm the cache with a fresh value — fire-and-forget.
+  void getAccessStatus()
 }
