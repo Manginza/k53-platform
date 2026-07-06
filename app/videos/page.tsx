@@ -28,6 +28,8 @@ const liveRecordings = [
 ]
 
 const driveVideos = [
+  { id: '1OsnYrL4QBRJ4W5flK3QJQErUFO-tz8Om', url: 'https://drive.google.com/file/d/1OsnYrL4QBRJ4W5flK3QJQErUFO-tz8Om/view?usp=drive_link' },
+  { id: '1s4CNf3Ez38eo8EuLXN-g7y-TpJnSmLLp', url: 'https://drive.google.com/file/d/1s4CNf3Ez38eo8EuLXN-g7y-TpJnSmLLp/view?usp=drive_link' },
   { id: '1K-rAzIiVPLbMzYHpDLd0puSiOJ8FyuHZ', url: 'https://drive.google.com/file/d/1K-rAzIiVPLbMzYHpDLd0puSiOJ8FyuHZ/view?usp=sharing' },
   { id: '1RMFnYkvQadmvsKaBru8oAFvq6GorpdPZ', url: 'https://drive.google.com/file/d/1RMFnYkvQadmvsKaBru8oAFvq6GorpdPZ/view?usp=sharing' },
   { id: '1ALmgr1xumOVmxhMNDmHrKzBkpCJA8MKk', url: 'https://drive.google.com/file/d/1ALmgr1xumOVmxhMNDmHrKzBkpCJA8MKk/view?usp=sharing' },
