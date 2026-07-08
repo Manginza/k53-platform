@@ -12,6 +12,7 @@ export const metadata: Metadata = {
 }
 
 const youtubeVideos = [
+  { id: '2BUf8Kk0cAU', url: 'https://youtu.be/2BUf8Kk0cAU' },
   { id: 'lS1vM2dfXe4', url: 'https://www.youtube.com/watch?v=lS1vM2dfXe4' },
   { id: 'ARUNN365XeE', url: 'https://www.youtube.com/watch?v=ARUNN365XeE' },
   { id: 'y8PiV_dbSAE', url: 'https://www.youtube.com/watch?v=y8PiV_dbSAE' },
