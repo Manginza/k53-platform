@@ -24,6 +24,7 @@ const youtubeVideos = [
 // Live-session recordings pinned in the recordings section (in addition to the
 // admin-set latest recording pulled from the database).
 const liveRecordings = [
+  { id: '1_6qU0g5DBmWkGd2hSJRzd_7uKWpaY8UH', url: 'https://drive.google.com/file/d/1_6qU0g5DBmWkGd2hSJRzd_7uKWpaY8UH/view?usp=sharing' },
   { id: '1RMFnYkvQadmvsKaBru8oAFvq6GorpdPZ', url: 'https://drive.google.com/file/d/1RMFnYkvQadmvsKaBru8oAFvq6GorpdPZ/view?usp=sharing' },
   { id: '1ALmgr1xumOVmxhMNDmHrKzBkpCJA8MKk', url: 'https://drive.google.com/file/d/1ALmgr1xumOVmxhMNDmHrKzBkpCJA8MKk/view?usp=sharing' },
 ]

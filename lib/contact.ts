@@ -20,8 +20,8 @@ export const LIVE_SESSION_URL = 'https://meet.google.com/yxw-dqij-zgq'
 export const LIVE_SESSION_SCHEDULE = 'Every day, 8pm–9pm'
 export const LIVE_SESSION_NOTE = 'Sessions are recorded, so you can catch up if you miss one.'
 /** Recording of the live session, for anyone who missed it. */
-export const LIVE_SESSION_RECORDING_URL = 'https://drive.google.com/file/d/1irb-OSgV6TthrO3ru6XQ5Y7EUGzw8ygz/view?usp=sharing'
-export const LIVE_SESSION_RECORDING_FILE_ID = '1irb-OSgV6TthrO3ru6XQ5Y7EUGzw8ygz'
+export const LIVE_SESSION_RECORDING_URL = 'https://drive.google.com/file/d/1_6qU0g5DBmWkGd2hSJRzd_7uKWpaY8UH/view?usp=sharing'
+export const LIVE_SESSION_RECORDING_FILE_ID = '1_6qU0g5DBmWkGd2hSJRzd_7uKWpaY8UH'
 
 /**
  * Free-access promotion. While the current time is before FREE_PROMO_UNTIL,
