@@ -21,6 +21,11 @@ const youtubeVideos = [
   { id: 'DEJSLtsCpBU', url: 'https://youtu.be/DEJSLtsCpBU' },
 ]
 
+// YouTube recordings pinned alongside the Drive recordings.
+const liveYoutubeRecordings = [
+  { id: 'VUWx9fuRTl4', url: 'https://youtu.be/VUWx9fuRTl4' },
+]
+
 // Live-session recordings pinned in the recordings section (in addition to the
 // admin-set latest recording pulled from the database).
 const liveRecordings = [
@@ -79,6 +84,9 @@ export default async function VideosPage() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <DriveCard fileId={recording.fileId} index={0} url={recording.url} />
+          {liveYoutubeRecordings.map((v, i) => (
+            <YouTubeCard key={v.id} id={v.id} index={i} url={v.url} />
+          ))}
           {liveRecordings.map((v, i) => (
             <DriveCard key={v.id} fileId={v.id} index={i + 1} url={v.url} />
           ))}
