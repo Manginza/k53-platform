@@ -9,6 +9,7 @@ import CookieBanner from "@/components/CookieBanner";
 import LiveSessionPopup from "@/components/LiveSessionPopup";
 import TestPrepPopup from "@/components/TestPrepPopup";
 import K53UnpackedPopup from "@/components/K53UnpackedPopup";
+import CourseIntroPopup from "@/components/CourseIntroPopup";
 import FreePromoBanner from "@/components/FreePromoBanner";
 import FreePromoPopup from "@/components/FreePromoPopup";
 import TranslationManager from "@/components/TranslationManager";
@@ -137,6 +138,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                         <TestPrepPopup />
                         <LiveSessionPopup />
                         <K53UnpackedPopup />
+                        <CourseIntroPopup />
                         </LanguageProvider>
                 </body>
           </html>

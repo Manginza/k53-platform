@@ -33,6 +33,7 @@ export default function QuizPlayer({
   const [answers, setAnswers]       = useState<Record<string, string>>({})
   const [submitting, setSubmitting] = useState(false)
   const [error, setError]           = useState<string | null>(null)
+  const [failedImages, setFailedImages] = useState<Set<string>>(() => new Set())
 
   const total    = questions.length
   const current  = questions[currentIdx]
@@ -137,13 +138,15 @@ export default function QuizPlayer({
           </div>
 
           {/* Exam-style picture (road sign / signal / hand signal) */}
-          {current.image_url && (
+          {current.image_url && !failedImages.has(current.image_url) && (
             <div className="flex justify-center mb-4 sm:mb-5">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={current.image_url}
                 alt="Road sign or signal referred to in this question"
-                className="h-28 sm:h-36 object-contain"
+                className="quiz-image h-28 sm:h-36 max-w-full object-contain"
+                decoding="async"
+                onError={() => setFailedImages(previous => new Set(previous).add(current.image_url!))}
               />
             </div>
           )}

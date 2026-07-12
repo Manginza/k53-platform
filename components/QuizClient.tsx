@@ -341,6 +341,7 @@ export default function QuizClient({ questions, courseTitle, courseId, testNumbe
   const [answers,  setAnswers]  = useState<AnswerMap>({})
   const [revealed, setRevealed] = useState(false)
   const [finished, setFinished] = useState(false)
+  const [failedImages, setFailedImages] = useState<Set<string>>(() => new Set())
 
   // Timer. Paid users get an exam-style limit of 1 minute per question
   // (auto-submits to results on expiry); free users get a 3-minute preview
@@ -525,19 +526,25 @@ export default function QuizClient({ questions, courseTitle, courseId, testNumbe
         {q.image_url && (
           <div className="flex justify-center">
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-3 inline-block">
-              <img
-                src={q.image_url}
-                alt={`Question ${current + 1}`}
-                className="max-h-52 max-w-full object-contain rounded-lg"
-                onError={e => {
-                  const el = e.target as HTMLImageElement
-                  el.parentElement!.innerHTML =
-                    `<div class="flex flex-col items-center justify-center w-64 h-32 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 text-gray-400 text-sm gap-1">
-                      <span class="text-2xl">🖼</span>
-                      <span>${q.image_ref ?? 'image'}</span>
-                    </div>`
-                }}
-              />
+              {failedImages.has(q.image_url) ? (
+                <div
+                  role="img"
+                  aria-label={`Question ${current + 1} image unavailable`}
+                  className="flex flex-col items-center justify-center w-64 max-w-full h-32 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 text-gray-500 text-sm gap-1"
+                >
+                  <span className="text-2xl" aria-hidden="true">&#128444;</span>
+                  <span>{q.image_ref ?? 'Image unavailable'}</span>
+                </div>
+              ) : (
+                <img
+                  key={q.image_url}
+                  src={q.image_url}
+                  alt={`Question ${current + 1}`}
+                  className="quiz-image max-h-52 max-w-full object-contain rounded-lg"
+                  decoding="async"
+                  onError={() => setFailedImages(previous => new Set(previous).add(q.image_url!))}
+                />
+              )}
             </div>
           </div>
         )}
