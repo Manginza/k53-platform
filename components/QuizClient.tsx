@@ -31,6 +31,18 @@ function fmtTime(secs: number): string {
   return `${m}:${s.toString().padStart(2, '0')}`
 }
 
+const FINAL_TEST_TITLE = 'Final Test Code 8, 10 and Motorcycle'
+const MOTORCYCLE_TEST_C_QUESTIONS = new Set([25, 36, 38, 40, 41, 42, 43, 44, 49])
+
+/** Motorcycle-only questions identified from the manual's section labels. */
+function isMotorcycleQuestion(question: QuizQuestion): boolean {
+  const match = question.question.match(/^Test ([ABC]).*Question (\d+)/)
+  if (!match) return false
+  const number = Number(match[2])
+  return (match[1] === 'A' && number >= 10 && number <= 18)
+    || (match[1] === 'C' && MOTORCYCLE_TEST_C_QUESTIONS.has(number))
+}
+
 // ── Split-score results (Test 2 — K53 format) ────────────────────────────────
 function SplitResultsScreen({
   questions,
@@ -343,6 +355,7 @@ export default function QuizClient({ questions, courseTitle, courseId, testNumbe
   const [answers,  setAnswers]  = useState<AnswerMap>({})
   const [revealed, setRevealed] = useState(false)
   const [finished, setFinished] = useState(false)
+  const [skipMotorcycle, setSkipMotorcycle] = useState(false)
   const [failedImages, setFailedImages] = useState<Set<string>>(() => new Set())
 
   // Timer. Paid users get an exam-style limit of 1 minute per question
@@ -391,12 +404,17 @@ export default function QuizClient({ questions, courseTitle, courseId, testNumbe
   const isSplitTest = splitScoring
 
   // For split test: show rules questions first, then signs
-  const ordered = isSplitTest
+  const baseOrdered = isSplitTest
     ? [
         ...questions.filter(q => !q.image_url),
         ...questions.filter(q =>  q.image_url),
       ]
     : questions
+  const isFinalTest = courseTitle === FINAL_TEST_TITLE
+  const motorcycleCount = isFinalTest ? baseOrdered.filter(isMotorcycleQuestion).length : 0
+  const ordered = skipMotorcycle
+    ? baseOrdered.filter(question => !isMotorcycleQuestion(question))
+    : baseOrdered
 
   const q        = ordered[current]
   const finalSection = q.question.match(/^Test ([ABC]) · Question (\d+)/)
@@ -430,6 +448,16 @@ export default function QuizClient({ questions, courseTitle, courseId, testNumbe
     } else {
       setCurrent(c => c + 1)
       setRevealed(false)
+    }
+  }
+
+  const handleMotorcyclePreference = (skip: boolean) => {
+    setSkipMotorcycle(skip)
+    setCurrent(0)
+    setAnswers({})
+    setRevealed(false)
+    if (isPremium) {
+      setSecondsLeft((skip ? baseOrdered.length - motorcycleCount : baseOrdered.length) * 60)
     }
   }
 
@@ -512,6 +540,32 @@ export default function QuizClient({ questions, courseTitle, courseId, testNumbe
           </div>
         </div>
       </div>
+
+      {/* Final-test scoring preference. This is available before answering so
+          changing it can never discard an in-progress attempt unexpectedly. */}
+      {isFinalTest && current === 0 && Object.keys(answers).length === 0 && (
+        <div className="max-w-2xl mx-auto px-4 pt-5">
+          <button
+            type="button"
+            role="checkbox"
+            aria-checked={skipMotorcycle}
+            onClick={() => handleMotorcyclePreference(!skipMotorcycle)}
+            className="w-full flex items-start gap-3 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-left"
+          >
+            <span className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 text-xs font-bold ${
+              skipMotorcycle ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-400 bg-white text-transparent'
+            }`} aria-hidden="true">✓</span>
+            <span>
+              <span className="block text-sm font-bold text-blue-900">Skip motorcycle questions</span>
+              <span className="mt-0.5 block text-xs leading-relaxed text-blue-700">
+                {skipMotorcycle
+                  ? `${motorcycleCount} motorcycle-only questions excluded · score calculated out of ${baseOrdered.length - motorcycleCount}`
+                  : `Include all ${baseOrdered.length} questions in the combined score`}
+              </span>
+            </span>
+          </button>
+        </div>
+      )}
 
       {/* Section divider shown at the transition point */}
       {isSplitTest && current === rulesCount && (
