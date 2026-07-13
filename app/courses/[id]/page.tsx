@@ -32,7 +32,16 @@ export default async function CoursePage({ params }: Props) {
 
   const c = course as Course
 
-  const tests = [
+  const tests = (c.code === 'final-k53' ? [
+    {
+      number:    1,
+      count:     countByTest[1] ?? 0,
+      label:     'Test A + Test B + Test C',
+      passInfo:  'one combined score',
+      href:      `/quiz/${c.id}?test=1`,
+      badge:     'Final Test',
+    },
+  ] : [
     {
       number:    1,
       count:     countByTest[1] ?? 0,
@@ -56,7 +65,7 @@ export default async function CoursePage({ params }: Props) {
       href:      `/quiz/${c.id}?test=3`,
       badge:     'K53 Format',
     },
-  ].filter(t => t.count > 0)
+  ]).filter(t => t.count > 0)
 
   return (
     <main className="max-w-3xl mx-auto px-6 py-12">

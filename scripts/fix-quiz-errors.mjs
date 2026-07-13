@@ -7,6 +7,7 @@ const H = { apikey: KEY, Authorization: `Bearer ${KEY}`, 'Content-Type': 'applic
 
 // Verified corrections [id, from, to, reason]
 const FIXES = [
+  [173, 'A', 'C', 'The sign requires a delivery vehicle to turn left at the next road; the existing explanation also identifies C as correct'],
   [96,  'B', 'C', 'Check vehicles behind = mirror = #3 (diagram 2c8.2); #11 is the hooter'],
   [122, 'B', 'A', 'Control used when raining = wiper = #2 (diagram 2c8.2); #5 is the indicator'],
   [56,  'A', 'C', 'Dipped/dim beam furthest = 45 m (confirmed by sibling id188); 100 m is main beam'],
@@ -16,9 +17,10 @@ const FIXES = [
 ]
 
 const get = async id => (await (await fetch(`${SUPA}/rest/v1/quiz_questions?id=eq.${id}&select=*`, { headers: H })).json())[0]
+const onlyId = Number(process.argv.find(arg => arg.startsWith('--id='))?.slice(5)) || null
 
 let applied = 0
-for (const [id, from, to, reason] of FIXES) {
+for (const [id, from, to, reason] of FIXES.filter(([id]) => onlyId === null || id === onlyId)) {
   const q = await get(id)
   if (!q) { console.log(`id${id}: NOT FOUND`); continue }
   const opt = l => ({ A: q.option_a, B: q.option_b, C: q.option_c }[l])

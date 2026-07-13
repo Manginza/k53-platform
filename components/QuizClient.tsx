@@ -20,6 +20,8 @@ interface Props {
   isPremium:   boolean
   /** Server-computed seconds left in the free preview (non-premium only). */
   initialSeconds?: number
+  /** Use separate K53 section pass marks instead of one combined percentage. */
+  splitScoring?: boolean
 }
 
 /** mm:ss formatter for the countdown pill. */
@@ -336,7 +338,7 @@ function StandardResultsScreen({
 }
 
 // ── Main quiz component ───────────────────────────────────────────────────────
-export default function QuizClient({ questions, courseTitle, courseId, testNumber, isPremium, initialSeconds }: Props) {
+export default function QuizClient({ questions, courseTitle, courseId, testNumber, isPremium, initialSeconds, splitScoring = false }: Props) {
   const [current,  setCurrent]  = useState(0)
   const [answers,  setAnswers]  = useState<AnswerMap>({})
   const [revealed, setRevealed] = useState(false)
@@ -386,7 +388,7 @@ export default function QuizClient({ questions, courseTitle, courseId, testNumbe
     return () => clearTimeout(t)
   }, [isPremium, finished, lockedOut, secondsLeft])
 
-  const isSplitTest = testNumber === 2
+  const isSplitTest = splitScoring
 
   // For split test: show rules questions first, then signs
   const ordered = isSplitTest
@@ -397,6 +399,7 @@ export default function QuizClient({ questions, courseTitle, courseId, testNumbe
     : questions
 
   const q        = ordered[current]
+  const finalSection = q.question.match(/^Test ([ABC]) · Question (\d+)/)
   const selected = answers[q.id]
   const progress = (current / ordered.length) * 100
 
@@ -484,7 +487,7 @@ export default function QuizClient({ questions, courseTitle, courseId, testNumbe
       <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
           <span className="text-sm font-medium text-gray-500 truncate flex-1 min-w-0">
-            {sectionLabel ?? courseTitle}
+            {sectionLabel ?? (finalSection ? `Test ${finalSection[1]} · Question ${finalSection[2]}` : courseTitle)}
           </span>
           <span
             className={`text-xs font-bold px-2.5 py-1 rounded-full shrink-0 tabular-nums ${

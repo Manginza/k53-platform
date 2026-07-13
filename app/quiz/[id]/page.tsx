@@ -76,6 +76,7 @@ export default async function QuizPage({ params, searchParams }: Props) {
       testNumber={testNumber}
       isPremium={premium}
       initialSeconds={initialSeconds}
+      splitScoring={testNumber === 2 && ['code8', 'code10'].includes(c.code)}
     />
   )
 }
