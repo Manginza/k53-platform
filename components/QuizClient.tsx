@@ -33,6 +33,16 @@ function fmtTime(secs: number): string {
 
 const FINAL_TEST_TITLE = 'Final Test Code 8, 10 and Motorcycle'
 const MOTORCYCLE_TEST_C_QUESTIONS = new Set([25, 36, 38, 40, 41, 42, 43, 44, 49])
+const MOTORCYCLE_CONTROLS = [
+  ['1', 'Gear lever', 'Selects gears'],
+  ['2', 'Clutch', 'Disengages the engine for gear changes'],
+  ['3', 'Mirrors', 'Used to check traffic behind you'],
+  ['4', 'Front brake', 'Controls speed and stops the motorcycle'],
+  ['5', 'Accelerator', 'Increases or decreases speed'],
+  ['6', 'Indicator', 'Signals your intention to turn'],
+  ['7', 'Brake pedal', 'Controls speed with the rear brake'],
+  ['8', 'Handlebars', 'Steer the motorcycle'],
+] as const
 
 /** Motorcycle-only questions identified from the manual's section labels. */
 function isMotorcycleQuestion(question: QuizQuestion): boolean {
@@ -356,6 +366,7 @@ export default function QuizClient({ questions, courseTitle, courseId, testNumbe
   const [revealed, setRevealed] = useState(false)
   const [finished, setFinished] = useState(false)
   const [skipMotorcycle, setSkipMotorcycle] = useState(false)
+  const [motorcycleRefresherSeen, setMotorcycleRefresherSeen] = useState(false)
   const [failedImages, setFailedImages] = useState<Set<string>>(() => new Set())
 
   // Timer. Paid users get an exam-style limit of 1 minute per question
@@ -480,6 +491,50 @@ export default function QuizClient({ questions, courseTitle, courseId, testNumbe
         courseId={courseId}
         courseTitle={courseTitle}
       />
+    )
+  }
+
+  if (isFinalTest && !skipMotorcycle && !motorcycleRefresherSeen && isMotorcycleQuestion(q)) {
+    return (
+      <div className="min-h-screen bg-gray-50 px-4 py-6 sm:py-10">
+        <main className="mx-auto max-w-3xl">
+          <div className="mb-4 text-center">
+            <div className="text-xs font-bold uppercase tracking-widest text-blue-600">Test A · Motorcycle section</div>
+            <h1 className="mt-1 text-2xl font-extrabold text-gray-900">Motorcycle controls refresher</h1>
+            <p className="mt-2 text-sm text-gray-500">Review the numbered controls and their functions before continuing. This refresher is not scored.</p>
+          </div>
+
+          <div className="overflow-hidden rounded-2xl border border-blue-200 bg-white shadow-sm">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/final-test/motorcycle-controls-refresher.png"
+              alt="Motorcycle controls numbered one to eight with labels and functions"
+              className="quiz-image h-auto w-full"
+              style={{ width: '100%', height: 'auto' }}
+            />
+          </div>
+
+          <div className="mt-5 grid gap-2 sm:grid-cols-2">
+            {MOTORCYCLE_CONTROLS.map(([number, name, description]) => (
+              <div key={number} className="flex items-start gap-3 rounded-xl border border-gray-200 bg-white p-3">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white">{number}</span>
+                <span>
+                  <span className="block text-sm font-bold text-gray-900">{name}</span>
+                  <span className="block text-xs leading-relaxed text-gray-500">{description}</span>
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setMotorcycleRefresherSeen(true)}
+            className="mt-6 w-full rounded-xl bg-blue-600 py-4 text-base font-bold text-white transition-colors hover:bg-blue-700"
+          >
+            Start motorcycle questions →
+          </button>
+        </main>
+      </div>
     )
   }
 
