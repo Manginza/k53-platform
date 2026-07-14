@@ -29,7 +29,7 @@ export const LIVE_SESSION_RECORDING_FILE_ID = '1_6qU0g5DBmWkGd2hSJRzd_7uKWpaY8UH
  * EVERYONE — no payment required. After this timestamp it auto-reverts to the
  * normal paid model. Set to an empty string to disable the promo entirely.
  */
-export const FREE_PROMO_UNTIL = '2026-07-03T20:00:00+02:00' // free until 8pm SAST tonight
+export const FREE_PROMO_UNTIL = '2026-07-15T10:00:00+02:00' // ~24h free-access window from 2026-07-14 10am SAST
 export function isFreePromoActive(): boolean {
   return !!FREE_PROMO_UNTIL && Date.now() < Date.parse(FREE_PROMO_UNTIL)
 }
