@@ -13,13 +13,12 @@
  *     access to that same account.
  */
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
 import { ACCESS_PRICE, ACCESS_PRICE_ORIGINAL, ACCESS_DURATION_DAYS } from '@/lib/contact'
 
 export default function BuyAccessButton({ className = '' }: { className?: string }) {
   const router = useRouter()
-  const params = useSearchParams()
   const supabase = useMemo(() => createClient(), [])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -50,8 +49,14 @@ export default function BuyAccessButton({ className = '' }: { className?: string
   // the user is now signed in, kick off the checkout without needing another
   // click. Guarded against loops — we only auto-fire once per page load, and
   // never fire if there's no session (letting the user click manually).
+  //
+  // Reads the URL directly (not useSearchParams) so this client component
+  // stays compatible with the statically-prerendered /pricing page without
+  // needing a Suspense wrapper around it.
   useEffect(() => {
-    if (params.get('pay') !== '1') return
+    if (typeof window === 'undefined') return
+    const shouldPay = new URLSearchParams(window.location.search).get('pay') === '1'
+    if (!shouldPay) return
     let cancelled = false
     ;(async () => {
       const { data: { session } } = await supabase.auth.getSession()
@@ -65,7 +70,7 @@ export default function BuyAccessButton({ className = '' }: { className?: string
       void pay()
     })()
     return () => { cancelled = true }
-  }, [params, supabase, pay])
+  }, [supabase, pay])
 
   return (
     <div className={className}>
