@@ -37,9 +37,29 @@ export default function SubscribeSuccessPage() {
         // before the payment) keeps client-gated pages (Resources, popups)
         // showing the paywall for minutes after access was granted.
         invalidateAccessCache()
+        // Double-check: even after invalidate + no-store fetch, if the
+        // grant didn't actually persist in the DB (e.g. transient write
+        // failure that the confirm route couldn't detect) we would send
+        // the user to the courses page only for them to hit the paywall.
+        // Verify BEFORE showing "You're in!" so the user only sees success
+        // when the API actually reports fullAccess.
+        const verifyRes = await fetch('/api/me/access', { cache: 'no-store' })
+        const verify = await verifyRes.json()
+        if (!verify?.fullAccess) {
+          console.error('[subscribe/success] confirm returned granted:true but /api/me/access still says fullAccess:false', verify)
+          attempts.current += 1
+          if (attempts.current >= 8) { setStatus('manual'); return }
+          setTimeout(confirm, 2500)
+          return
+        }
         setStatus('done')
         router.refresh()
         return
+      }
+      // Surface the specific failure so the user gets clear guidance
+      // rather than a generic "we'll try again in a moment" spinner.
+      if (body.error) {
+        console.error('[subscribe/success] confirm error:', body.error)
       }
     } catch { /* keep trying */ }
 

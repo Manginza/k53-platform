@@ -64,8 +64,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'This signup link has already been used. Please request a new one.' }, { status: 409 })
   }
 
-  // 4. Grant 60-day access to the new account.
-  await grantAccess(created.user.id, days, 'admin')
+  // 4. Grant access to the new account. grantAccess throws on any
+  // upsert/verify failure so a paid-token user isn't left with an
+  // account but no access.
+  try {
+    await grantAccess(created.user.id, days, 'admin')
+  } catch (err) {
+    return NextResponse.json(
+      { error: 'Account was created but the access grant failed. Please contact support with this email.', detail: err instanceof Error ? err.message : String(err) },
+      { status: 500 },
+    )
+  }
 
   return NextResponse.json({ ok: true })
 }

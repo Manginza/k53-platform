@@ -58,8 +58,25 @@ export async function POST(req: NextRequest) {
     if (checkout?.metadata?.userId && checkout.metadata.userId !== user.id) continue
 
     const days = Number(checkout?.metadata?.durationDays) || ACCESS_DURATION_DAYS
-    await grantAccess(user.id, days, 'payment')
-    await recordCommission(admin, checkout, cid)
+    try {
+      await grantAccess(user.id, days, 'payment')
+    } catch (err) {
+      // grantAccess now throws on any write/verify failure. Report the real
+      // status back to the client so the success page can retry or route the
+      // user to support, instead of showing "You're in!" with no actual grant.
+      console.error('[yoco/confirm] grantAccess failed', {
+        userId: user.id, checkoutId: cid,
+        error: err instanceof Error ? err.message : String(err),
+      })
+      return NextResponse.json({
+        granted: false,
+        pending: false,
+        error: 'Payment verified, but access grant failed to save. Please try again in a moment.',
+      }, { status: 500 })
+    }
+    // Commission failures shouldn't unwind a successful grant — log and press on.
+    try { await recordCommission(admin, checkout, cid) }
+    catch (err) { console.error('[yoco/confirm] recordCommission failed', err) }
     return NextResponse.json({ granted: true })
   }
 

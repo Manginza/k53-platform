@@ -70,8 +70,17 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  // Grant the access window (immediate access).
-  await grantAccess(target.id, durationDays, 'admin')
+  // Grant the access window (immediate access). grantAccess now throws
+  // on any write/verify failure so we surface the real cause instead of
+  // returning `ok:true` on a silently-failed grant.
+  try {
+    await grantAccess(target.id, durationDays, 'admin')
+  } catch (err) {
+    return NextResponse.json(
+      { error: 'Could not save the access grant. Check server logs for details.', detail: err instanceof Error ? err.message : String(err) },
+      { status: 500 },
+    )
+  }
   const expires = new Date(Date.now() + durationDays * 24 * 60 * 60 * 1000).toISOString()
 
   return NextResponse.json({

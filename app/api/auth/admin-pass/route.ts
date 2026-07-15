@@ -25,8 +25,17 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  // Grant 60-day access to the new account.
-  await grantAccess(created.user.id, 60, 'admin_pass')
+  // Grant 60-day access to the new account. grantAccess throws on any
+  // upsert/verify failure so we surface the real cause instead of falsely
+  // reporting ok:true on a silently-broken grant.
+  try {
+    await grantAccess(created.user.id, 60, 'admin_pass')
+  } catch (err) {
+    return NextResponse.json(
+      { error: 'Account was created but the access grant failed to save. Check server logs.', detail: err instanceof Error ? err.message : String(err) },
+      { status: 500 },
+    )
+  }
 
   return NextResponse.json({ ok: true })
 }

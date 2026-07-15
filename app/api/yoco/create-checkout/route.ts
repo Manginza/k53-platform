@@ -73,11 +73,20 @@ export async function POST(req: NextRequest) {
     })
 
     // Map the checkout to this account so access can be granted on return even
-    // if the browser loses localStorage (best-effort; webhook is also a backup).
-    await createAdminClient()
+    // if the browser loses localStorage (webhook is also a backup). This row
+    // is the ONLY link between a Yoco checkout and its buyer when the
+    // buyer's localStorage is lost, so a silent insert failure here would
+    // leave a paid user with no way to be recognised on return. Log LOUDLY
+    // if it fails — but still return the redirectUrl so payment can proceed
+    // (localStorage + webhook metadata are the fallback identity paths).
+    const { error: sessionErr } = await createAdminClient()
       .from('checkout_sessions')
       .insert({ checkout_id: checkout.id, user_id: user.id })
-      .then(({ error }) => { if (error) console.error('[create-checkout] session insert:', error.message) })
+    if (sessionErr) {
+      console.error('[create-checkout] session insert FAILED — access may need manual grant if buyer loses localStorage', {
+        userId: user.id, checkoutId: checkout.id, error: sessionErr.message,
+      })
+    }
 
     return NextResponse.json({ redirectUrl: checkout.redirectUrl, checkoutId: checkout.id })
   } catch (err) {

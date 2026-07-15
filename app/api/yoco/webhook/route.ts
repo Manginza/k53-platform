@@ -44,22 +44,32 @@ export async function POST(req: NextRequest) {
   const { type, payload } = event
   console.log(`[yoco-webhook] ${type} — payment ${payload?.id ?? 'n/a'}`)
 
-  try {
-    if (type === 'payment.succeeded') {
-      const userId = payload?.metadata?.userId
-      if (userId) {
-        const days = Number(payload?.metadata?.durationDays) || ACCESS_DURATION_DAYS
+  if (type === 'payment.succeeded') {
+    const userId = payload?.metadata?.userId
+    const checkoutId = payload?.checkoutId ?? payload?.id
+    if (userId) {
+      const days = Number(payload?.metadata?.durationDays) || ACCESS_DURATION_DAYS
+      try {
         await grantAccess(userId, days, 'payment')
-        console.log(`[yoco-webhook] Access granted to ${userId} for ${days} days.`)
-      } else {
-        console.error('[yoco-webhook] payment.succeeded with no userId in metadata.')
+        console.log(`[yoco-webhook] Access granted to ${userId} for ${days} days (checkout=${checkoutId}).`)
+      } catch (err) {
+        // grantAccess now throws instead of silently swallowing errors. Log
+        // loudly so support/ops can find affected users. The synchronous
+        // /api/yoco/confirm route will retry on the buyer's return, and any
+        // future visit to a gated page can trigger recovery — but this log
+        // is the trail if the buyer never comes back.
+        console.error('[yoco-webhook] grantAccess FAILED — paid user may lack access!', {
+          userId, checkoutId, days,
+          error: err instanceof Error ? err.message : String(err),
+        })
       }
-      await recordAffiliateCommission(payload)
     } else {
-      console.log(`[yoco-webhook] Unhandled event type: ${type}`)
+      console.error('[yoco-webhook] payment.succeeded with no userId in metadata.', { checkoutId })
     }
-  } catch (err) {
-    console.error('[yoco-webhook] Processing error:', err instanceof Error ? err.message : err)
+    try { await recordAffiliateCommission(payload) }
+    catch (err) { console.error('[yoco-webhook] recordAffiliateCommission failed', err) }
+  } else {
+    console.log(`[yoco-webhook] Unhandled event type: ${type}`)
   }
 
   return NextResponse.json({ received: true })
