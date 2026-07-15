@@ -74,7 +74,13 @@ function RegisterForm() {
       </form>
 
       <p className="text-sm text-center text-gray-500 mt-6">
-        Already have an account? <Link href="/login" className="text-blue-700 font-medium hover:underline">Log in</Link>
+        Already have an account?{' '}
+        <Link
+          href={next ? `/login?next=${encodeURIComponent(next)}` : '/login'}
+          className="text-blue-700 font-medium hover:underline"
+        >
+          Log in
+        </Link>
       </p>
     </div>
   )

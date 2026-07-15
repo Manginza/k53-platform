@@ -1,26 +1,37 @@
 'use client'
 
 /**
- * BuyAccessButton — primary "Pay R99" action. Requires a logged-in account;
- * if not logged in, sends the visitor to register first. Stashes the Yoco
- * checkout id so the success page can confirm the payment and grant access.
+ * BuyAccessButton — primary "Pay R99" action.
+ *
+ * Enforces register-before-pay:
+ *   - If the user isn't logged in, we send them to /register?next=/pricing?pay=1
+ *     (or /login for the "already have an account" path). Once they come back
+ *     signed in with `?pay=1` still on the URL, this component auto-fires the
+ *     checkout so they don't have to click Pay a second time.
+ *   - When Yoco returns the redirect URL we stash the checkout id in
+ *     localStorage so /subscribe/success can confirm the payment and grant
+ *     access to that same account.
  */
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { createClient } from '@/lib/supabase-browser'
 import { ACCESS_PRICE, ACCESS_PRICE_ORIGINAL, ACCESS_DURATION_DAYS } from '@/lib/contact'
 
 export default function BuyAccessButton({ className = '' }: { className?: string }) {
   const router = useRouter()
+  const params = useSearchParams()
+  const supabase = useMemo(() => createClient(), [])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  async function pay() {
+  const pay = useCallback(async () => {
     setLoading(true); setError('')
     try {
       const res = await fetch('/api/yoco/create-checkout', { method: 'POST' })
       if (res.status === 401) {
-        // Not logged in — register/log in first, then come back to pay.
-        router.push('/register?next=/pricing')
+        // Not logged in → register first. Keep the ?pay=1 intent flag so the
+        // button auto-fires after register redirects them back.
+        router.push('/register?next=' + encodeURIComponent('/pricing?pay=1'))
         return
       }
       const body = await res.json()
@@ -33,7 +44,28 @@ export default function BuyAccessButton({ className = '' }: { className?: string
       setError(err instanceof Error ? err.message : 'Could not start payment. Please try WhatsApp.')
       setLoading(false)
     }
-  }
+  }, [router])
+
+  // Auto-continue after register: if we came back with ?pay=1 in the URL AND
+  // the user is now signed in, kick off the checkout without needing another
+  // click. Guarded against loops — we only auto-fire once per page load, and
+  // never fire if there's no session (letting the user click manually).
+  useEffect(() => {
+    if (params.get('pay') !== '1') return
+    let cancelled = false
+    ;(async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (cancelled || !session) return
+      // Strip the flag from the URL so a refresh / back-nav doesn't refire.
+      try {
+        const url = new URL(window.location.href)
+        url.searchParams.delete('pay')
+        window.history.replaceState({}, '', url.toString())
+      } catch {}
+      void pay()
+    })()
+    return () => { cancelled = true }
+  }, [params, supabase, pay])
 
   return (
     <div className={className}>

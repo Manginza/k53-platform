@@ -1,18 +1,30 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { Suspense, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-browser'
 import { isAdminEmail } from '@/lib/admin-emails'
 
-export default function LoginPage() {
+/**
+ * Whitelist for the `next` param — only allow same-site paths so a poisoned
+ * link can't route the user to an external site after login.
+ */
+function safeNext(raw: string | null): string | null {
+  if (!raw) return null
+  if (!raw.startsWith('/') || raw.startsWith('//')) return null
+  return raw
+}
+
+function LoginForm() {
   const router = useRouter()
+  const params = useSearchParams()
   const supabase = createClient()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const nextPath = safeNext(params.get('next'))
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -26,17 +38,20 @@ export default function LoginPage() {
       return
     }
 
-    // Route by role: admin → admin, affiliate → affiliate dashboard, else courses.
-    let dest = '/courses'
-    if (isAdminEmail(email)) {
-      dest = '/admin'
-    } else if (data.user) {
-      const { data: aff } = await supabase
-        .from('affiliates')
-        .select('id')
-        .eq('user_id', data.user.id)
-        .maybeSingle()
-      if (aff) dest = '/affiliate'
+    // Explicit ?next=… wins (so we can complete a pending checkout etc.).
+    // Otherwise route by role: admin → /admin, affiliate → /affiliate, else /courses.
+    let dest = nextPath ?? '/courses'
+    if (!nextPath) {
+      if (isAdminEmail(email)) {
+        dest = '/admin'
+      } else if (data.user) {
+        const { data: aff } = await supabase
+          .from('affiliates')
+          .select('id')
+          .eq('user_id', data.user.id)
+          .maybeSingle()
+        if (aff) dest = '/affiliate'
+      }
     }
     router.push(dest)
     router.refresh()
@@ -84,5 +99,13 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
   )
 }
