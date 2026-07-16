@@ -1,16 +1,16 @@
 'use client'
 
-import { useState, useEffect, useMemo, useRef } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
 import { ACCESS_PRICE } from '@/lib/contact'
 import { isAdminEmail } from '@/lib/admin-emails'
-import { useLang } from '@/lib/language-context'
 import type { User } from '@supabase/supabase-js'
 
 const LINKS = [
   { href: '/',                 label: 'Home' },
+  { href: '/k53-learners-study-guide', label: 'Study Guide' },
   { href: '/courses',          label: 'Practice Tests' },
   { href: '/centers',          label: 'Find a Centre' },
   { href: '/live-notes',       label: 'Live Notes' },
@@ -25,11 +25,7 @@ export default function Navbar() {
 
   const [user, setUser] = useState<User | null>(null)
   const [open, setOpen] = useState(false)
-  const [langOpen, setLangOpen] = useState(false)
-  const langRef = useRef<HTMLDivElement>(null)
-  const { lang, setLang, langs } = useLang()
-
-  useEffect(() => { setOpen(false); setLangOpen(false) }, [pathname])
+  useEffect(() => { setOpen(false) }, [pathname])
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUser(data.user))
@@ -38,14 +34,6 @@ export default function Navbar() {
     })
     return () => subscription.unsubscribe()
   }, [supabase])
-
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (langRef.current && !langRef.current.contains(e.target as Node)) setLangOpen(false)
-    }
-    document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
-  }, [])
 
   const isAdmin = isAdminEmail(user?.email)
 
@@ -86,45 +74,6 @@ export default function Navbar() {
             </Link>
           ))}
 
-          {/* Language dropdown */}
-          <div ref={langRef} className="relative">
-            <button
-              onClick={() => setLangOpen(o => !o)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-blue-100 hover:text-white hover:bg-blue-600 transition-colors"
-            >
-              <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
-              </svg>
-              Language
-              <svg
-                className={`w-3 h-3 transition-transform ${langOpen ? 'rotate-180' : ''}`}
-                fill="none" stroke="currentColor" viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-
-            {langOpen && (
-              <div className="absolute top-full right-0 mt-1 bg-white rounded-xl shadow-lg border border-gray-100 py-1 min-w-[160px] z-50">
-                {langs.map(l => (
-                  <button
-                    key={l.code}
-                    onClick={() => { setLang(l.code); setLangOpen(false) }}
-                    className={`w-full text-left flex items-center justify-between px-4 py-2.5 text-sm transition-colors hover:bg-blue-50 ${
-                      lang === l.code ? 'text-blue-700 font-semibold' : 'text-gray-700'
-                    }`}
-                  >
-                    {l.label}
-                    {lang === l.code && (
-                      <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                      </svg>
-                    )}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
         </div>
 
         {/* Desktop right side */}
@@ -180,30 +129,6 @@ export default function Navbar() {
               </Link>
             ))}
 
-            {/* Language section on mobile */}
-            <div className="pt-1">
-              <p className="px-3 py-1 text-xs font-bold text-blue-400 uppercase tracking-widest">Language</p>
-              <div className="grid grid-cols-2 gap-1 px-1">
-                {langs.map(l => (
-                  <button
-                    key={l.code}
-                    onClick={() => setLang(l.code)}
-                    className={`flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
-                      lang === l.code
-                        ? 'bg-blue-700 text-white'
-                        : 'text-blue-100 hover:bg-blue-700 hover:text-white'
-                    }`}
-                  >
-                    {l.label}
-                    {lang === l.code && (
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                      </svg>
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
           </div>
 
           <div className="border-t border-blue-700 pt-3">

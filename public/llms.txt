@@ -1,0 +1,27 @@
+# SK Driving
+
+> SK Driving is a South African K53 learner's licence study platform with a free public guide, exam-style practice tests, road-sign and road-rule notes, study videos, testing-centre search and paid full access.
+
+## Start here
+
+- [Free K53 Learners Study Guide](https://www.skdriving.co.za/k53-learners-study-guide): Test sections, pass marks, learner categories, booking checklist, official references and an original PDF summary.
+- [K53 Practice Tests](https://www.skdriving.co.za/courses): Exam-style practice for South African learner's licence candidates.
+- [K53 Live Notes](https://www.skdriving.co.za/live-notes): Road traffic signs and rules study material.
+- [Rules of the Road](https://www.skdriving.co.za/live-notes/rules): Chapter-based road-rule lessons and quizzes.
+- [Study Videos](https://www.skdriving.co.za/videos): K53 teaching videos and recorded study sessions.
+- [Find a Testing Centre](https://www.skdriving.co.za/centers): Search for nearby Driving Licence Testing Centres.
+- [Pricing](https://www.skdriving.co.za/pricing): Full-access package details and current visible price.
+
+## Key facts
+
+- The learner's licence test has three separately scored sections: Rules of the Road, Road Traffic Signs and Vehicle Controls.
+- Minimum scores are 22/28 for Rules of the Road, 23/28 for Road Traffic Signs and 6/8 for Vehicle Controls.
+- Candidates must pass all three sections.
+- Official learner's licence categories are Code 1, Code 2 and Code 3.
+
+## Policies and contact
+
+- [About SK Driving](https://www.skdriving.co.za/about)
+- [Contact](https://www.skdriving.co.za/contact)
+- [Privacy Policy](https://www.skdriving.co.za/privacy-policy)
+- [Terms and Conditions](https://www.skdriving.co.za/terms-and-conditions)

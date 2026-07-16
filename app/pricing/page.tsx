@@ -8,6 +8,7 @@ import {
 export const metadata = {
   title: 'Get Full Access — K53 Learner\'s',
   description: 'Unlock unlimited K53 practice tests, Live Notes, resources and videos.',
+  alternates: { canonical: 'https://www.skdriving.co.za/pricing' },
 }
 
 const FEATURES = [
@@ -18,9 +19,26 @@ const FEATURES = [
   'Full answer explanations',
 ]
 
+const productSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Product',
+  name: 'SK Driving K53 Full Access',
+  description: `Unlimited K53 practice tests, study notes, resources and videos for ${ACCESS_DURATION_DAYS} days.`,
+  brand: { '@type': 'Brand', name: 'SK Driving' },
+  url: 'https://www.skdriving.co.za/pricing',
+  offers: {
+    '@type': 'Offer',
+    url: 'https://www.skdriving.co.za/pricing',
+    priceCurrency: 'ZAR',
+    price: '99.00',
+    availability: 'https://schema.org/InStock',
+  },
+}
+
 export default function PricingPage() {
   return (
     <main className="bg-gray-50 min-h-screen">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }} />
       <div className="bg-blue-700 text-white py-14 px-4 text-center">
         <span className="text-xs font-bold tracking-widest uppercase text-blue-200 block mb-3">SK Driving</span>
         <h1 className="text-3xl sm:text-4xl font-extrabold mb-3 leading-tight">Prepare to Pass Your K53 the First Time</h1>

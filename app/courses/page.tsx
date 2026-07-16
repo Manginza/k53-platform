@@ -49,8 +49,26 @@ export default async function CoursesPage() {
     )
   }
 
+  const courseSchema = courses && courses.length > 0 ? {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: "SK Driving K53 learner's licence courses",
+    itemListElement: (courses as Course[]).map((course, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      item: {
+        '@type': 'Course',
+        name: course.title,
+        description: course.description,
+        url: `https://www.skdriving.co.za/courses/${course.id}`,
+        provider: { '@type': 'Organization', name: 'SK Driving', url: 'https://www.skdriving.co.za' },
+      },
+    })),
+  } : null
+
   return (
     <main className="max-w-4xl mx-auto px-6 py-12">
+      {courseSchema && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(courseSchema) }} />}
       <h1 className="text-3xl font-bold mb-2 text-gray-900">Online K53 Learners Course</h1>
       <p className="text-gray-500 mb-4">Choose your licence code below and start practising — you need 75% to pass the official test</p>
 

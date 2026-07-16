@@ -5,6 +5,7 @@ import ResourcesClient from '@/components/ResourcesClient'
 export const metadata: Metadata = {
   title: 'K53 Resources — Download Study PDFs',
   description: "Download K53 learner's licence study PDFs including test memos, practice quizzes, and the official road signs manual.",
+  alternates: { canonical: 'https://www.skdriving.co.za/resources' },
 }
 
 export default function ResourcesPage() {

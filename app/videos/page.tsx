@@ -9,6 +9,7 @@ export const dynamic = 'force-dynamic'
 export const metadata: Metadata = {
   title: 'K53 Videos — Study Resources',
   description: "Watch K53 learner's licence study videos covering road signs, rules of the road, and vehicle controls.",
+  alternates: { canonical: 'https://www.skdriving.co.za/videos' },
 }
 
 const youtubeVideos = [

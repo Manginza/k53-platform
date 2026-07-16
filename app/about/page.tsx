@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'About Us',
@@ -33,8 +34,11 @@ export default function AboutPage() {
         </ul>
 
         <p className="mb-4 text-sm text-gray-500">
-          Tip: use the <strong>Language</strong> menu in the top navigation to read this site
-          in Afrikaans, isiZulu, isiXhosa, Sesotho, Sepedi, Setswana or Xitsonga.
+          Start with our{' '}
+          <Link href="/k53-learners-study-guide" className="text-blue-700 font-semibold hover:underline">
+            free K53 learner&apos;s licence study guide
+          </Link>{' '}
+          for the test structure, pass marks, licence categories and booking checklist.
         </p>
       </div>
     </main>

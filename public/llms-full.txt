@@ -1,0 +1,57 @@
+# SK Driving K53 Learner's Licence Knowledge Base
+
+## About SK Driving
+
+SK Driving is a South African K53 learner's licence study platform. It provides a free public K53 guide, exam-style practice tests, road-sign and road-rule notes, study videos, a testing-centre finder and optional paid full access.
+
+Canonical website: https://www.skdriving.co.za/
+
+## Free K53 learner's study guide
+
+Canonical page: https://www.skdriving.co.za/k53-learners-study-guide
+
+South Africa's approved learner's licence test covers three subjects: Rules of the Road, Road Traffic Signs and Vehicle Controls. The test has 64 questions in total.
+
+| Test section | Questions | Minimum correct |
+| --- | ---: | ---: |
+| Rules of the Road | 28 | 22 |
+| Road Traffic Signs | 28 | 23 |
+| Vehicle Controls | 8 | 6 |
+
+Candidates must pass all three sections. Failing one section means failing the test.
+
+### Learner's licence categories
+
+- Code 1 covers motorcycles. The minimum age is 16 for a motorcycle of 125 cc or less and 18 for a motorcycle over 125 cc.
+- Code 2 covers a motor vehicle, minibus, bus or goods vehicle with a Gross Vehicle Mass not exceeding 3,500 kg. The minimum age is 17.
+- Code 3 covers a motor vehicle with a Gross Vehicle Mass exceeding 3,500 kg. The minimum age is 18.
+
+Code 8, Code 10 and Code 14 are familiar market terms for driving licence classes and are often used in learner searches. The official learner's licence categories shown during application are Code 1, Code 2 and Code 3.
+
+A South African learner's licence is valid for 24 months and cannot be extended.
+
+### Booking checklist
+
+1. Choose Code 1, Code 2 or Code 3 and check the minimum age.
+2. Book with a Driving Licence Testing Centre. Gauteng residents should use the official eNaTIS online portal; availability elsewhere varies.
+3. Prepare an ID, the required ID photographs, proof of postal and residential address, the booking fee and a completed LL1 form.
+4. Complete an eye test at the DLTC or submit the required form from a qualified optometrist.
+5. Bring the booking receipt and ID on the test date.
+6. Pay the issue fee after passing. Fees and photo requirements vary by DLTC or municipality.
+
+Official application information: https://www.gov.za/services/driving-licence/apply-learners-licence
+
+Original PDF summary: https://www.skdriving.co.za/downloads/sk-driving-free-k53-learners-study-guide.pdf
+
+## Study paths
+
+- Practice tests: https://www.skdriving.co.za/courses
+- Live notes: https://www.skdriving.co.za/live-notes
+- Rules of the Road: https://www.skdriving.co.za/live-notes/rules
+- Study videos: https://www.skdriving.co.za/videos
+- Testing centres: https://www.skdriving.co.za/centers
+- Full-access package: https://www.skdriving.co.za/pricing
+
+## Editorial note
+
+The K53 hub and PDF are original SK Driving educational summaries, not copies of a commercial K53 book. Core regulatory information was reviewed on 16 July 2026. Candidates should confirm current local fees and document requirements with their DLTC.

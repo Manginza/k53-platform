@@ -73,27 +73,22 @@ const faqSchema = {
     {
       '@type': 'Question',
       name: 'What is the difference between a Code 8 and Code 10 learner\'s licence?',
-      acceptedAnswer: { '@type': 'Answer', text: 'A Code 8 (B) licence covers light motor vehicles up to 3,500 kg GVM — cars, minibuses, and light bakkies. A Code 10 (C1) licence covers medium heavy vehicles between 3,500 kg and 16,000 kg GVM, such as trucks and large buses. Code 10 holders can also legally drive Code 8 vehicles.' },
+      acceptedAnswer: { '@type': 'Answer', text: 'Code 8 commonly refers to a Code B driving licence for light vehicles up to 3,500 kg GVM. Code 10 commonly refers to Code C1 for vehicles over 3,500 kg and up to 16,000 kg GVM. When booking a learner\'s test, the official learner categories are Code 1, Code 2 and Code 3, so confirm the correct category with your DLTC.' },
     },
     {
       '@type': 'Question',
       name: "How do I book a learner's licence test in South Africa?",
-      acceptedAnswer: { '@type': 'Answer', text: 'Book online via the eNaTIS portal at https://online.natis.gov.za. In Gauteng and the Eastern Cape, online booking is available. In other provinces, visit your nearest DLTC (Driving Licence Testing Centre) to book in person. You must confirm your booking at the DLTC within 3 business days and pay the booking fee.' },
+      acceptedAnswer: { '@type': 'Answer', text: 'Gauteng residents should apply through the official eNaTIS online portal. In other areas, contact or visit your nearest Driving Licence Testing Centre because online availability and booking procedures vary. Fees also vary by testing centre or municipality.' },
     },
     {
       '@type': 'Question',
       name: "What documents do I need for the learner's licence test?",
-      acceptedAnswer: { '@type': 'Answer', text: 'You need: your original green barcoded ID book or Smart ID card (plus 2 certified copies), 2–4 recent ID-sized photographs, proof of residential address not older than 3 months, and a completed Form LL1. If you booked online, also bring your printed eNaTIS booking confirmation.' },
+      acceptedAnswer: { '@type': 'Answer', text: 'Take your identity document, the number of ID photographs required by your DLTC, proof of postal and residential address, the booking fee and a completed LL1 application form. Applicants aged 65 or older must also complete a Medical Certificate form.' },
     },
     {
       '@type': 'Question',
       name: "Can I practise for the K53 learner's licence test online?",
       acceptedAnswer: { '@type': 'Answer', text: 'Yes. SK Driving offers free K53 practice tests online covering all three sections — road signs, rules of the road, and vehicle controls. Practising regularly with timed tests is the best way to prepare and pass first time.' },
-    },
-    {
-      '@type': 'Question',
-      name: "How many times can I fail the learner's licence test?",
-      acceptedAnswer: { '@type': 'Answer', text: "There is no legal limit on how many times you can attempt the learner's licence test in South Africa. However, you must book and pay the test fee each time you attempt it. Most candidates who practise with K53 test questions beforehand pass within one or two attempts." },
     },
   ],
 }
@@ -213,6 +208,25 @@ export default async function Home() {
         </div>
       </section>
 
+      {/* Public study-guide hub */}
+      <section className="border-b border-blue-100 bg-blue-50 px-4 py-10 sm:px-6">
+        <div className="mx-auto flex max-w-4xl flex-col items-start gap-5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-widest text-blue-600">Free K53 study guide</p>
+            <h2 className="mt-2 text-xl font-extrabold text-gray-900 sm:text-2xl">Know the test before you practise</h2>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-600">
+              Check the 64-question test structure, exact section pass marks, licence categories and booking checklist.
+            </p>
+          </div>
+          <Link
+            href="/k53-learners-study-guide"
+            className="shrink-0 rounded-full bg-blue-700 px-6 py-3 text-sm font-bold text-white hover:bg-blue-800"
+          >
+            Read the free K53 learners study guide →
+          </Link>
+        </div>
+      </section>
+
       {/* Study Materials — Book Slideshow */}
       <section className="py-12 sm:py-16 px-4 sm:px-6 bg-gray-50 border-t border-gray-100">
         <div className="max-w-3xl mx-auto">
@@ -298,23 +312,19 @@ export default async function Home() {
             },
             {
               q: "What is the difference between a Code 8 and Code 10 learner's licence?",
-              a: "Code 8 (B) covers light vehicles up to 3,500 kg — cars, minibuses, and light bakkies. Code 10 (C1) covers medium heavy vehicles from 3,500 kg to 16,000 kg such as trucks and large buses. A Code 10 holder can also legally drive Code 8 vehicles.",
+              a: "Code 8 commonly refers to a Code B driving licence for light vehicles up to 3,500 kg GVM. Code 10 commonly refers to Code C1 for vehicles over 3,500 kg and up to 16,000 kg GVM. When booking a learner's test, the official learner categories are Code 1, Code 2 and Code 3, so confirm the correct category with your DLTC.",
             },
             {
               q: "How do I book a learner's licence test in South Africa?",
-              a: "Book via the eNaTIS portal (online.natis.gov.za). Online booking is available in Gauteng and the Eastern Cape. In other provinces, visit your nearest DLTC to book in person. Confirm and pay within 3 business days of booking.",
+              a: "Gauteng residents should apply through the official eNaTIS online portal. In other areas, contact or visit your nearest Driving Licence Testing Centre because online availability and booking procedures vary. Fees also vary by testing centre or municipality.",
             },
             {
               q: "What documents do I need for the learner's licence test?",
-              a: "You need your original ID book or Smart ID card (plus 2 certified copies), 2–4 recent ID-sized photos, proof of address not older than 3 months, and a completed Form LL1. If booked online, bring your printed eNaTIS confirmation slip.",
+              a: "Take your identity document, the number of ID photographs required by your DLTC, proof of postal and residential address, the booking fee and a completed LL1 application form. Applicants aged 65 or older must also complete a Medical Certificate form.",
             },
             {
               q: "Can I practise for the K53 learner's licence test online?",
               a: "Yes — SK Driving offers free K53 practice tests online covering all three sections. Practising with timed tests regularly is the best way to prepare and pass first time.",
-            },
-            {
-              q: "How many times can I fail the learner's licence test?",
-              a: "There is no legal limit on attempts. You must rebook and pay the fee each time. Most candidates who practise with K53 test questions beforehand pass within one or two attempts.",
             },
           ].map(({ q, a }) => (
             <details key={q} className="bg-white border border-gray-200 rounded-2xl px-5 py-4 group">

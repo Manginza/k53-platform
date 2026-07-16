@@ -8,6 +8,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const staticPaths = [
     '',                 // home
+    '/k53-learners-study-guide',
     '/centers',         // find nearest writing centre — SEO priority page
     '/driving-schools', // driving school locator
     '/pricing',
@@ -16,16 +17,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/live-notes/rules',
     '/videos',
     '/resources',
+    '/about',
+    '/contact',
     '/affiliate',
-    '/register',
-    '/login',
   ]
 
   const staticEntries: MetadataRoute.Sitemap = staticPaths.map(p => ({
     url: `${BASE}${p}`,
     lastModified: now,
     changeFrequency: 'weekly',
-    priority: p === '' ? 1 : 0.7,
+    priority: p === '' ? 1 : p === '/k53-learners-study-guide' ? 0.9 : 0.7,
   }))
 
   const provinceEntries: MetadataRoute.Sitemap = [
