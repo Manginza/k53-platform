@@ -107,12 +107,15 @@ export default async function Home() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       {/* Hero */}
       <section className="bg-blue-700 text-white py-14 sm:py-20 px-4 sm:px-6 text-center">
+        <span className="inline-flex items-center gap-2 bg-yellow-300 text-blue-900 text-xs sm:text-sm font-extrabold uppercase tracking-widest px-4 py-1.5 rounded-full mb-5 shadow-sm">
+          <span aria-hidden="true">⭐</span> 90% Learner Pass Rate
+        </span>
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-4 tracking-tight leading-tight">
-          Pass Your K53 First Time
+          Prepare to Pass Your K53 the First Time
         </h1>
         <p className="text-base sm:text-lg lg:text-xl text-blue-100 mb-8 sm:mb-10 max-w-2xl mx-auto leading-relaxed">
-          Interactive practice tests for your South African learner&apos;s licence.
-          Road signs, vehicle controls, and rules of the road — all in one place.
+          Get ready for your South African learner&apos;s licence with exam-style practice tests
+          covering road signs, vehicle controls and rules of the road.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link
@@ -122,12 +125,19 @@ export default async function Home() {
             Start Practising →
           </Link>
           <Link
-            href="/live-notes"
+            href="/pricing"
             className="bg-blue-600 border-2 border-blue-400 text-white font-bold px-8 py-4 rounded-full text-base hover:bg-blue-500 transition-colors inline-block"
           >
-            📖 Study the Manual
+            Get Full Access — {ACCESS_PRICE}
           </Link>
         </div>
+        {/* Trust strip */}
+        <ul className="mt-8 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs sm:text-sm text-blue-100">
+          <li className="flex items-center gap-1.5"><span className="text-green-300">✓</span> 90% pass rate</li>
+          <li className="flex items-center gap-1.5"><span className="text-green-300">✓</span> 350+ practice questions</li>
+          <li className="flex items-center gap-1.5"><span className="text-green-300">✓</span> Code 8, 10 &amp; 14</li>
+          <li className="flex items-center gap-1.5"><span className="text-green-300">✓</span> Two months&apos; access</li>
+        </ul>
       </section>
 
       {/* Feature cards */}
@@ -137,22 +147,49 @@ export default async function Home() {
             <div className="text-4xl sm:text-5xl mb-3 sm:mb-4">🚦</div>
             <h3 className="font-bold text-base sm:text-lg mb-2">Road Signs</h3>
             <p className="text-gray-500 text-sm leading-relaxed">
-              All K53 road signs with real images. Learn regulatory, warning, and informatory signs.
+              Learn South African road signs through clear images and exam-style questions.
             </p>
           </div>
           <div className="bg-white rounded-2xl p-6 sm:p-8 text-center border border-gray-100 shadow-sm">
             <div className="text-4xl sm:text-5xl mb-3 sm:mb-4">🚗</div>
             <h3 className="font-bold text-base sm:text-lg mb-2">Vehicle Controls</h3>
             <p className="text-gray-500 text-sm leading-relaxed">
-              Identify every control in your vehicle with diagram-based questions.
+              Identify vehicle controls and understand their correct functions.
             </p>
           </div>
           <div className="bg-white rounded-2xl p-6 sm:p-8 text-center border border-gray-100 shadow-sm">
             <div className="text-4xl sm:text-5xl mb-3 sm:mb-4">📋</div>
             <h3 className="font-bold text-base sm:text-lg mb-2">Rules of the Road</h3>
             <p className="text-gray-500 text-sm leading-relaxed">
-              Master South African traffic laws, speed limits, right of way, and more.
+              Master speed limits, stopping rules, right of way and South African traffic laws.
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Social proof / testimonials — real quotes go into TESTIMONIALS below */}
+      <section className="py-12 sm:py-16 px-4 sm:px-6 bg-white border-t border-gray-100">
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-3">
+            Join Learners Who Are Passing
+          </h2>
+          <p className="text-gray-600 text-base leading-relaxed max-w-xl mx-auto">
+            Our learners achieve a <strong className="text-blue-700">90% pass rate</strong> after
+            preparing with SK Driving&apos;s lessons and practice tests.
+          </p>
+          <p className="text-xs text-gray-400 mt-3 max-w-md mx-auto italic">
+            Pass rate based on results reported by learners who completed the course and shared their test outcomes.
+          </p>
+
+          <div className="mt-8">
+            <a
+              href={WHATSAPP_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-green-600 text-white font-semibold px-6 py-3 rounded-full text-sm hover:bg-green-700 transition-colors"
+            >
+              💬 Share your success story on WhatsApp
+            </a>
           </div>
         </div>
       </section>
@@ -227,15 +264,20 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* CTA strip */}
-      <section className="bg-blue-50 border-t border-blue-100 py-10 sm:py-12 px-4 sm:px-6 text-center">
-        <h2 className="text-xl sm:text-2xl font-bold text-blue-900 mb-3">Ready to test your knowledge?</h2>
-        <p className="text-blue-700 mb-5 sm:mb-6 text-sm sm:text-base">You need 75% to pass. Let&apos;s see how you do.</p>
+      {/* Pricing CTA */}
+      <section className="bg-blue-50 border-t border-blue-100 py-12 sm:py-14 px-4 sm:px-6 text-center">
+        <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-3">
+          Everything You Need to Prepare for Only {ACCESS_PRICE}
+        </h2>
+        <p className="text-gray-600 mb-6 text-sm sm:text-base max-w-xl mx-auto leading-relaxed">
+          Get two months of access to lessons, practice tests, road signs, vehicle controls
+          and rules of the road.
+        </p>
         <Link
-          href="/courses"
-          className="bg-blue-700 text-white font-semibold px-8 py-3 rounded-full hover:bg-blue-800 transition-colors inline-block"
+          href="/pricing"
+          className="inline-block bg-blue-700 text-white font-bold px-8 py-4 rounded-full text-base hover:bg-blue-800 transition-colors shadow-sm"
         >
-          View Practice Tests
+          Get Full Access for {ACCESS_PRICE} →
         </Link>
       </section>
 

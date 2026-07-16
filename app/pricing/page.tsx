@@ -23,7 +23,7 @@ export default function PricingPage() {
     <main className="bg-gray-50 min-h-screen">
       <div className="bg-blue-700 text-white py-14 px-4 text-center">
         <span className="text-xs font-bold tracking-widest uppercase text-blue-200 block mb-3">SK Driving</span>
-        <h1 className="text-3xl sm:text-4xl font-extrabold mb-3 leading-tight">Pass Your K53 First Time</h1>
+        <h1 className="text-3xl sm:text-4xl font-extrabold mb-3 leading-tight">Prepare to Pass Your K53 the First Time</h1>
         <p className="text-blue-100 text-base sm:text-lg max-w-xl mx-auto">
           Try any test free for 3 minutes. Unlock everything for{' '}
           <span className="line-through opacity-60 mr-1">{ACCESS_PRICE_ORIGINAL}</span>
