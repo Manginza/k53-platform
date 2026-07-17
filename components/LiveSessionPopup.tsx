@@ -28,7 +28,10 @@ export default function LiveSessionPopup() {
 
     getAccessStatus()
       .then(d => {
-        if (cancelled || !d?.fullAccess) return
+        // Marketing nudge: shown to full-access members AND any logged-in
+        // visitor (preserves the previous "any signed-in account" behaviour
+        // now that /api/me/access reports fullAccess strictly).
+        if (cancelled || !(d?.fullAccess || d?.isLoggedIn)) return
 
         const now = new Date()
         const startAt = new Date(); startAt.setHours(START_HOUR, 0, 0, 0)

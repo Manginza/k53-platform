@@ -23,10 +23,12 @@ export default function K53UnpackedPopup() {
     // Don't announce the feature while the user is already inside it.
     if (window.location.pathname.startsWith('/live-notes/k53')) return
 
-    // Full-access (paid) members only.
+    // Marketing announcement: shown to full-access members AND any logged-in
+    // visitor. /api/me/access now reports fullAccess strictly (post-fix), so
+    // we OR in isLoggedIn to preserve the previous behaviour.
     let cancelled = false
     getAccessStatus()
-      .then(d => { if (!cancelled && d?.fullAccess) setOpen(true) })
+      .then(d => { if (!cancelled && (d?.fullAccess || d?.isLoggedIn)) setOpen(true) })
     return () => { cancelled = true }
   }, [])
 

@@ -13,7 +13,10 @@
  */
 
 export interface AccessStatus {
+  /** STRICT — true only for admin, active grant, or free promo. Gate content on this. */
   fullAccess:   boolean
+  /** LOOSE — true for any signed-in visitor. Use for marketing surfaces (popups), not content unlock. */
+  isLoggedIn:   boolean
   recordingUrl: string | null
 }
 
@@ -54,7 +57,7 @@ export async function getAccessStatus(): Promise<AccessStatus> {
   inFlight = fetch('/api/me/access', { cache: 'no-store' })
     .then(r => r.json() as Promise<AccessStatus>)
     .then(d => { toStorage(d); return d })
-    .catch(() => ({ fullAccess: false, recordingUrl: null }))
+    .catch(() => ({ fullAccess: false, isLoggedIn: false, recordingUrl: null }))
     .finally(() => { inFlight = null })
 
   return inFlight

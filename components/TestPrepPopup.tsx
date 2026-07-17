@@ -26,10 +26,13 @@ export default function TestPrepPopup() {
     let openTimer:  ReturnType<typeof setTimeout> | undefined
     let closeTimer: ReturnType<typeof setTimeout> | undefined
 
-    // Skip for paid members — they already get LiveSessionPopup in this window.
+    // Skip for anyone who's already signed in — full-access members AND
+    // registered-but-unpaid users both get LiveSessionPopup in this window,
+    // so firing this alongside would double-popup. TestPrepPopup is a
+    // top-of-funnel invite aimed at anonymous visitors.
     getAccessStatus()
       .then(d => {
-        if (cancelled || d?.fullAccess) return
+        if (cancelled || d?.fullAccess || d?.isLoggedIn) return
 
         const now = new Date()
         const startAt = new Date(); startAt.setHours(START_HOUR, 0, 0, 0)
