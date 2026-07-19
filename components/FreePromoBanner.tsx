@@ -37,7 +37,7 @@ export default function FreePromoBanner() {
     <div className="bg-green-600 text-white">
       <div className="max-w-5xl mx-auto px-4 py-2 flex items-center justify-center gap-x-3 gap-y-1 flex-wrap text-center">
         <span className="text-sm font-bold">
-          🎉 The full course is FREE until 10pm tonight!
+          🎉 The full course is FREE until 9pm tonight!
         </span>
         <span className="text-xs font-semibold bg-white/20 rounded-full px-2.5 py-0.5 tabular-nums">
           ⏱ {h}h {m.toString().padStart(2, '0')}m {s.toString().padStart(2, '0')}s left
