@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 import { getAdminUser } from '@/lib/admin'
 import { createAdminClient } from '@/lib/supabase-admin'
 import { getLatestRecordingUrl } from '@/lib/settings'
@@ -10,7 +11,10 @@ export const dynamic = 'force-dynamic'
 
 export default async function AdminPage() {
   const admin = await getAdminUser()
-  if (!admin) redirect('/login')
+  if (!admin) {
+    const host = headers().get('host')?.split(':')[0].toLowerCase()
+    redirect(host === 'skonline.co.za' || host === 'www.skonline.co.za' ? '/admin-login' : '/login')
+  }
 
   const db = createAdminClient()
   const [
