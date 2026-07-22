@@ -24,14 +24,25 @@ export const LIVE_SESSION_RECORDING_URL = 'https://drive.google.com/file/d/1_6qU
 export const LIVE_SESSION_RECORDING_FILE_ID = '1_6qU0g5DBmWkGd2hSJRzd_7uKWpaY8UH'
 
 /**
- * Free-access promotion. While the current time is before FREE_PROMO_UNTIL,
- * the entire course (practice tests, Live Notes, Road Rules) is unlocked for
- * EVERYONE — no payment required. After this timestamp it auto-reverts to the
- * normal paid model. Set to an empty string to disable the promo entirely.
+ * Free-access promotion window. During [FREE_PROMO_FROM, FREE_PROMO_UNTIL)
+ * the entire course (practice tests, Live Notes, Road Rules, Resources,
+ * Videos) is unlocked for EVERYONE — no payment required. Outside the
+ * window it auto-reverts to the normal paid model.
+ *
+ * - FREE_PROMO_FROM  = '' → promo is open the moment the deploy lands
+ * - FREE_PROMO_UNTIL = '' → promo is disabled entirely
+ * - Both set        → the promo activates automatically at FROM and
+ *                     shuts down at UNTIL, no code change needed.
  */
-export const FREE_PROMO_UNTIL = '2026-07-19T21:00:00+02:00' // free until 9pm SAST tonight
+export const FREE_PROMO_FROM  = '2026-07-22T19:00:00+02:00' // opens at 7pm SAST tonight
+export const FREE_PROMO_UNTIL = '2026-07-22T22:00:00+02:00' // closes at 10pm SAST tonight
+
 export function isFreePromoActive(): boolean {
-  return !!FREE_PROMO_UNTIL && Date.now() < Date.parse(FREE_PROMO_UNTIL)
+  if (!FREE_PROMO_UNTIL) return false
+  const now = Date.now()
+  const from = FREE_PROMO_FROM ? Date.parse(FREE_PROMO_FROM) : 0
+  const until = Date.parse(FREE_PROMO_UNTIL)
+  return now >= from && now < until
 }
 
 /** Headline price for full access (discounted from ACCESS_PRICE_ORIGINAL). */
