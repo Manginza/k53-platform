@@ -51,13 +51,28 @@ export async function getAffiliateStats(affiliate: Affiliate): Promise<Affiliate
   ])
 
   const rows = commissions.data ?? []
-  const pendingCents = rows.filter(c => c.status !== 'paid').reduce((s, c) => s + (c.commission_cents ?? 0), 0)
+  // Derive earned / paid / pending straight from the commissions table.
+  // The `affiliates.total_earned_cents` and `total_paid_cents` counters
+  // used to be authoritative here but they drifted due to read-modify-
+  // write races (concurrent webhook grants + concurrent payouts), so
+  // affiliates would sometimes see under-counted "total earned" figures.
+  // Summing here is O(n) per dashboard load — n is small (one row per
+  // conversion) so this is fine.
+  let earnedCents = 0
+  let paidCents = 0
+  let pendingCents = 0
+  for (const c of rows) {
+    const cents = c.commission_cents ?? 0
+    earnedCents += cents
+    if (c.status === 'paid') paidCents += cents
+    else pendingCents += cents
+  }
 
   return {
     clicks:      clicks ?? 0,
     conversions: rows.length,
-    earnedCents: affiliate.total_earned_cents,
-    paidCents:   affiliate.total_paid_cents,
+    earnedCents,
+    paidCents,
     pendingCents,
   }
 }

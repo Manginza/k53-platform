@@ -53,9 +53,23 @@ export default async function AdminPage() {
     status: c.status, created_at: c.created_at,
   }))
 
-  const pendingByAff = new Map<string, number>()
+  // Derive earned / paid / pending totals from the commissions table
+  // instead of the drift-prone denormalised counters. Same rationale as
+  // /admin/payouts/page.tsx — see there for the full story.
+  const pendingByAff = new Map<string, { cents: number; ids: string[] }>()
+  const earnedByAff  = new Map<string, number>()
+  const paidByAff    = new Map<string, number>()
   for (const c of allCommissions ?? []) {
-    if (c.status !== 'paid') pendingByAff.set(c.affiliate_id, (pendingByAff.get(c.affiliate_id) ?? 0) + (c.commission_cents ?? 0))
+    const cents = c.commission_cents ?? 0
+    earnedByAff.set(c.affiliate_id, (earnedByAff.get(c.affiliate_id) ?? 0) + cents)
+    if (c.status === 'paid') {
+      paidByAff.set(c.affiliate_id, (paidByAff.get(c.affiliate_id) ?? 0) + cents)
+    } else {
+      const cur = pendingByAff.get(c.affiliate_id) ?? { cents: 0, ids: [] }
+      cur.cents += cents
+      cur.ids.push(c.id)
+      pendingByAff.set(c.affiliate_id, cur)
+    }
   }
 
   const payoutRows: PayoutRow[] = (affiliates ?? []).map(a => ({
@@ -67,9 +81,10 @@ export default async function AdminPage() {
     bankName: a.bank_name ?? '',
     accountNumber: a.account_number ?? '',
     accountType: a.account_type ?? '',
-    pendingCents: pendingByAff.get(a.id) ?? 0,
-    earnedCents: a.total_earned_cents ?? 0,
-    paidCents: a.total_paid_cents ?? 0,
+    pendingCents: pendingByAff.get(a.id)?.cents ?? 0,
+    pendingCommissionIds: pendingByAff.get(a.id)?.ids ?? [],
+    earnedCents: earnedByAff.get(a.id) ?? 0,
+    paidCents: paidByAff.get(a.id) ?? 0,
   }))
   payoutRows.sort((a, b) => b.pendingCents - a.pendingCents || b.earnedCents - a.earnedCents)
 

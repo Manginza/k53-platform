@@ -94,7 +94,7 @@ async function recordCommission(
   if (!affiliateId || rate <= 0) return
 
   const commissionCents = Math.round(ACCESS_PRICE_CENTS * rate)
-  const { data: inserted, error } = await admin
+  const { error } = await admin
     .from('affiliate_commissions')
     .insert({
       affiliate_id: affiliateId,
@@ -104,10 +104,13 @@ async function recordCommission(
       commission_cents: commissionCents,
       status: 'pending',
     })
-    .select('id')
-    .maybeSingle()
-  if (error || !inserted) return   // 23505 = already credited
-
-  const { data: aff } = await admin.from('affiliates').select('total_earned_cents').eq('id', affiliateId).maybeSingle()
-  if (aff) await admin.from('affiliates').update({ total_earned_cents: (aff.total_earned_cents ?? 0) + commissionCents }).eq('id', affiliateId)
+  // 23505 = the webhook (or a retry of this route) already credited it.
+  // We intentionally no longer bump affiliates.total_earned_cents here.
+  // That read-modify-write was racy with concurrent payments and left
+  // the counter under-counting real earnings. Display code (both
+  // /affiliate and /admin/payouts) now derives earned totals directly
+  // from affiliate_commissions, which is the source of truth.
+  if (error && error.code !== '23505') {
+    console.error('[yoco/confirm] commission insert error:', error.message)
+  }
 }

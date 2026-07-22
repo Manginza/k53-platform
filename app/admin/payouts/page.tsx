@@ -17,14 +17,33 @@ export default async function PayoutsPage() {
   if (!admin) redirect('/login')
 
   const db = createAdminClient()
-  const [{ data: affiliates }, { data: pending }] = await Promise.all([
+  // Read ALL commissions once and derive earned / paid / pending per
+  // affiliate from them. Using the source-of-truth commissions table
+  // instead of the denormalised total_earned_cents / total_paid_cents
+  // columns eliminates the drift that read-modify-write races on those
+  // counters have caused (concurrent Yoco webhooks / payouts). The
+  // pending IDs are then passed to the "Mark paid" action so only those
+  // specific IDs are cleared — new commissions arriving after page
+  // render stay pending for next week's payout.
+  const [{ data: affiliates }, { data: allCommissions }] = await Promise.all([
     db.from('affiliates').select('*').order('created_at', { ascending: false }).limit(1000),
-    db.from('affiliate_commissions').select('affiliate_id, commission_cents').eq('status', 'pending'),
+    db.from('affiliate_commissions').select('id, affiliate_id, commission_cents, status'),
   ])
 
-  const pendingByAff = new Map<string, number>()
-  for (const c of pending ?? []) {
-    pendingByAff.set(c.affiliate_id, (pendingByAff.get(c.affiliate_id) ?? 0) + (c.commission_cents ?? 0))
+  const pendingByAff = new Map<string, { cents: number; ids: string[] }>()
+  const earnedByAff  = new Map<string, number>()
+  const paidByAff    = new Map<string, number>()
+  for (const c of allCommissions ?? []) {
+    const cents = c.commission_cents ?? 0
+    earnedByAff.set(c.affiliate_id, (earnedByAff.get(c.affiliate_id) ?? 0) + cents)
+    if (c.status === 'paid') {
+      paidByAff.set(c.affiliate_id, (paidByAff.get(c.affiliate_id) ?? 0) + cents)
+    } else {
+      const cur = pendingByAff.get(c.affiliate_id) ?? { cents: 0, ids: [] }
+      cur.cents += cents
+      cur.ids.push(c.id)
+      pendingByAff.set(c.affiliate_id, cur)
+    }
   }
 
   const rows: PayoutRow[] = (affiliates ?? []).map(a => ({
@@ -36,9 +55,10 @@ export default async function PayoutsPage() {
     bankName: a.bank_name ?? '',
     accountNumber: a.account_number ?? '',
     accountType: a.account_type ?? '',
-    pendingCents: pendingByAff.get(a.id) ?? 0,
-    earnedCents: a.total_earned_cents ?? 0,
-    paidCents: a.total_paid_cents ?? 0,
+    pendingCents: pendingByAff.get(a.id)?.cents ?? 0,
+    pendingCommissionIds: pendingByAff.get(a.id)?.ids ?? [],
+    earnedCents: earnedByAff.get(a.id) ?? 0,
+    paidCents: paidByAff.get(a.id) ?? 0,
   }))
 
   // Owed first, then biggest earners.

@@ -17,6 +17,12 @@ export interface PayoutRow {
   id: string; name: string; email: string; code: string
   bankAccountName: string; bankName: string; accountNumber: string; accountType: string
   pendingCents: number; earnedCents: number; paidCents: number
+  /**
+   * Commission IDs that were pending at page-render time. Passed to
+   * /api/admin/payouts on "Mark paid" so only those specific IDs are
+   * cleared — new commissions arriving after render stay pending.
+   */
+  pendingCommissionIds: string[]
 }
 export interface CommissionRow {
   id: string; affiliate_id: string; amount_cents: number; commission_cents: number
@@ -137,12 +143,19 @@ export default function AdminDashboard({
   }, [commissions])
 
   async function markPaid(r: PayoutRow) {
+    if (r.pendingCommissionIds.length === 0) return
     if (!confirm(`Mark ${rand(r.pendingCents)} as paid to ${r.name}?\n\nBank: ${r.bankName}\nAcc: ${r.accountNumber}\nHolder: ${r.bankAccountName}\n\nOnly confirm after the bank transfer is done.`)) return
     setPayBusy(r.id)
     try {
-      const res = await fetch('/api/admin/payouts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ affiliateId: r.id }) })
+      const res = await fetch('/api/admin/payouts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        // Send the specific pending commission IDs we saw at render so
+        // any commissions that arrived later stay pending for next week.
+        body: JSON.stringify({ affiliateId: r.id, commissionIds: r.pendingCommissionIds }),
+      })
       const body = await res.json()
-      if (res.ok) setPayouts(ps => ps.map(x => x.id === r.id ? { ...x, pendingCents: 0, paidCents: x.paidCents + (body.paidCents ?? 0) } : x))
+      if (res.ok) setPayouts(ps => ps.map(x => x.id === r.id ? { ...x, pendingCents: 0, pendingCommissionIds: [], paidCents: x.paidCents + (body.paidCents ?? 0) } : x))
       else alert(body.error ?? 'Could not mark as paid.')
     } finally { setPayBusy(null) }
   }
@@ -159,7 +172,7 @@ export default function AdminDashboard({
       const body = await res.json()
       if (!res.ok) throw new Error(body.error ?? 'Could not add affiliate.')
       const a = body.affiliate
-      setPayouts(ps => [{ id: a.id, name: [a.first_name, a.last_name].filter(Boolean).join(' ') || '—', email: a.email ?? '', code: a.code, bankAccountName: a.bank_account_name ?? '', bankName: a.bank_name ?? '', accountNumber: a.account_number ?? '', accountType: a.account_type ?? '', pendingCents: 0, earnedCents: 0, paidCents: 0 }, ...ps])
+      setPayouts(ps => [{ id: a.id, name: [a.first_name, a.last_name].filter(Boolean).join(' ') || '—', email: a.email ?? '', code: a.code, bankAccountName: a.bank_account_name ?? '', bankName: a.bank_name ?? '', accountNumber: a.account_number ?? '', accountType: a.account_type ?? '', pendingCents: 0, earnedCents: 0, paidCents: 0, pendingCommissionIds: [] }, ...ps])
       setAffOk(`Affiliate added. Invite email sent to ${affForm.email}.`)
       setAffForm({ firstName: '', lastName: '', email: '', bankAccountName: '', bankName: '', accountNumber: '', accountType: 'cheque' })
       setAddingAff(false)

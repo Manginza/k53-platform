@@ -85,7 +85,7 @@ async function recordAffiliateCommission(payload: YocoEventPayload) {
   if (commissionCents <= 0) return
 
   const admin = createAdminClient()
-  const { data: inserted, error } = await admin
+  const { error } = await admin
     .from('affiliate_commissions')
     .insert({
       affiliate_id:     affiliateId,
@@ -95,15 +95,10 @@ async function recordAffiliateCommission(payload: YocoEventPayload) {
       commission_cents: commissionCents,
       status:           'pending',
     })
-    .select('id')
-    .maybeSingle()
-
-  if (error) {
-    if (error.code !== '23505') console.error('[yoco-webhook] commission insert error:', error.message)
-    return
+  // 23505 = the synchronous /api/yoco/confirm (or a retry) already
+  // credited this checkout — safe to ignore. See yoco/confirm for why
+  // we intentionally no longer bump affiliates.total_earned_cents here.
+  if (error && error.code !== '23505') {
+    console.error('[yoco-webhook] commission insert error:', error.message)
   }
-  if (!inserted) return
-
-  const { data: aff } = await admin.from('affiliates').select('total_earned_cents').eq('id', affiliateId).maybeSingle()
-  if (aff) await admin.from('affiliates').update({ total_earned_cents: (aff.total_earned_cents ?? 0) + commissionCents }).eq('id', affiliateId)
 }

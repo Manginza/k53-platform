@@ -20,6 +20,14 @@ export interface PayoutRow {
   pendingCents: number
   earnedCents: number
   paidCents: number
+  /**
+   * The exact commission IDs that were pending at page-render time. We
+   * pass THESE (not just the affiliateId) to /api/admin/payouts, so any
+   * new commissions that landed while the admin was reviewing the page
+   * stay pending — never silently marked paid by a "clear all pending"
+   * bulk update.
+   */
+  pendingCommissionIds: string[]
 }
 
 function rand(cents: number) {
@@ -40,16 +48,23 @@ export default function AffiliatePayouts({
   const owedCount = rows.filter(r => r.pendingCents > 0).length
 
   async function markPaid(r: PayoutRow) {
+    if (r.pendingCommissionIds.length === 0) return
     if (!confirm(`Mark ${rand(r.pendingCents)} as paid to ${r.name}? Do this only after the bank transfer has gone through.`)) return
     setBusyId(r.id)
     try {
       const res = await fetch('/api/admin/payouts', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ affiliateId: r.id }),
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        // Pass the specific IDs we saw at render — the endpoint verifies
+        // they still belong to this affiliate and are still pending,
+        // then marks ONLY those paid. Any commission that arrived after
+        // render stays pending for next week's payout.
+        body: JSON.stringify({ affiliateId: r.id, commissionIds: r.pendingCommissionIds }),
       })
       const body = await res.json()
       if (res.ok) {
         setRows(rs => rs.map(x => x.id === r.id
-          ? { ...x, pendingCents: 0, paidCents: x.paidCents + (body.paidCents ?? 0) }
+          ? { ...x, pendingCents: 0, pendingCommissionIds: [], paidCents: x.paidCents + (body.paidCents ?? 0) }
           : x))
       } else {
         alert(body.error ?? 'Could not mark as paid.')
