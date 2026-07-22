@@ -10,6 +10,7 @@ import LiveSessionPopup from "@/components/LiveSessionPopup";
 import TestPrepPopup from "@/components/TestPrepPopup";
 import K53UnpackedPopup from "@/components/K53UnpackedPopup";
 import CourseIntroPopup from "@/components/CourseIntroPopup";
+import YoutubeLiveSessionPopup from "@/components/YoutubeLiveSessionPopup";
 import FreePromoBanner from "@/components/FreePromoBanner";
 import FreePromoPopup from "@/components/FreePromoPopup";
 
@@ -132,6 +133,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                         <LiveSessionPopup />
                         <K53UnpackedPopup />
                         <CourseIntroPopup />
+                        <YoutubeLiveSessionPopup />
                 </body>
           </html>
         );
