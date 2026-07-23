@@ -1,7 +1,7 @@
 /**
  * lib/quiz-session.ts — server-side free-preview timer.
  *
- * The free 3-minute quiz preview is enforced from the server so it can't be
+ * The free 2-minute quiz sample is enforced from the server so it can't be
  * reset by reloading the page or editing the client timer. The start time
  * lives in `quiz_sessions` (keyed by user_id for logged-in users, or an
  * httpOnly cookie uuid for anonymous users).

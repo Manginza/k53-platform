@@ -370,7 +370,7 @@ export default function QuizClient({ questions, courseTitle, courseId, testNumbe
   const [failedImages, setFailedImages] = useState<Set<string>>(() => new Set())
 
   // Timer. Paid users get an exam-style limit of 1 minute per question
-  // (auto-submits to results on expiry); free users get a 3-minute preview
+  // (auto-submits to results on expiry); free users get a 2-minute sample
   // that then hits the paywall. Premium users can restart any time.
   // For free users the starting value comes from the server (initialSeconds)
   // and is reconciled with /api/quiz/session on mount so the window can't be
@@ -580,7 +580,7 @@ export default function QuizClient({ questions, courseTitle, courseId, testNumbe
             }`}
             title={isPremium ? 'Time remaining' : 'Free preview time remaining'}
           >
-            ⏱ {fmtTime(secondsLeft)}
+            {isPremium ? `⏱ ${fmtTime(secondsLeft)}` : `Free sample · ⏱ ${fmtTime(secondsLeft)}`}
           </span>
           <span className="text-sm font-bold text-gray-700 shrink-0">
             {current + 1} <span className="text-gray-400 font-normal">/ {ordered.length}</span>

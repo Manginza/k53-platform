@@ -99,7 +99,7 @@ export default async function AccountPage() {
           <>
             <div className="text-lg font-bold text-gray-900 mb-1">No active pass</div>
             <p className="text-sm text-gray-500 mb-5">
-              You&apos;re on the free plan — 3-minute previews on practice tests. Get an access pass
+              You&apos;re on the free plan — 2-minute samples on practice tests. Get an access pass
               to unlock unlimited timed tests, Live Notes, resources and videos.
             </p>
             <Link
