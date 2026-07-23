@@ -4,74 +4,55 @@
  * YoutubeLiveSessionPopup — reminder for tonight's 2-hour Learner's Licence
  * Live Session on YouTube (2026-07-23, 8pm to 10pm SAST).
  *
- * Two audiences with different rules:
+ * Cadence: once per hour, for EVERYONE (anon, registered, paid). We store
+ * the timestamp of the last time we showed the popup in localStorage;
+ * on mount, if that's more than an hour ago (or never), we show it and
+ * bump the timestamp to now. That means:
+ *   - dismissing via X / "Maybe later" / clicking the CTA hides it for
+ *     ~an hour;
+ *   - just closing the tab without dismissing has the same effect —
+ *     the "last shown" timestamp was already set on mount;
+ *   - once the hour passes, the very next page load shows it again.
  *
- *   - Anonymous visitors (not signed in):
- *       Reminder on every fresh browsing session until 10pm — pushes them
- *       to watch tonight even though they haven't registered. Dismiss is
- *       stored in sessionStorage so it doesn't flash on every navigation
- *       within the same tab, but reappears on a new tab or reload.
- *
- *   - Signed-in visitors (paid + registered):
- *       Fires once, from 6pm onwards (closer to 8pm), dismissible for
- *       good via localStorage. Less intrusive than the anon reminder
- *       because they've already committed to the platform.
- *
- * Auto-hides after the session's end time (10pm). Change SESSION_END to a
- * later timestamp to keep the reminder up (e.g. for a rerun).
+ * Auto-hides entirely after the session's end time (10pm SAST), so the
+ * popup won't linger into tomorrow.
  */
 import { useEffect, useState } from 'react'
-import { getAccessStatus } from '@/lib/access-cache'
 
-const YOUTUBE_URL      = 'https://youtube.com/live/xtvTKAf5eJc?feature=share'
-const SESSION_START    = Date.parse('2026-07-23T20:00:00+02:00') // 8pm SAST tonight
-const SESSION_END      = Date.parse('2026-07-23T22:00:00+02:00') // 10pm SAST tonight
-const PAID_REMIND_FROM = Date.parse('2026-07-23T18:00:00+02:00') // 6pm — 2 hours before start
+const YOUTUBE_URL       = 'https://youtube.com/live/xtvTKAf5eJc?feature=share'
+const SESSION_START     = Date.parse('2026-07-23T20:00:00+02:00') // 8pm SAST tonight
+const SESSION_END       = Date.parse('2026-07-23T22:00:00+02:00') // 10pm SAST tonight
+const REMIND_INTERVAL_MS = 60 * 60 * 1000                          // 1 hour
 
-const DISMISS_KEY = 'sk_yt_live_2026_07_23'
-
-type Audience = 'signed_in' | 'anon'
+const LAST_SHOWN_KEY = 'sk_yt_live_2026_07_23_last_shown_ms'
 
 export default function YoutubeLiveSessionPopup() {
   const [open, setOpen] = useState(false)
-  const [audience, setAudience] = useState<Audience>('anon')
 
   useEffect(() => {
     const now = Date.now()
     if (!SESSION_END || now >= SESSION_END) return   // session over, never show again
 
-    let cancelled = false
-    getAccessStatus()
-      .then(d => {
-        if (cancelled) return
-        const signedIn = !!(d?.fullAccess || d?.isLoggedIn)
+    let lastShown = 0
+    try {
+      const raw = localStorage.getItem(LAST_SHOWN_KEY)
+      lastShown = raw ? Number(raw) : 0
+      if (!Number.isFinite(lastShown)) lastShown = 0
+    } catch {
+      lastShown = 0
+    }
 
-        if (signedIn) {
-          // Members / registered users → one-off, only from 6pm.
-          if (now < PAID_REMIND_FROM) return
-          try { if (localStorage.getItem(DISMISS_KEY) === 'seen') return } catch {}
-          setAudience('signed_in')
-          setOpen(true)
-        } else {
-          // Anonymous visitors → every fresh browsing session.
-          try { if (sessionStorage.getItem(DISMISS_KEY) === 'seen') return } catch {}
-          setAudience('anon')
-          setOpen(true)
-        }
-      })
-      .catch(() => {})
-    return () => { cancelled = true }
+    // Skip if we've already shown it in the last hour.
+    if (now - lastShown < REMIND_INTERVAL_MS) return
+
+    // Set the timestamp NOW so the hourly clock starts from this render.
+    // Users who dismiss immediately still get their full hour of peace;
+    // users who close the tab without dismissing get the same treatment.
+    try { localStorage.setItem(LAST_SHOWN_KEY, String(now)) } catch {}
+    setOpen(true)
   }, [])
 
-  function dismiss() {
-    if (audience === 'signed_in') {
-      try { localStorage.setItem(DISMISS_KEY, 'seen') } catch {}
-    } else {
-      // Session-scoped — comes back on new tab / reload for anon visitors.
-      try { sessionStorage.setItem(DISMISS_KEY, 'seen') } catch {}
-    }
-    setOpen(false)
-  }
+  function dismiss() { setOpen(false) }
 
   if (!open) return null
 
