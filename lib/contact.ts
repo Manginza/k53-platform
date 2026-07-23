@@ -34,8 +34,8 @@ export const LIVE_SESSION_RECORDING_FILE_ID = '1_6qU0g5DBmWkGd2hSJRzd_7uKWpaY8UH
  * - Both set        → the promo activates automatically at FROM and
  *                     shuts down at UNTIL, no code change needed.
  */
-export const FREE_PROMO_FROM  = '2026-07-22T19:00:00+02:00' // opens at 7pm SAST tonight
-export const FREE_PROMO_UNTIL = '2026-07-22T22:00:00+02:00' // closes at 10pm SAST tonight
+export const FREE_PROMO_FROM  = '2026-07-23T20:00:00+02:00' // opens at 8pm SAST tonight (with the YouTube live session)
+export const FREE_PROMO_UNTIL = '2026-07-23T22:00:00+02:00' // closes at 10pm SAST tonight (when the live session ends)
 
 export function isFreePromoActive(): boolean {
   if (!FREE_PROMO_UNTIL) return false
