@@ -12,6 +12,8 @@ import { LIVE_SESSION_URL, LIVE_SESSION_SCHEDULE, LIVE_SESSION_NOTE, LIVE_SESSIO
 import { getAccessStatus } from '@/lib/access-cache'
 
 const DISMISS_KEY = 'sk_session_popup'
+const YOUTUBE_OVERRIDE_START = Date.parse('2026-07-23T00:00:00+02:00')
+const YOUTUBE_OVERRIDE_END = Date.parse('2026-07-24T00:00:00+02:00')
 const START_HOUR = 20   // 8pm — popup opens
 const END_HOUR   = 21   // 9pm — popup closes / never shows after this
 
@@ -19,6 +21,11 @@ export default function LiveSessionPopup() {
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
+    const nowMs = Date.now()
+    // The 23 July session is on YouTube; suppress the usual Google Meet
+    // reminder for this SAST calendar day so only the YouTube popup appears.
+    if (nowMs >= YOUTUBE_OVERRIDE_START && nowMs < YOUTUBE_OVERRIDE_END) return
+
     const today = new Date().toDateString()
     try { if (localStorage.getItem(DISMISS_KEY) === today) return } catch {}
 
