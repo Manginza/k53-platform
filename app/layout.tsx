@@ -11,6 +11,7 @@ import TestPrepPopup from "@/components/TestPrepPopup";
 import K53UnpackedPopup from "@/components/K53UnpackedPopup";
 import CourseIntroPopup from "@/components/CourseIntroPopup";
 import YoutubeLiveSessionPopup from "@/components/YoutubeLiveSessionPopup";
+import YoutubeRecordingPopup from "@/components/YoutubeRecordingPopup";
 import FreePromoBanner from "@/components/FreePromoBanner";
 import FreePromoPopup from "@/components/FreePromoPopup";
 
@@ -134,6 +135,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                         <K53UnpackedPopup />
                         <CourseIntroPopup />
                         <YoutubeLiveSessionPopup />
+                        <YoutubeRecordingPopup />
                 </body>
           </html>
         );
