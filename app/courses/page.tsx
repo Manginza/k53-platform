@@ -39,7 +39,16 @@ export default async function CoursesPage() {
     })(),
   ])
 
-  const fullAccess = !!serverUser || !!fullAccessRaw
+  const now = Date.now()
+  const isTonightLive =
+    now >= Date.parse('2026-07-23T00:00:00+02:00') &&
+    now < Date.parse('2026-07-23T22:00:00+02:00')
+  // Tonight's YouTube session is limited to paying members. Non-paying
+  // visitors use the global two-minute preview instead of receiving the
+  // public YouTube URL from this card.
+  const canSeeLiveSessionCard = isTonightLive
+    ? !!fullAccessRaw
+    : !!serverUser || !!fullAccessRaw
 
   if (error) {
     return (
@@ -87,7 +96,7 @@ export default async function CoursesPage() {
         ))}
       </div>
 
-      {fullAccess && <LiveSessionCard className="mb-8" />}
+      {canSeeLiveSessionCard && <LiveSessionCard className="mb-8" />}
 
       {courses && courses.length > 0 ? (
         <div className="grid gap-6 sm:grid-cols-2">

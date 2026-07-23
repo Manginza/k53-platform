@@ -4,7 +4,7 @@
  */
 import { LIVE_SESSION_URL, LIVE_SESSION_SCHEDULE, LIVE_SESSION_NOTE } from '@/lib/contact'
 
-const TONIGHT_LIVE_URL = 'https://youtube.com/live/xtvTKAf5eJc?feature=share'
+const TONIGHT_LIVE_URL = 'https://youtube.com/live/eazLGnuFF5k?feature=share'
 const TONIGHT_LIVE_START = Date.parse('2026-07-23T00:00:00+02:00')
 const TONIGHT_LIVE_END = Date.parse('2026-07-23T22:00:00+02:00')
 
