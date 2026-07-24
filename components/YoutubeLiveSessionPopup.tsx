@@ -1,8 +1,8 @@
 'use client'
 
 /**
- * YoutubeLiveSessionPopup — reminder for tonight's 2-hour Learner's Licence
- * Live Session on YouTube (2026-07-23, 8pm to 10pm SAST).
+ * YoutubeLiveSessionPopup — reminder for tonight's Road Signs Live Lesson
+ * on YouTube (2026-07-24, 8pm to 9:30pm SAST).
  *
  * Cadence: once per hour, for EVERYONE (anon, registered, paid). We store
  * the timestamp of the last time we showed the popup in localStorage;
@@ -14,22 +14,22 @@
  *     the "last shown" timestamp was already set on mount;
  *   - once the hour passes, the very next page load shows it again.
  *
- * Auto-hides entirely after the session's end time (10pm SAST), so the
+ * Auto-hides entirely after the session's end time (9:30pm SAST), so the
  * popup won't linger into tomorrow.
  */
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { getAccessStatus } from '@/lib/access-cache'
 
-const YOUTUBE_URL       = 'https://youtube.com/live/eazLGnuFF5k?feature=share'
-const YOUTUBE_EMBED_URL = 'https://www.youtube.com/embed/eazLGnuFF5k?autoplay=1'
-const SESSION_START     = Date.parse('2026-07-23T20:00:00+02:00') // 8pm SAST tonight
-const SESSION_END       = Date.parse('2026-07-23T22:00:00+02:00') // 10pm SAST tonight
+const YOUTUBE_URL       = 'https://youtube.com/live/wep9ne7rPG4?feature=share'
+const YOUTUBE_EMBED_URL = 'https://www.youtube.com/embed/wep9ne7rPG4?autoplay=1'
+const SESSION_START     = Date.parse('2026-07-24T20:00:00+02:00') // 8pm SAST tonight
+const SESSION_END       = Date.parse('2026-07-24T21:30:00+02:00') // 9:30pm SAST tonight
 const REMIND_INTERVAL_MS = 60 * 60 * 1000                          // 1 hour
 const PREVIEW_LENGTH_MS = 2 * 60 * 1000                            // 2 minutes
 
-const LAST_SHOWN_KEY = 'sk_yt_live_2026_07_23_last_shown_ms'
-const PREVIEW_STARTED_KEY = 'sk_yt_live_2026_07_23_preview_started_ms'
+const LAST_SHOWN_KEY = 'sk_yt_live_2026_07_24_last_shown_ms'
+const PREVIEW_STARTED_KEY = 'sk_yt_live_2026_07_24_preview_started_ms'
 
 export default function YoutubeLiveSessionPopup() {
   const [open, setOpen] = useState(false)
@@ -168,10 +168,10 @@ export default function YoutubeLiveSessionPopup() {
             <span className="text-xs font-semibold text-red-100">on YouTube</span>
           </div>
           <h2 className="text-xl sm:text-2xl font-extrabold leading-snug">
-            2-hour Learner&apos;s Licence Live Session
+            Road Signs Live Lesson
           </h2>
           <p className="text-red-100 text-sm mt-1">
-            Tonight · <strong className="text-white">8pm to 10pm</strong> · SAST
+            Tonight · <strong className="text-white">8pm to 9:30pm</strong> · SAST
           </p>
         </div>
 

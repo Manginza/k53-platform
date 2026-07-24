@@ -2,25 +2,25 @@
 
 /**
  * YoutubeRecordingPopup — "missed the live? watch the recording" nudge
- * for tonight's 2-hour Learner's Licence Live Session on YouTube.
+ * for tonight's Road Signs Live Lesson on YouTube.
  *
  * Shown to EVERYONE (paying and non-paying) once the live session has
- * ended (10pm SAST on 23 July) and for one week afterwards, so people
+ * ended (9:30pm SAST on 24 July) and for one week afterwards, so people
  * who couldn't tune in still get a clear hook back to the recording.
  * One-off dismissal per user via localStorage — clicking the CTA,
  * closing with × / "Maybe later", or clicking the backdrop all count
  * as a dismiss and the popup never comes back.
  *
  * The active-session popup (YoutubeLiveSessionPopup) auto-hides at
- * 10pm, so the two don't overlap.
+ * 9:30pm, so the two don't overlap.
  */
 import { useEffect, useState } from 'react'
 
-const YOUTUBE_URL      = 'https://www.youtube.com/live/eazLGnuFF5k?si=7_oVbHXF5MsgsxCv'
-const WINDOW_START     = Date.parse('2026-07-23T22:00:00+02:00') // 10pm SAST — right when the live session ends
-const WINDOW_END       = Date.parse('2026-07-30T22:00:00+02:00') // 7 days later — hide entirely after that
+const YOUTUBE_URL      = 'https://youtube.com/live/wep9ne7rPG4?feature=share'
+const WINDOW_START     = Date.parse('2026-07-24T21:30:00+02:00') // 9:30pm SAST — right when the live session ends
+const WINDOW_END       = Date.parse('2026-07-31T21:30:00+02:00') // 7 days later — hide entirely after that
 
-const DISMISS_KEY = 'sk_yt_recording_2026_07_23_seen'
+const DISMISS_KEY = 'sk_yt_recording_2026_07_24_seen'
 
 export default function YoutubeRecordingPopup() {
   const [open, setOpen] = useState(false)
@@ -65,15 +65,15 @@ export default function YoutubeRecordingPopup() {
             Missed the live session? Watch it back.
           </h2>
           <p className="text-red-100 text-sm mt-1">
-            2-hour Learner&apos;s Licence Live Session · 23 July
+            Road Signs Live Lesson · 24 July
           </p>
         </div>
 
         {/* Body */}
         <div className="px-7 py-6 text-center">
           <p className="text-sm text-gray-700 mb-2">
-            Couldn&apos;t make it live? The full recording is up on YouTube — road signs,
-            rules of the road and everything you need to pass first time.
+            Couldn&apos;t make it live? The full Road Signs lesson recording is up on
+            YouTube — a walkthrough of the signs you need to pass first time.
           </p>
           <p className="text-xs text-gray-400 mb-5">
             Watch at your own pace, pause and rewind as much as you like.

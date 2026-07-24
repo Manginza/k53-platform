@@ -4,9 +4,9 @@
  */
 import { LIVE_SESSION_URL, LIVE_SESSION_SCHEDULE, LIVE_SESSION_NOTE } from '@/lib/contact'
 
-const TONIGHT_LIVE_URL = 'https://youtube.com/live/eazLGnuFF5k?feature=share'
-const TONIGHT_LIVE_START = Date.parse('2026-07-23T00:00:00+02:00')
-const TONIGHT_LIVE_END = Date.parse('2026-07-23T22:00:00+02:00')
+const TONIGHT_LIVE_URL = 'https://youtube.com/live/wep9ne7rPG4?feature=share'
+const TONIGHT_LIVE_START = Date.parse('2026-07-24T00:00:00+02:00')
+const TONIGHT_LIVE_END = Date.parse('2026-07-24T21:30:00+02:00')
 
 export default function LiveSessionCard({ className = '' }: { className?: string }) {
   const now = Date.now()
@@ -19,14 +19,14 @@ export default function LiveSessionCard({ className = '' }: { className?: string
         <span className="text-2xl shrink-0">📹</span>
         <div className="min-w-0">
           <h3 className="font-extrabold text-indigo-900">
-            {isTonightLive ? 'Tonight live' : 'Live evening study sessions'}
+            {isTonightLive ? 'Road Signs Live Lesson — tonight' : 'Live evening study sessions'}
           </h3>
           <p className="text-sm text-indigo-800 mt-0.5">
-            <strong>{isTonightLive ? 'Tonight, 8pm–10pm' : LIVE_SESSION_SCHEDULE}</strong>
+            <strong>{isTonightLive ? 'Tonight, 8pm–9:30pm' : LIVE_SESSION_SCHEDULE}</strong>
           </p>
           <p className="text-xs text-indigo-700/80 mt-1">
             {isTonightLive
-              ? 'Join our 2-hour Learner’s Licence live session on YouTube.'
+              ? 'Join our Road Signs live lesson on YouTube — walk through every sign you need to pass.'
               : LIVE_SESSION_NOTE}
           </p>
           <a
