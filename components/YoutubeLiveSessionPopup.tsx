@@ -2,7 +2,7 @@
 
 /**
  * YoutubeLiveSessionPopup — reminder for Monday's Rules of the Road Part 2
- * live lesson on YouTube (2026-07-27, 8pm to 9:30pm SAST).
+ * live lesson on YouTube (2026-07-27, 8pm to 9pm SAST).
  *
  * Cadence: once per hour, for EVERYONE (anon, registered, paid). We store
  * the timestamp of the last time we showed the popup in localStorage;
@@ -14,7 +14,7 @@
  *     the "last shown" timestamp was already set on mount;
  *   - once the hour passes, the very next page load shows it again.
  *
- * Auto-hides entirely after the session's end time (9:30pm SAST), so the
+ * Auto-hides entirely after the session's end time (9pm SAST), so the
  * popup won't linger into the next day.
  */
 import Link from 'next/link'
@@ -24,7 +24,7 @@ import { getAccessStatus } from '@/lib/access-cache'
 const YOUTUBE_URL       = 'https://youtube.com/live/En6IEUZW6Oo?feature=share'
 const YOUTUBE_EMBED_URL = 'https://www.youtube.com/embed/En6IEUZW6Oo?autoplay=1'
 const SESSION_START     = Date.parse('2026-07-27T20:00:00+02:00') // 8pm SAST Monday
-const SESSION_END       = Date.parse('2026-07-27T21:30:00+02:00') // 9:30pm SAST Monday
+const SESSION_END       = Date.parse('2026-07-27T21:00:00+02:00') // 9pm SAST Monday
 const REMIND_INTERVAL_MS = 60 * 60 * 1000                          // 1 hour
 const PREVIEW_LENGTH_MS = 2 * 60 * 1000                            // 2 minutes
 
@@ -171,7 +171,7 @@ export default function YoutubeLiveSessionPopup() {
             Rules of the Road Part 2 — Live Lesson
           </h2>
           <p className="text-red-100 text-sm mt-1">
-            Tonight · <strong className="text-white">8pm to 9:30pm</strong> · SAST
+            Tonight · <strong className="text-white">8pm to 9pm</strong> · SAST
           </p>
         </div>
 

@@ -42,7 +42,7 @@ export default async function CoursesPage() {
   const now = Date.now()
   const isTonightLive =
     now >= Date.parse('2026-07-27T00:00:00+02:00') &&
-    now < Date.parse('2026-07-27T21:30:00+02:00')
+    now < Date.parse('2026-07-27T21:00:00+02:00')
   // Tonight's YouTube session is limited to paying members. Non-paying
   // visitors use the global two-minute preview instead of receiving the
   // public YouTube URL from this card.

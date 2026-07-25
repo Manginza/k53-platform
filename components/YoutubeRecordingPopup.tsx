@@ -5,20 +5,20 @@
  * for Monday's Rules of the Road Part 2 live lesson on YouTube.
  *
  * Shown to EVERYONE (paying and non-paying) once the live session has
- * ended (9:30pm SAST on 27 July) and for one week afterwards, so people
+ * ended (9pm SAST on 27 July) and for one week afterwards, so people
  * who couldn't tune in still get a clear hook back to the recording.
  * One-off dismissal per user via localStorage — clicking the CTA,
  * closing with × / "Maybe later", or clicking the backdrop all count
  * as a dismiss and the popup never comes back.
  *
  * The active-session popup (YoutubeLiveSessionPopup) auto-hides at
- * 9:30pm, so the two don't overlap.
+ * 9pm, so the two don't overlap.
  */
 import { useEffect, useState } from 'react'
 
 const YOUTUBE_URL      = 'https://youtube.com/live/En6IEUZW6Oo?feature=share'
-const WINDOW_START     = Date.parse('2026-07-27T21:30:00+02:00') // 9:30pm SAST — right when the live session ends
-const WINDOW_END       = Date.parse('2026-08-03T21:30:00+02:00') // 7 days later — hide entirely after that
+const WINDOW_START     = Date.parse('2026-07-27T21:00:00+02:00') // 9pm SAST — right when the live session ends
+const WINDOW_END       = Date.parse('2026-08-03T21:00:00+02:00') // 7 days later — hide entirely after that
 
 const DISMISS_KEY = 'sk_yt_recording_2026_07_27_seen'
 

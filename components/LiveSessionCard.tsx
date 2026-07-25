@@ -6,7 +6,7 @@ import { LIVE_SESSION_URL, LIVE_SESSION_SCHEDULE, LIVE_SESSION_NOTE } from '@/li
 
 const TONIGHT_LIVE_URL = 'https://youtube.com/live/En6IEUZW6Oo?feature=share'
 const TONIGHT_LIVE_START = Date.parse('2026-07-27T00:00:00+02:00')
-const TONIGHT_LIVE_END = Date.parse('2026-07-27T21:30:00+02:00')
+const TONIGHT_LIVE_END = Date.parse('2026-07-27T21:00:00+02:00')
 
 export default function LiveSessionCard({ className = '' }: { className?: string }) {
   const now = Date.now()
@@ -22,7 +22,7 @@ export default function LiveSessionCard({ className = '' }: { className?: string
             {isTonightLive ? 'Rules of the Road Part 2 — live tonight' : 'Live evening study sessions'}
           </h3>
           <p className="text-sm text-indigo-800 mt-0.5">
-            <strong>{isTonightLive ? 'Tonight, 8pm–9:30pm' : LIVE_SESSION_SCHEDULE}</strong>
+            <strong>{isTonightLive ? 'Tonight, 8pm–9pm' : LIVE_SESSION_SCHEDULE}</strong>
           </p>
           <p className="text-xs text-indigo-700/80 mt-1">
             {isTonightLive
