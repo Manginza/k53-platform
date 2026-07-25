@@ -2,10 +2,10 @@
 
 /**
  * YoutubeRecordingPopup — "missed the live? watch the recording" nudge
- * for tonight's Road Signs Live Lesson on YouTube.
+ * for Monday's Rules of the Road Part 2 live lesson on YouTube.
  *
  * Shown to EVERYONE (paying and non-paying) once the live session has
- * ended (9:30pm SAST on 24 July) and for one week afterwards, so people
+ * ended (9:30pm SAST on 27 July) and for one week afterwards, so people
  * who couldn't tune in still get a clear hook back to the recording.
  * One-off dismissal per user via localStorage — clicking the CTA,
  * closing with × / "Maybe later", or clicking the backdrop all count
@@ -16,11 +16,11 @@
  */
 import { useEffect, useState } from 'react'
 
-const YOUTUBE_URL      = 'https://youtube.com/live/wep9ne7rPG4?feature=share'
-const WINDOW_START     = Date.parse('2026-07-24T21:30:00+02:00') // 9:30pm SAST — right when the live session ends
-const WINDOW_END       = Date.parse('2026-07-31T21:30:00+02:00') // 7 days later — hide entirely after that
+const YOUTUBE_URL      = 'https://youtube.com/live/En6IEUZW6Oo?feature=share'
+const WINDOW_START     = Date.parse('2026-07-27T21:30:00+02:00') // 9:30pm SAST — right when the live session ends
+const WINDOW_END       = Date.parse('2026-08-03T21:30:00+02:00') // 7 days later — hide entirely after that
 
-const DISMISS_KEY = 'sk_yt_recording_2026_07_24_seen'
+const DISMISS_KEY = 'sk_yt_recording_2026_07_27_seen'
 
 export default function YoutubeRecordingPopup() {
   const [open, setOpen] = useState(false)
@@ -65,15 +65,15 @@ export default function YoutubeRecordingPopup() {
             Missed the live session? Watch it back.
           </h2>
           <p className="text-red-100 text-sm mt-1">
-            Road Signs Live Lesson · 24 July
+            Rules of the Road Part 2 · 27 July
           </p>
         </div>
 
         {/* Body */}
         <div className="px-7 py-6 text-center">
           <p className="text-sm text-gray-700 mb-2">
-            Couldn&apos;t make it live? The full Road Signs lesson recording is up on
-            YouTube — a walkthrough of the signs you need to pass first time.
+            Couldn&apos;t make it live? The full Rules of the Road Part 2 recording is
+            up on YouTube — the rules you need to pass first time.
           </p>
           <p className="text-xs text-gray-400 mb-5">
             Watch at your own pace, pause and rewind as much as you like.

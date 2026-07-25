@@ -12,8 +12,8 @@ import { LIVE_SESSION_URL, LIVE_SESSION_SCHEDULE, LIVE_SESSION_NOTE, LIVE_SESSIO
 import { getAccessStatus } from '@/lib/access-cache'
 
 const DISMISS_KEY = 'sk_session_popup'
-const YOUTUBE_OVERRIDE_START = Date.parse('2026-07-24T00:00:00+02:00')
-const YOUTUBE_OVERRIDE_END = Date.parse('2026-07-25T00:00:00+02:00')
+const YOUTUBE_OVERRIDE_START = Date.parse('2026-07-27T00:00:00+02:00')
+const YOUTUBE_OVERRIDE_END = Date.parse('2026-07-28T00:00:00+02:00')
 const START_HOUR = 20   // 8pm — popup opens
 const END_HOUR   = 21   // 9pm — popup closes / never shows after this
 
