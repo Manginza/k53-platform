@@ -295,6 +295,79 @@ export default async function Home() {
         </Link>
       </section>
 
+      {/* Featured driving school */}
+      <section className="py-12 sm:py-14 px-4 sm:px-6 bg-white border-t border-gray-100">
+        <div className="max-w-3xl mx-auto text-center">
+          <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">Recommended</span>
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mt-2 mb-3">
+            Driving School
+          </h2>
+          <p className="text-gray-500 text-sm sm:text-base mb-8 max-w-xl mx-auto">
+            Once you&apos;ve passed your learner&apos;s, book your practical lessons with a trusted driving school.
+          </p>
+
+          <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 sm:p-8 text-left max-w-lg mx-auto">
+            <h3 className="text-lg font-extrabold text-gray-900 mb-1">Thompo Driving School</h3>
+            <p className="text-sm text-gray-500 mb-4">Pretoria &amp; Johannesburg</p>
+
+            <div className="space-y-3 text-sm">
+              <div className="flex items-start gap-3">
+                <span className="shrink-0 text-lg">📍</span>
+                <div>
+                  <p className="font-semibold text-gray-800">Address</p>
+                  <p className="text-gray-600">81 Celliers St, Sunnyside, Pretoria, 0002 · Adverto Tower</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="shrink-0 text-lg">📞</span>
+                <div>
+                  <p className="font-semibold text-gray-800">Phone</p>
+                  <a href="tel:0127721616" className="text-blue-700 hover:underline">012 772 1616</a>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="shrink-0 text-lg">💬</span>
+                <div>
+                  <p className="font-semibold text-gray-800">WhatsApp</p>
+                  <a
+                    href="https://wa.me/27646814176"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-green-700 hover:underline"
+                  >
+                    +27 64 681 4176
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-5 flex flex-col sm:flex-row gap-3">
+              <a
+                href="https://wa.me/27646814176"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 flex items-center justify-center gap-2 bg-green-600 text-white font-bold py-3 rounded-xl hover:bg-green-700 transition-colors text-sm"
+              >
+                💬 WhatsApp Thompo
+              </a>
+              <a
+                href="tel:0127721616"
+                className="flex-1 flex items-center justify-center gap-2 border-2 border-gray-200 text-gray-700 font-semibold py-3 rounded-xl hover:border-gray-400 transition-colors text-sm"
+              >
+                📞 Call now
+              </a>
+            </div>
+          </div>
+
+          <p className="text-xs text-gray-400 mt-4">
+            Want your school listed here?{' '}
+            <Link href="/driving-schools" className="text-blue-600 hover:underline">
+              Browse all driving schools
+            </Link>
+          </p>
+        </div>
+      </section>
+
       {/* FAQ — visible content + JSON-LD FAQPage rich result */}
       <section className="max-w-3xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
         <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-8 text-center">

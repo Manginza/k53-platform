@@ -34,8 +34,8 @@ export const LIVE_SESSION_RECORDING_FILE_ID = '1_6qU0g5DBmWkGd2hSJRzd_7uKWpaY8UH
  * - Both set        → the promo activates automatically at FROM and
  *                     shuts down at UNTIL, no code change needed.
  */
-export const FREE_PROMO_FROM  = '2026-07-24T20:00:00+02:00' // opens at 8pm SAST tonight (with the Road Signs YouTube lesson)
-export const FREE_PROMO_UNTIL = '2026-07-24T21:30:00+02:00' // closes at 9:30pm SAST tonight (when the live lesson ends)
+export const FREE_PROMO_FROM  = '2026-07-27T20:00:00+02:00' // opens at 8pm SAST tonight
+export const FREE_PROMO_UNTIL = '2026-07-27T21:30:00+02:00' // closes at 9:30pm SAST tonight
 
 export function isFreePromoActive(): boolean {
   if (!FREE_PROMO_UNTIL) return false
