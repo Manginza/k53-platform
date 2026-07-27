@@ -38,10 +38,17 @@ export async function POST(req: NextRequest) {
 
   const db = createAdminClient()
 
-  // Look up existing account by email.
-  const { data: list } = await db.auth.admin.listUsers({ perPage: 1000 })
-  const existed = !!list?.users?.find(u => u.email?.toLowerCase() === email)
-  let target = list?.users?.find(u => u.email?.toLowerCase() === email)
+  // Look up existing account by email. Paginate so we don't silently miss
+  // users beyond the first page (listUsers caps at perPage per call).
+  let target: Awaited<ReturnType<typeof db.auth.admin.listUsers>>['data']['users'][number] | undefined
+  let existed = false
+  for (let page = 1; ; page++) {
+    const { data: list } = await db.auth.admin.listUsers({ page, perPage: 1000 })
+    const users = list?.users ?? []
+    const found = users.find(u => u.email?.toLowerCase() === email)
+    if (found) { target = found; existed = true; break }
+    if (users.length < 1000) break
+  }
 
   // Mode 1: admin provided a password → create the account if it doesn't exist
   // (or update the password if it does), then grant.
