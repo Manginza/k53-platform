@@ -16,11 +16,11 @@
  */
 import { useEffect, useState } from 'react'
 
-const YOUTUBE_URL      = 'https://youtube.com/live/En6IEUZW6Oo?feature=share'
-const WINDOW_START     = Date.parse('2026-07-27T21:00:00+02:00') // 9pm SAST — right when the live session ends
-const WINDOW_END       = Date.parse('2026-08-03T21:00:00+02:00') // 7 days later — hide entirely after that
+const YOUTUBE_URL      = 'https://youtu.be/QzNX1F8l5RI'
+const WINDOW_START     = Date.parse('2026-07-27T00:00:00+02:00') // show immediately
+const WINDOW_END       = Date.parse('2026-08-03T21:00:00+02:00') // 7 days
 
-const DISMISS_KEY = 'sk_yt_recording_2026_07_27_seen'
+const DISMISS_KEY = 'sk_yt_recording_2026_07_27_v2'
 
 export default function YoutubeRecordingPopup() {
   const [open, setOpen] = useState(false)
