@@ -16,15 +16,21 @@ jobs:
 
       - name: Install AWS CLI
         run: |
-          sudo apt-get install -y awscli
+          curl -L https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o awscliv2.zip
+          unzip -q awscliv2.zip
+          sudo ./aws/install --update
 
       - name: Dump Supabase database and compress
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
-          pg_dump "${{ secrets.SUPABASE_DB_URL }}" | gzip > backup_$(date +'%Y-%m-%d_%H-%M-%S').sql.gz
+          pg_dump "$SUPABASE_DB_URL" | gzip > backup_$(date +'%Y-%m-%d_%H-%M-%S').sql.gz
 
       - name: Upload backup to Cloudflare R2
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
         run: |
-          aws s3 cp backup_*.sql.gz s3://${{ secrets.R2_BUCKET_NAME }}/ --endpoint-url https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com --region auto
+          aws s3 cp backup_*.sql.gz s3://$R2_BUCKET_NAME/ --endpoint-url https://$R2_ACCOUNT_ID.r2.cloudflarestorage.com --region auto
