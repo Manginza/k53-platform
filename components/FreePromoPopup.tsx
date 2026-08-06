@@ -40,9 +40,9 @@ export default function FreePromoPopup() {
         <button onClick={dismiss} aria-label="Close" className="absolute top-3 right-4 text-gray-400 hover:text-gray-700 text-2xl leading-none">×</button>
 
         <div className="text-5xl mb-3">🎉</div>
-        <h2 className="text-2xl font-extrabold text-gray-900 mb-2">The course is FREE until 9:30pm tonight!</h2>
+        <h2 className="text-2xl font-extrabold text-gray-900 mb-2">The course is FREE until 10pm tonight!</h2>
         <p className="text-sm text-gray-600 mb-1">
-          Until <strong>9:30pm tonight</strong>, the entire course is unlocked — <strong>no payment needed</strong>.
+          Until <strong>10pm tonight</strong>, the entire course is unlocked — <strong>no payment needed</strong>.
         </p>
         <p className="text-sm text-gray-600 mb-5">
           Unlimited practice tests, full Live Notes, and the complete Rules of the Road. Don&apos;t miss it!
