@@ -6,8 +6,8 @@
  * Supabase's reset email includes a `?code=` (or an auth-fragment) that
  * exchangeCodeForSession / detectSessionInUrl converts into a live session.
  * Once we have a session, the user picks a new password and we call
- * updateUser({ password }). On success, we redirect them into the app —
- * to `?next=` if it survived the round-trip, otherwise /courses.
+ * updateUser({ password }). On success, paid members return to the app while
+ * pre-qualified/unpaid accounts return to payment.
  *
  * If the link is stale/invalid we let the user know and offer to request
  * a fresh one instead of hanging in a broken state.
@@ -63,9 +63,16 @@ function ResetPasswordForm() {
     const { error } = await supabase.auth.updateUser({ password })
     if (error) { setError(error.message); setStatus('ready'); return }
     setStatus('done')
+    const accessRes = await fetch('/api/me/access', { cache: 'no-store' }).catch(() => null)
+    const access = accessRes
+      ? await accessRes.json().catch(() => ({ fullAccess: false }))
+      : { fullAccess: false }
+    const destination = access.fullAccess
+      ? (nextPath ?? '/courses')
+      : (nextPath?.startsWith('/pricing') ? nextPath : '/pricing?account=prequalified')
     // Full-page navigation so the destination server component sees the
     // new session cookies straight away (same reasoning as the login page).
-    setTimeout(() => { window.location.assign(nextPath ?? '/courses') }, 900)
+    setTimeout(() => { window.location.assign(destination) }, 900)
   }
 
   if (status === 'checking') {

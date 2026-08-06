@@ -35,7 +35,13 @@ const productSchema = {
   },
 }
 
-export default function PricingPage() {
+export default function PricingPage({
+  searchParams,
+}: {
+  searchParams?: { account?: string }
+}) {
+  const isPrequalified = searchParams?.account === 'prequalified'
+
   return (
     <main className="bg-gray-50 min-h-screen">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }} />
@@ -53,6 +59,12 @@ export default function PricingPage() {
       </div>
 
       <div className="max-w-md mx-auto px-4 py-10">
+        {isPrequalified && (
+          <div className="mb-6 rounded-2xl border border-amber-300 bg-amber-50 px-5 py-4 text-sm text-amber-900">
+            <p className="font-bold">Your pre-qualified account is ready.</p>
+            <p className="mt-1">Complete payment below to activate premium access. Signing in alone does not unlock paid features.</p>
+          </div>
+        )}
         <div className="relative bg-white rounded-2xl border-2 border-blue-600 shadow-lg p-7">
           {/* Discount ribbon */}
           <span className="absolute -top-3 right-5 bg-red-600 text-white text-xs font-extrabold tracking-wider uppercase px-3 py-1 rounded-full shadow">
@@ -105,8 +117,8 @@ export default function PricingPage() {
           </Link>
 
           <p className="text-xs text-gray-400 text-center mt-2">
-            You&apos;ll create your account first, then pay securely by card with Yoco — access is
-            granted to that account. Or message us on WhatsApp and we&apos;ll send you a registration link.
+            First create your pre-qualified account, then pay securely by card with Yoco. Premium
+            access activates only after payment is verified. Or message us on WhatsApp for help.
           </p>
 
           <p className="text-xs text-center mt-3 pt-3 border-t border-gray-100 text-gray-500">

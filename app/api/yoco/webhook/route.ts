@@ -24,14 +24,14 @@ export async function POST(req: NextRequest) {
   const rawBody = await req.text()
 
   const secret = process.env.YOCO_WEBHOOK_SECRET
-  if (secret) {
-    const sig = req.headers.get('X-Yoco-Signature') ?? ''
-    if (!verifyYocoSignature(rawBody, sig, secret)) {
-      console.warn('[yoco-webhook] Invalid signature — rejected.')
-      return NextResponse.json({ error: 'Invalid signature.' }, { status: 400 })
-    }
-  } else {
-    console.warn('[yoco-webhook] YOCO_WEBHOOK_SECRET not set — skipping signature check.')
+  if (!secret) {
+    console.error('[yoco-webhook] YOCO_WEBHOOK_SECRET is not configured — rejected.')
+    return NextResponse.json({ error: 'Webhook is not configured.' }, { status: 503 })
+  }
+  const sig = req.headers.get('X-Yoco-Signature') ?? ''
+  if (!verifyYocoSignature(rawBody, sig, secret)) {
+    console.warn('[yoco-webhook] Invalid signature — rejected.')
+    return NextResponse.json({ error: 'Invalid signature.' }, { status: 400 })
   }
 
   let event: { type: string; payload: YocoEventPayload }
@@ -53,18 +53,17 @@ export async function POST(req: NextRequest) {
         await grantAccess(userId, days, 'payment')
         console.log(`[yoco-webhook] Access granted to ${userId} for ${days} days (checkout=${checkoutId}).`)
       } catch (err) {
-        // grantAccess now throws instead of silently swallowing errors. Log
-        // loudly so support/ops can find affected users. The synchronous
-        // /api/yoco/confirm route will retry on the buyer's return, and any
-        // future visit to a gated page can trigger recovery — but this log
-        // is the trail if the buyer never comes back.
+        // Return a failure so Yoco can retry instead of acknowledging a paid
+        // event whose access grant did not persist.
         console.error('[yoco-webhook] grantAccess FAILED — paid user may lack access!', {
           userId, checkoutId, days,
           error: err instanceof Error ? err.message : String(err),
         })
+        return NextResponse.json({ error: 'Access grant failed.' }, { status: 500 })
       }
     } else {
       console.error('[yoco-webhook] payment.succeeded with no userId in metadata.', { checkoutId })
+      return NextResponse.json({ error: 'Payment has no account identity.' }, { status: 422 })
     }
     try { await recordAffiliateCommission(payload) }
     catch (err) { console.error('[yoco-webhook] recordAffiliateCommission failed', err) }

@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { hasFullAccess } from '@/lib/access'
-import { createClient } from '@/lib/supabase-server'
 import LiveSessionCard from '@/components/LiveSessionCard'
 import type { Course } from '@/lib/types'
 
@@ -27,28 +26,10 @@ export const metadata: Metadata = {
 export const dynamic = 'force-dynamic'
 
 export default async function CoursesPage() {
-  const [{ data: courses, error }, fullAccessRaw, serverUser] = await Promise.all([
+  const [{ data: courses, error }, fullAccess] = await Promise.all([
     supabase.from('courses').select('*').not('code', 'is', null).order('id'),
     hasFullAccess(),
-    // get the logged-in user (if any) so we can show the live session to
-    // any authenticated user even when they don't have a paid access pass.
-    (async () => {
-      const s = createClient()
-      const { data: { user } } = await s.auth.getUser()
-      return user
-    })(),
   ])
-
-  const now = Date.now()
-  const isTonightLive =
-    now >= Date.parse('2026-07-27T00:00:00+02:00') &&
-    now < Date.parse('2026-07-27T21:00:00+02:00')
-  // Tonight's YouTube session is limited to paying members. Non-paying
-  // visitors use the global two-minute preview instead of receiving the
-  // public YouTube URL from this card.
-  const canSeeLiveSessionCard = isTonightLive
-    ? !!fullAccessRaw
-    : !!serverUser || !!fullAccessRaw
 
   if (error) {
     return (
@@ -96,7 +77,7 @@ export default async function CoursesPage() {
         ))}
       </div>
 
-      {canSeeLiveSessionCard && <LiveSessionCard className="mb-8" />}
+      {fullAccess && <LiveSessionCard className="mb-8" />}
 
       {courses && courses.length > 0 ? (
         <div className="grid gap-6 sm:grid-cols-2">

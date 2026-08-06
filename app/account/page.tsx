@@ -7,13 +7,7 @@
  */
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-server'
-import {
-  getUserSubscription,
-  isPremium,
-  isLifetime,
-  daysRemaining,
-  formatPeriodEnd,
-} from '@/lib/subscription'
+import { hasFullAccess } from '@/lib/access'
 
 export const dynamic = 'force-dynamic'
 
@@ -38,10 +32,22 @@ export default async function AccountPage() {
     )
   }
 
-  const sub      = await getUserSubscription()
-  const premium  = isPremium(sub.status)
-  const lifetime = isLifetime(sub)
-  const days     = daysRemaining(sub.currentPeriodEnd)
+  const [{ data: grant }, premium] = await Promise.all([
+    supabase
+      .from('access_grants')
+      .select('expires_at, source')
+      .eq('user_id', user.id)
+      .maybeSingle(),
+    hasFullAccess(),
+  ])
+  const expiresAt = grant?.expires_at ?? null
+  const lifetime = !!grant && !expiresAt
+  const days = expiresAt
+    ? Math.max(0, Math.ceil((new Date(expiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+    : 0
+  const formattedExpiry = expiresAt
+    ? new Date(expiresAt).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' })
+    : ''
 
   return (
     <main className="max-w-2xl mx-auto px-4 py-12 space-y-6">
@@ -59,14 +65,14 @@ export default async function AccountPage() {
               premium ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
             }`}
           >
-            {premium ? 'Active' : sub.status === 'expired' ? 'Expired' : 'Free'}
+            {premium ? 'Active' : grant ? 'Expired' : 'Pre-qualified'}
           </span>
         </div>
 
         {premium ? (
           <>
             <div className="text-2xl font-extrabold text-gray-900 mb-1">
-              {sub.planName ?? 'Premium access'}
+              Premium access
             </div>
             {lifetime ? (
               <p className="text-sm text-gray-500">
@@ -75,7 +81,7 @@ export default async function AccountPage() {
             ) : (
               <p className="text-sm text-gray-500">
                 <strong className="text-gray-900">{days}</strong> day{days === 1 ? '' : 's'} remaining
-                {sub.currentPeriodEnd && <> · expires {formatPeriodEnd(sub.currentPeriodEnd)}</>}
+                {expiresAt && <> · expires {formattedExpiry}</>}
               </p>
             )}
 
@@ -97,10 +103,13 @@ export default async function AccountPage() {
           </>
         ) : (
           <>
-            <div className="text-lg font-bold text-gray-900 mb-1">No active pass</div>
+            <div className="text-lg font-bold text-gray-900 mb-1">
+              {grant ? 'Your access has expired' : 'Payment required to activate'}
+            </div>
             <p className="text-sm text-gray-500 mb-5">
-              You&apos;re on the free plan — 2-minute samples on practice tests. Get an access pass
-              to unlock unlimited timed tests, Live Notes, resources and videos.
+              {grant
+                ? 'Renew your premium access to continue using paid features.'
+                : 'Your email and password are registered, but premium access remains inactive until payment is verified.'}
             </p>
             <Link
               href="/pricing"

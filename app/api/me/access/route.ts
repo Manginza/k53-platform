@@ -6,11 +6,9 @@
  *                  active access_grants row, or during a free promo.
  *                  Client-gated CONTENT (Resources PDFs, etc.) must check
  *                  this field, not isLoggedIn.
- *   - isLoggedIn:  whether the visitor has a session at all. Used by the
- *                  live-session popups so any registered account can be
- *                  reminded about the 8pm session (a marketing nudge, not
- *                  a content unlock).
- *   - recordingUrl: shown to fullAccess members AND any logged-in user.
+ *   - isLoggedIn:  whether the visitor has a session at all. This is account
+ *                  identity only and must never unlock premium content.
+ *   - recordingUrl: returned only to fullAccess members.
  *
  * Previously fullAccess collapsed to `!!user || hasFullAccess()`, which
  * meant every newly-registered account (no payment) got the "you have
@@ -34,10 +32,7 @@ export async function GET() {
     const { data: { user } } = await supabase.auth.getUser()
     const isLoggedIn = !!user
     const fullAccess = await hasFullAccess()
-    // Recording is a low-value marketing surface — show it to full-access
-    // members AND any logged-in user (preserves the previous nudge for
-    // members without an active grant).
-    const recordingUrl = (fullAccess || isLoggedIn) ? await getLatestRecordingUrl() : null
+    const recordingUrl = fullAccess ? await getLatestRecordingUrl() : null
     return NextResponse.json({ fullAccess, isLoggedIn, recordingUrl }, {
       headers: {
         // Private (browser-only cache): reuse for 60 s without a round-trip.

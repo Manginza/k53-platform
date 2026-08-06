@@ -64,19 +64,25 @@ function LoginForm() {
       return
     }
 
-    // Explicit ?next=… wins (so we can complete a pending checkout etc.).
-    // Otherwise route by role: admin → /admin, affiliate → /affiliate, else /courses.
-    let dest = nextPath ?? '/courses'
-    if (!nextPath) {
-      if (isAdminEmail(cleanEmail)) {
-        dest = '/admin'
-      } else if (data.user) {
-        const { data: aff } = await supabase
-          .from('affiliates')
-          .select('id')
-          .eq('user_id', data.user.id)
-          .maybeSingle()
-        if (aff) dest = '/affiliate'
+    // Authentication proves account ownership, not premium entitlement.
+    // Admin and affiliate workspaces have their own role checks; learner
+    // destinations require the payment-backed fullAccess result.
+    let dest = '/pricing?account=prequalified'
+    if (isAdminEmail(cleanEmail)) {
+      dest = '/admin'
+    } else if (data.user) {
+      const [{ data: aff }, accessRes] = await Promise.all([
+        supabase.from('affiliates').select('id').eq('user_id', data.user.id).maybeSingle(),
+        fetch('/api/me/access', { cache: 'no-store' }).catch(() => null),
+      ])
+      if (aff) {
+        dest = '/affiliate'
+      } else {
+        const access = accessRes
+          ? await accessRes.json().catch(() => ({ fullAccess: false }))
+          : { fullAccess: false }
+        if (access.fullAccess) dest = nextPath ?? '/courses'
+        else if (nextPath?.startsWith('/pricing')) dest = nextPath
       }
     }
 

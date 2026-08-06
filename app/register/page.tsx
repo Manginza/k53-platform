@@ -5,8 +5,8 @@
  *
  * - With ?token=… (admin signup link): single-use, locked to this first email;
  *   registering grants 60-day access immediately → sent to /courses.
- * - Without a token (open): anyone can sign up, but the account has NO access
- *   until payment → sent to /pricing to pay.
+ * - Without a token (open): credentials create a pre-qualified account only.
+ *   Premium access activates after verified payment → sent to /pricing.
  */
 import { Suspense, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -52,7 +52,7 @@ function RegisterForm() {
       <p className="text-sm text-gray-500 text-center mb-6">
         {token
           ? 'Your account unlocks 60 days of full access. This link works once, for this email only.'
-          : "It's free to register. Unlock full access for R99 (down from R150) once you're in."}
+          : 'Create your email and password to pre-qualify. Premium access activates only after your R99 payment is verified.'}
       </p>
 
       <form onSubmit={submit} className="space-y-4">
@@ -69,7 +69,7 @@ function RegisterForm() {
         {error && <p className="text-red-500 text-sm">{error}</p>}
         <button type="submit" disabled={loading}
           className="w-full bg-blue-700 text-white font-semibold py-2.5 rounded-lg hover:bg-blue-800 transition-colors disabled:opacity-60">
-          {loading ? 'Creating account…' : token ? 'Create account & unlock access' : 'Create account'}
+          {loading ? 'Creating account…' : token ? 'Create account & unlock access' : 'Create pre-qualified account'}
         </button>
       </form>
 

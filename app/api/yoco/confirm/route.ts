@@ -32,9 +32,6 @@ export async function POST(req: NextRequest) {
   const admin = createAdminClient()
 
   // Build the list of checkouts to verify for this user.
-  const candidates: string[] = []
-  if (checkoutId) candidates.push(checkoutId)
-
   // Fallback: this user's recent checkouts (covers lost localStorage / other device).
   const { data: sessions } = await admin
     .from('checkout_sessions')
@@ -42,9 +39,9 @@ export async function POST(req: NextRequest) {
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
     .limit(10)
-  for (const s of sessions ?? []) {
-    if (!candidates.includes(s.checkout_id)) candidates.push(s.checkout_id)
-  }
+  const mappedCheckoutIds = new Set<string>((sessions ?? []).map(s => s.checkout_id))
+  const candidates = Array.from(mappedCheckoutIds)
+  if (checkoutId && !candidates.includes(checkoutId)) candidates.unshift(checkoutId)
 
   if (candidates.length === 0) {
     return NextResponse.json({ granted: false, pending: true })
@@ -54,8 +51,10 @@ export async function POST(req: NextRequest) {
   for (const cid of candidates) {
     const checkout = await getYocoCheckout(cid)
     if (!isYocoCheckoutPaid(checkout)) continue
-    // Guard: the checkout must belong to this user (metadata OR our session map).
-    if (checkout?.metadata?.userId && checkout.metadata.userId !== user.id) continue
+    // Guard: require an exact identity match in Yoco metadata or in our
+    // durable checkout map. Merely knowing a paid checkout id is not enough.
+    const metadataMatches = checkout?.metadata?.userId === user.id
+    if (!metadataMatches && !mappedCheckoutIds.has(cid)) continue
 
     const days = Number(checkout?.metadata?.durationDays) || ACCESS_DURATION_DAYS
     try {

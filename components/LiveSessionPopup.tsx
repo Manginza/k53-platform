@@ -35,10 +35,9 @@ export default function LiveSessionPopup() {
 
     getAccessStatus()
       .then(d => {
-        // Marketing nudge: shown to full-access members AND any logged-in
-        // visitor (preserves the previous "any signed-in account" behaviour
-        // now that /api/me/access reports fullAccess strictly).
-        if (cancelled || !(d?.fullAccess || d?.isLoggedIn)) return
+        // The session link is a premium benefit. A signed-in, pre-qualified
+        // account is not active until payment has created an access grant.
+        if (cancelled || !d?.fullAccess) return
 
         const now = new Date()
         const startAt = new Date(); startAt.setHours(START_HOUR, 0, 0, 0)

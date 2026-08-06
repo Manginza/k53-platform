@@ -15,7 +15,7 @@
 export interface AccessStatus {
   /** STRICT — true only for admin, active grant, or free promo. Gate content on this. */
   fullAccess:   boolean
-  /** LOOSE — true for any signed-in visitor. Use for marketing surfaces (popups), not content unlock. */
+  /** Account identity only. Never use this field to unlock premium content. */
   isLoggedIn:   boolean
   recordingUrl: string | null
 }

@@ -77,15 +77,18 @@ export async function POST(req: NextRequest) {
     // is the ONLY link between a Yoco checkout and its buyer when the
     // buyer's localStorage is lost, so a silent insert failure here would
     // leave a paid user with no way to be recognised on return. Log LOUDLY
-    // if it fails — but still return the redirectUrl so payment can proceed
-    // (localStorage + webhook metadata are the fallback identity paths).
+    // if it fails. Do not send a buyer to payment unless this durable identity
+    // link exists; otherwise a successful payment could be left unassigned.
     const { error: sessionErr } = await createAdminClient()
       .from('checkout_sessions')
       .insert({ checkout_id: checkout.id, user_id: user.id })
     if (sessionErr) {
-      console.error('[create-checkout] session insert FAILED — access may need manual grant if buyer loses localStorage', {
+      console.error('[create-checkout] session insert FAILED — checkout blocked', {
         userId: user.id, checkoutId: checkout.id, error: sessionErr.message,
       })
+      return NextResponse.json({
+        error: 'We could not securely link this payment to your account. Please try again.',
+      }, { status: 503 })
     }
 
     return NextResponse.json({ redirectUrl: checkout.redirectUrl, checkoutId: checkout.id })
