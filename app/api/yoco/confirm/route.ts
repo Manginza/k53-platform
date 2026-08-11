@@ -51,6 +51,13 @@ export async function POST(req: NextRequest) {
   for (const cid of candidates) {
     const checkout = await getYocoCheckout(cid)
     if (!isYocoCheckoutPaid(checkout)) continue
+    if (checkout?.amount !== ACCESS_PRICE_CENTS || checkout?.currency !== 'ZAR') {
+      console.error('[yoco/confirm] paid checkout amount/currency mismatch', {
+        userId: user.id, checkoutId: cid,
+        amount: checkout?.amount, currency: checkout?.currency,
+      })
+      continue
+    }
     // Guard: require an exact identity match in Yoco metadata or in our
     // durable checkout map. Merely knowing a paid checkout id is not enough.
     const metadataMatches = checkout?.metadata?.userId === user.id
