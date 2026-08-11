@@ -9,13 +9,19 @@
  */
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase-admin'
-import { verifyYocoSignature } from '@/lib/yoco'
+import {
+  getYocoCheckout,
+  isYocoCheckoutPaid,
+  verifyYocoSignature,
+  type YocoCheckoutDetail,
+} from '@/lib/yoco'
 import { grantAccess } from '@/lib/access'
 import { ACCESS_DURATION_DAYS, ACCESS_PRICE_CENTS } from '@/lib/contact'
 
 interface YocoEventPayload {
   id?: string
   checkoutId?: string
+  amount?: number
   amountInCents?: number
   metadata?: Record<string, string>
 }
@@ -28,8 +34,12 @@ export async function POST(req: NextRequest) {
     console.error('[yoco-webhook] YOCO_WEBHOOK_SECRET is not configured — rejected.')
     return NextResponse.json({ error: 'Webhook is not configured.' }, { status: 503 })
   }
-  const sig = req.headers.get('X-Yoco-Signature') ?? ''
-  if (!verifyYocoSignature(rawBody, sig, secret)) {
+  const webhookId = req.headers.get('webhook-id') ?? undefined
+  const webhookTimestamp = req.headers.get('webhook-timestamp') ?? undefined
+  const sig = req.headers.get('webhook-signature')
+    ?? req.headers.get('X-Yoco-Signature')
+    ?? ''
+  if (!verifyYocoSignature(rawBody, sig, secret, webhookId, webhookTimestamp)) {
     console.warn('[yoco-webhook] Invalid signature — rejected.')
     return NextResponse.json({ error: 'Invalid signature.' }, { status: 400 })
   }
@@ -45,10 +55,43 @@ export async function POST(req: NextRequest) {
   console.log(`[yoco-webhook] ${type} — payment ${payload?.id ?? 'n/a'}`)
 
   if (type === 'payment.succeeded') {
-    const userId = payload?.metadata?.userId
-    const checkoutId = payload?.checkoutId ?? payload?.id
+    // Current Yoco payment events only carry the checkout ID in the payment
+    // metadata. Fetch the checkout to recover our original buyer metadata.
+    const checkoutId = payload?.metadata?.checkoutId ?? payload?.checkoutId
+    if (!checkoutId) {
+      console.error('[yoco-webhook] payment.succeeded has no checkoutId.', { paymentId: payload?.id })
+      return NextResponse.json({ error: 'Payment has no checkout identity.' }, { status: 422 })
+    }
+
+    const checkout = await getYocoCheckout(checkoutId)
+    if (!isYocoCheckoutPaid(checkout)) {
+      // A transient Yoco read should be retried instead of acknowledging the
+      // webhook and permanently losing the independent access-grant backup.
+      console.error('[yoco-webhook] checkout is not yet verifiably paid.', { checkoutId })
+      return NextResponse.json({ error: 'Checkout could not be verified.' }, { status: 503 })
+    }
+    if (checkout?.amount !== ACCESS_PRICE_CENTS || checkout?.currency !== 'ZAR') {
+      console.error('[yoco-webhook] paid checkout amount/currency mismatch.', {
+        checkoutId, amount: checkout?.amount, currency: checkout?.currency,
+      })
+      return NextResponse.json({ error: 'Checkout amount does not match the product.' }, { status: 422 })
+    }
+
+    const admin = createAdminClient()
+    const { data: mappedSession } = await admin
+      .from('checkout_sessions')
+      .select('user_id')
+      .eq('checkout_id', checkoutId)
+      .maybeSingle()
+    const metadataUserId = checkout?.metadata?.userId
+    if (metadataUserId && mappedSession?.user_id && metadataUserId !== mappedSession.user_id) {
+      console.error('[yoco-webhook] checkout identity mismatch.', { checkoutId })
+      return NextResponse.json({ error: 'Checkout identity mismatch.' }, { status: 422 })
+    }
+    const userId = metadataUserId ?? mappedSession?.user_id
+
     if (userId) {
-      const days = Number(payload?.metadata?.durationDays) || ACCESS_DURATION_DAYS
+      const days = Number(checkout?.metadata?.durationDays) || ACCESS_DURATION_DAYS
       try {
         await grantAccess(userId, days, 'payment')
         console.log(`[yoco-webhook] Access granted to ${userId} for ${days} days (checkout=${checkoutId}).`)
@@ -65,7 +108,7 @@ export async function POST(req: NextRequest) {
       console.error('[yoco-webhook] payment.succeeded with no userId in metadata.', { checkoutId })
       return NextResponse.json({ error: 'Payment has no account identity.' }, { status: 422 })
     }
-    try { await recordAffiliateCommission(payload) }
+    try { await recordAffiliateCommission(checkout, checkoutId, payload?.id) }
     catch (err) { console.error('[yoco-webhook] recordAffiliateCommission failed', err) }
   } else {
     console.log(`[yoco-webhook] Unhandled event type: ${type}`)
@@ -74,12 +117,16 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ received: true })
 }
 
-async function recordAffiliateCommission(payload: YocoEventPayload) {
-  const affiliateId = payload?.metadata?.affiliateId
-  const rate = Number(payload?.metadata?.commissionRate) || 0
+async function recordAffiliateCommission(
+  checkout: YocoCheckoutDetail,
+  checkoutId: string,
+  paymentId?: string,
+) {
+  const affiliateId = checkout.metadata?.affiliateId
+  const rate = Number(checkout.metadata?.commissionRate) || 0
   if (!affiliateId || rate <= 0) return
 
-  const amountCents = payload.amountInCents ?? ACCESS_PRICE_CENTS
+  const amountCents = checkout.amount ?? ACCESS_PRICE_CENTS
   const commissionCents = Math.round(amountCents * rate)
   if (commissionCents <= 0) return
 
@@ -88,8 +135,8 @@ async function recordAffiliateCommission(payload: YocoEventPayload) {
     .from('affiliate_commissions')
     .insert({
       affiliate_id:     affiliateId,
-      yoco_checkout_id: payload.checkoutId ?? null,   // shared dedupe key with confirm
-      yoco_payment_id:  payload.id ?? null,
+      yoco_checkout_id: checkoutId,   // shared dedupe key with confirm
+      yoco_payment_id:  checkout.paymentId ?? paymentId ?? null,
       amount_cents:     amountCents,
       commission_cents: commissionCents,
       status:           'pending',

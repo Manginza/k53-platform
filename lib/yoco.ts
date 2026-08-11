@@ -74,6 +74,8 @@ export async function createYocoCheckout(
 export interface YocoCheckoutDetail {
   id: string
   status: string                       // 'created' | 'started' | 'processing' | 'completed' | 'expired'
+  amount?: number
+  currency?: string
   paymentId?: string | null
   metadata?: Record<string, string>
 }
@@ -99,23 +101,56 @@ export function isYocoCheckoutPaid(c: YocoCheckoutDetail | null): boolean {
 // ─── Webhook Signature Verification ──────────────────────────────────────────
 
 /**
- * Verifies the HMAC-SHA256 signature Yoco sends in the
- * `X-Yoco-Signature` request header.
+ * Verifies current Checkout API webhooks (`webhook-signature`, `webhook-id`,
+ * and `webhook-timestamp`) including replay protection. A legacy raw-body
+ * hex signature is accepted only when the current ID/timestamp headers are
+ * absent, for compatibility with older registered endpoints.
  *
  * Returns true if the payload matches the expected signature.
  */
 export function verifyYocoSignature(
   rawBody: string,
-  signature: string,
+  signatureHeader: string,
   secret: string,
+  webhookId?: string,
+  webhookTimestamp?: string,
+  toleranceSeconds = 180,
 ): boolean {
   try {
+    if (!rawBody || !signatureHeader || !secret) return false
+
+    // Current Checkout API webhook format. Yoco signs
+    // `${webhook-id}.${webhook-timestamp}.${rawBody}` with the base64-decoded
+    // portion of the whsec_ secret, then sends one or more `v1,<base64>`
+    // signatures in the webhook-signature header.
+    if (webhookId && webhookTimestamp) {
+      const timestamp = Number(webhookTimestamp)
+      if (!Number.isFinite(timestamp)) return false
+      if (Math.abs(Date.now() / 1000 - timestamp) > toleranceSeconds) return false
+
+      const encodedSecret = secret.startsWith('whsec_') ? secret.slice('whsec_'.length) : secret
+      const secretBytes = Buffer.from(encodedSecret, 'base64')
+      if (secretBytes.length === 0) return false
+
+      const expected = createHmac('sha256', secretBytes)
+        .update(`${webhookId}.${webhookTimestamp}.${rawBody}`)
+        .digest('base64')
+      const expectedBytes = Buffer.from(expected)
+
+      return signatureHeader.split(/\s+/).some(item => {
+        const comma = item.indexOf(',')
+        if (comma < 0 || item.slice(0, comma) !== 'v1') return false
+        const candidate = Buffer.from(item.slice(comma + 1))
+        return candidate.length === expectedBytes.length && timingSafeEqual(candidate, expectedBytes)
+      })
+    }
+
+    // Legacy Checkout API compatibility for already-registered webhooks that
+    // still send X-Yoco-Signature as a raw hex HMAC of the request body.
     const expected = createHmac('sha256', secret).update(rawBody).digest('hex')
-    // timingSafeEqual prevents timing-based attacks
-    return timingSafeEqual(
-      Buffer.from(signature.toLowerCase(), 'hex'),
-      Buffer.from(expected, 'hex'),
-    )
+    const candidate = Buffer.from(signatureHeader.toLowerCase(), 'hex')
+    const expectedBytes = Buffer.from(expected, 'hex')
+    return candidate.length === expectedBytes.length && timingSafeEqual(candidate, expectedBytes)
   } catch {
     return false
   }
