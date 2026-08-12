@@ -97,9 +97,10 @@ export default function AffiliateDashboard({
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         {[
           { label: 'Clicks', value: String(stats.clicks) },
+          { label: 'Sign-ups', value: String(stats.signups) },
           { label: 'Sales', value: String(stats.conversions) },
           { label: 'Total earned', value: rand(stats.earnedCents) },
           { label: 'Commission rate', value: `${Math.round(affiliate.commission_rate * 100)}%` },

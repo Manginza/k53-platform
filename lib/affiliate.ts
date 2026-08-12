@@ -7,11 +7,9 @@
  */
 import { createClient } from '@/lib/supabase-server'
 import type { Affiliate, AffiliateStats } from '@/lib/types'
+export { REF_COOKIE, REF_COOKIE_MAX_AGE } from '@/lib/referral'
 
 /** Cookie that carries a referral code from landing → checkout. */
-export const REF_COOKIE = 'sk_ref'
-export const REF_COOKIE_MAX_AGE = 60 * 60 * 24 * 30 // 30 days
-
 /** Affiliates earn 30% of every successful payment. */
 export const COMMISSION_RATE = 0.30
 
@@ -45,8 +43,9 @@ export async function getAffiliateForUser(): Promise<Affiliate | null> {
 export async function getAffiliateStats(affiliate: Affiliate): Promise<AffiliateStats> {
   const supabase = createClient()
 
-  const [{ count: clicks }, commissions] = await Promise.all([
+  const [{ count: clicks }, { count: signups }, commissions] = await Promise.all([
     supabase.from('affiliate_clicks').select('*', { count: 'exact', head: true }).eq('affiliate_id', affiliate.id),
+    supabase.from('referrals').select('*', { count: 'exact', head: true }).eq('affiliate_id', affiliate.id),
     supabase.from('affiliate_commissions').select('commission_cents, status').eq('affiliate_id', affiliate.id),
   ])
 
@@ -70,6 +69,7 @@ export async function getAffiliateStats(affiliate: Affiliate): Promise<Affiliate
 
   return {
     clicks:      clicks ?? 0,
+    signups:     signups ?? 0,
     conversions: rows.length,
     earnedCents,
     paidCents,

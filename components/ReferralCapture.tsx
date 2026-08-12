@@ -13,25 +13,30 @@
  */
 import { useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
-
-const REF_COOKIE = 'sk_ref'
-const MAX_AGE = 60 * 60 * 24 * 30 // 30 days
+import { normalizeReferralCode, REF_COOKIE, REF_COOKIE_MAX_AGE } from '@/lib/referral'
 
 export default function ReferralCapture() {
   const params = useSearchParams()
 
   useEffect(() => {
-    const code = params.get('ref')
+    const code = normalizeReferralCode(params.get('ref'))
     if (!code) return
 
-    // Persist for cross-page / cross-session attribution
-    document.cookie = `${REF_COOKIE}=${encodeURIComponent(code)}; path=/; max-age=${MAX_AGE}; SameSite=Lax`
+    const secure = window.location.protocol === 'https:' ? '; Secure' : ''
+    document.cookie = `${REF_COOKIE}=${encodeURIComponent(code)}; path=/; max-age=${REF_COOKIE_MAX_AGE}; SameSite=Lax${secure}`
+
+    const clickKey = `sk_ref_click_${code}`
+    try {
+      if (sessionStorage.getItem(clickKey)) return
+      sessionStorage.setItem(clickKey, '1')
+    } catch {}
 
     // Log the click (fire-and-forget)
     fetch('/api/affiliate/track', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ code }),
+      keepalive: true,
     }).catch(() => {})
   }, [params])
 
