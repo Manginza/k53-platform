@@ -34,12 +34,26 @@ export async function POST(req: NextRequest) {
 
   // Build the list of checkouts to verify for this user.
   // Fallback: this user's recent checkouts (covers lost localStorage / other device).
-  const { data: sessions } = await admin
+  const { data: sessions, error: sessionsError } = await admin
     .from('checkout_sessions')
     .select('checkout_id')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
     .limit(10)
+  if (sessionsError) {
+    console.error('[yoco/confirm] checkout session lookup failed', {
+      userId: user.id,
+      suppliedCheckoutId: Boolean(checkoutId),
+      error: sessionsError.message,
+    })
+    if (!checkoutId) {
+      return NextResponse.json({
+        granted: false,
+        pending: false,
+        error: 'We could not find your checkout. Please try again in a moment.',
+      }, { status: 500 })
+    }
+  }
   const mappedCheckoutIds = new Set<string>((sessions ?? []).map(s => s.checkout_id))
   const candidates = Array.from(mappedCheckoutIds)
   if (checkoutId && !candidates.includes(checkoutId)) candidates.unshift(checkoutId)
@@ -50,8 +64,27 @@ export async function POST(req: NextRequest) {
 
   // Verify each with Yoco; grant on the first that is paid + belongs to the user.
   for (const cid of candidates) {
-    const checkout = await getYocoCheckout(cid)
-    if (!isYocoCheckoutPaid(checkout)) continue
+    let checkout
+    try {
+      checkout = await getYocoCheckout(cid)
+    } catch (error) {
+      console.error('[yoco/confirm] Yoco checkout lookup failed', {
+        userId: user.id,
+        checkoutId: cid,
+        error: error instanceof Error ? error.message : String(error),
+      })
+      continue
+    }
+    if (!isYocoCheckoutPaid(checkout)) {
+      console.warn('[yoco/confirm] checkout is not yet paid', {
+        userId: user.id,
+        checkoutId: cid,
+        found: Boolean(checkout),
+        status: checkout?.status ?? null,
+        hasPaymentId: Boolean(checkout?.paymentId),
+      })
+      continue
+    }
     if (checkout?.amount !== ACCESS_PRICE_CENTS || checkout?.currency !== 'ZAR') {
       console.error('[yoco/confirm] paid checkout amount/currency mismatch', {
         userId: user.id, checkoutId: cid,
@@ -87,5 +120,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ granted: true })
   }
 
+  console.warn('[yoco/confirm] no paid checkout matched the signed-in account', {
+    userId: user.id,
+    candidateCount: candidates.length,
+    suppliedCheckoutId: Boolean(checkoutId),
+  })
   return NextResponse.json({ granted: false, pending: true })
 }

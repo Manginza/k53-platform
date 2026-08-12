@@ -11,6 +11,8 @@ import { recordAffiliateCommission } from '@/lib/affiliate-attribution'
 
 interface YocoEventPayload {
   id?: string
+  amount?: number
+  currency?: string
   checkoutId?: string
   metadata?: Record<string, string>
 }
@@ -28,9 +30,17 @@ export async function POST(req: NextRequest) {
   const signature = req.headers.get('webhook-signature')
     ?? req.headers.get('X-Yoco-Signature')
     ?? ''
+  if (!signature || (!req.headers.get('X-Yoco-Signature') && (!webhookId || !webhookTimestamp))) {
+    console.error('[yoco-webhook] Missing signature headers — rejected.', {
+      hasWebhookId: Boolean(webhookId),
+      hasWebhookTimestamp: Boolean(webhookTimestamp),
+      hasSignature: Boolean(signature),
+    })
+    return NextResponse.json({ error: 'Missing signature headers.' }, { status: 400 })
+  }
   if (!verifyYocoSignature(rawBody, signature, secret, webhookId, webhookTimestamp)) {
     console.warn('[yoco-webhook] Invalid signature — rejected.')
-    return NextResponse.json({ error: 'Invalid signature.' }, { status: 400 })
+    return NextResponse.json({ error: 'Invalid signature.' }, { status: 403 })
   }
 
   let event: { type: string; payload: YocoEventPayload }
@@ -97,6 +107,37 @@ export async function POST(req: NextRequest) {
       error: error instanceof Error ? error.message : String(error),
     })
     return NextResponse.json({ error: 'Access grant failed.' }, { status: 500 })
+  }
+
+  // Keep an audit trail without duplicating rows when Yoco retries the same
+  // event. This is best-effort: entitlement has already been safely granted.
+  const { data: existingPayment, error: paymentReadError } = await admin
+    .from('payment_history')
+    .select('id')
+    .eq('yoco_checkout_id', checkoutId)
+    .maybeSingle()
+  if (paymentReadError) {
+    console.error('[yoco-webhook] payment history lookup failed (non-fatal).', {
+      checkoutId,
+      error: paymentReadError.message,
+    })
+  } else if (!existingPayment) {
+    const { error: paymentInsertError } = await admin.from('payment_history').insert({
+      user_id: userId,
+      amount_cents: checkout.amount ?? payload.amount ?? ACCESS_PRICE_CENTS,
+      currency: checkout.currency ?? payload.currency ?? 'ZAR',
+      status: 'succeeded',
+      yoco_payment_id: checkout.paymentId ?? payload.id ?? null,
+      yoco_checkout_id: checkoutId,
+      yoco_event_type: type,
+      raw_payload: event,
+    })
+    if (paymentInsertError) {
+      console.error('[yoco-webhook] payment history insert failed (non-fatal).', {
+        checkoutId,
+        error: paymentInsertError.message,
+      })
+    }
   }
 
   try {
