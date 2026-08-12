@@ -24,6 +24,41 @@ const youtubeVideos = [
 
 // YouTube recordings pinned alongside the Drive recordings.
 const liveYoutubeRecordings = [
+  {
+    id: 'En6IEUZW6Oo',
+    url: 'https://www.youtube.com/watch?v=En6IEUZW6Oo',
+    title: 'K53 Rules of the Road LIVE Lesson | Pass Your Learner\u2019s Licence South Africa 2026',
+  },
+  {
+    id: 'L3eJSeQ_L_4',
+    url: 'https://www.youtube.com/watch?v=L3eJSeQ_L_4',
+    title: 'Pass Your Learner\u2019s Licence in 2026 | Rules of the Road Live Lesson',
+  },
+  {
+    id: 'aYfQP5_HZ5E',
+    url: 'https://www.youtube.com/watch?v=aYfQP5_HZ5E',
+    title: 'Selective Restriction Signs Explained | Learner\u2019s Licence Live 2026',
+  },
+  {
+    id: 'uaYQ746Kr2Q',
+    url: 'https://www.youtube.com/watch?v=uaYQ746Kr2Q',
+    title: 'Road Signs Part 1 | Pass Your Learner\u2019s Licence Easily | K53 South Africa 2026',
+  },
+  {
+    id: 'eazLGnuFF5k',
+    url: 'https://www.youtube.com/watch?v=eazLGnuFF5k',
+    title: 'Pass Your Learner\u2019s Licence First Time! Live Class & Q&A',
+  },
+  {
+    id: 'uT4P-IvGE8c',
+    url: 'https://www.youtube.com/watch?v=uT4P-IvGE8c',
+    title: 'Road Signs Part 3: Reservation Signs | K53 Learner\u2019s Licence SA LIVE',
+  },
+  {
+    id: 'N4eQOdgDQdE',
+    url: 'https://www.youtube.com/watch?v=N4eQOdgDQdE',
+    title: 'Prohibition Road Signs Explained | Learner\u2019s Licence Road Signs Part 2 | K53 South Africa',
+  },
   { id: 'VUWx9fuRTl4', url: 'https://youtu.be/VUWx9fuRTl4' },
 ]
 
@@ -86,7 +121,7 @@ export default async function VideosPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <DriveCard fileId={recording.fileId} index={0} url={recording.url} />
           {liveYoutubeRecordings.map((v, i) => (
-            <YouTubeCard key={v.id} id={v.id} index={i} url={v.url} />
+            <YouTubeCard key={v.id} id={v.id} index={i} url={v.url} title={v.title} />
           ))}
           {liveRecordings.map((v, i) => (
             <DriveCard key={v.id} fileId={v.id} index={i + 1} url={v.url} />
