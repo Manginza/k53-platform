@@ -18,6 +18,7 @@ import { createAdminClient } from '@/lib/supabase-admin'
 import { getYocoCheckout, isYocoCheckoutPaid } from '@/lib/yoco'
 import { grantAccess } from '@/lib/access'
 import { ACCESS_DURATION_DAYS, ACCESS_PRICE_CENTS } from '@/lib/contact'
+import { recordAffiliateCommission } from '@/lib/affiliate-attribution'
 
 export async function POST(req: NextRequest) {
   const supabase = createClient()
@@ -81,42 +82,10 @@ export async function POST(req: NextRequest) {
       }, { status: 500 })
     }
     // Commission failures shouldn't unwind a successful grant — log and press on.
-    try { await recordCommission(admin, checkout, cid) }
+    try { await recordAffiliateCommission(admin, checkout, cid) }
     catch (err) { console.error('[yoco/confirm] recordCommission failed', err) }
     return NextResponse.json({ granted: true })
   }
 
   return NextResponse.json({ granted: false, pending: true })
-}
-
-/** Credit the referring affiliate 30% (idempotent on checkout id). */
-async function recordCommission(
-  admin: ReturnType<typeof createAdminClient>,
-  checkout: Awaited<ReturnType<typeof getYocoCheckout>>,
-  checkoutId: string,
-) {
-  const affiliateId = checkout?.metadata?.affiliateId
-  const rate = Number(checkout?.metadata?.commissionRate) || 0
-  if (!affiliateId || rate <= 0) return
-
-  const commissionCents = Math.round(ACCESS_PRICE_CENTS * rate)
-  const { error } = await admin
-    .from('affiliate_commissions')
-    .insert({
-      affiliate_id: affiliateId,
-      yoco_checkout_id: checkoutId,
-      yoco_payment_id: checkout?.paymentId ?? null,
-      amount_cents: ACCESS_PRICE_CENTS,
-      commission_cents: commissionCents,
-      status: 'pending',
-    })
-  // 23505 = the webhook (or a retry of this route) already credited it.
-  // We intentionally no longer bump affiliates.total_earned_cents here.
-  // That read-modify-write was racy with concurrent payments and left
-  // the counter under-counting real earnings. Display code (both
-  // /affiliate and /admin/payouts) now derives earned totals directly
-  // from affiliate_commissions, which is the source of truth.
-  if (error && error.code !== '23505') {
-    console.error('[yoco/confirm] commission insert error:', error.message)
-  }
 }

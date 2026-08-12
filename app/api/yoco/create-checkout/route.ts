@@ -15,7 +15,8 @@ import { cookies, headers } from 'next/headers'
 import { createClient } from '@/lib/supabase-server'
 import { createAdminClient } from '@/lib/supabase-admin'
 import { createYocoCheckout } from '@/lib/yoco'
-import { REF_COOKIE } from '@/lib/affiliate'
+import { REF_COOKIE } from '@/lib/referral'
+import { attributionMetadata, resolveAffiliateAttribution } from '@/lib/affiliate-attribution'
 import { ACCESS_PRICE_CENTS, ACCESS_DURATION_DAYS } from '@/lib/contact'
 
 /**
@@ -52,15 +53,19 @@ export async function POST(req: NextRequest) {
   }
 
   // Affiliate attribution from the referral cookie (no self-referrals).
-  const refCode = cookies().get(REF_COOKIE)?.value
-  const affiliateMeta: Record<string, string> = {}
-  if (refCode) {
-    const { data: aff } = await createAdminClient()
-      .from('affiliates').select('id, user_id, commission_rate').eq('code', refCode).eq('status', 'active').maybeSingle()
-    if (aff && aff.user_id !== user.id) {
-      affiliateMeta.affiliateId = aff.id
-      affiliateMeta.commissionRate = String(aff.commission_rate)
-    }
+  const admin = createAdminClient()
+  let affiliateMeta: Record<string, string> = {}
+  try {
+    const attribution = await resolveAffiliateAttribution(admin, user.id, cookies().get(REF_COOKIE)?.value)
+    if (attribution) affiliateMeta = attributionMetadata(attribution)
+  } catch (attributionError) {
+    console.error('[create-checkout] referral attribution failed; checkout blocked', {
+      userId: user.id,
+      error: attributionError instanceof Error ? attributionError.message : String(attributionError),
+    })
+    return NextResponse.json({
+      error: 'We could not securely link this referral to your payment. Please try again.',
+    }, { status: 503 })
   }
 
   try {
@@ -79,7 +84,7 @@ export async function POST(req: NextRequest) {
     // leave a paid user with no way to be recognised on return. Log LOUDLY
     // if it fails. Do not send a buyer to payment unless this durable identity
     // link exists; otherwise a successful payment could be left unassigned.
-    const { error: sessionErr } = await createAdminClient()
+    const { error: sessionErr } = await admin
       .from('checkout_sessions')
       .insert({ checkout_id: checkout.id, user_id: user.id })
     if (sessionErr) {

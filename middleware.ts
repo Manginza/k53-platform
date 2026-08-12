@@ -1,7 +1,11 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { normalizeReferralCode, REF_COOKIE, REF_COOKIE_MAX_AGE } from '@/lib/referral'
 
 export async function middleware(request: NextRequest) {
+  const referralCode = normalizeReferralCode(request.nextUrl.searchParams.get('ref'))
+  if (referralCode) request.cookies.set(REF_COOKIE, referralCode)
+
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
@@ -28,6 +32,16 @@ export async function middleware(request: NextRequest) {
   // cookies via setAll above, so downstream server components and API routes
   // see a valid session instead of null.
   await supabase.auth.getUser()
+
+  if (referralCode) {
+    supabaseResponse.cookies.set(REF_COOKIE, referralCode, {
+      path: '/',
+      maxAge: REF_COOKIE_MAX_AGE,
+      sameSite: 'lax',
+      secure: request.nextUrl.protocol === 'https:',
+      httpOnly: true,
+    })
+  }
 
   return supabaseResponse
 }

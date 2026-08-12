@@ -43,6 +43,8 @@ export interface Affiliate {
 export interface AffiliateCommission {
   id: string
   affiliate_id: string
+  referral_id: string | null
+  referred_user_id: string | null
   yoco_payment_id: string | null
   yoco_checkout_id: string | null
   amount_cents: number
@@ -54,6 +56,7 @@ export interface AffiliateCommission {
 /** Aggregated figures for the affiliate dashboard. */
 export interface AffiliateStats {
   clicks: number
+  signups: number          // learners durably attributed to the affiliate
   conversions: number      // number of paid commissions
   earnedCents: number      // lifetime commission earned
   pendingCents: number     // earned but not yet paid out

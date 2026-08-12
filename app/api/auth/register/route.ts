@@ -8,6 +8,8 @@
  */
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase-admin'
+import { resolveAffiliateAttribution } from '@/lib/affiliate-attribution'
+import { REF_COOKIE } from '@/lib/referral'
 
 export async function POST(req: NextRequest) {
   let email: string | undefined
@@ -23,13 +25,21 @@ export async function POST(req: NextRequest) {
   if (password.length < 6) return NextResponse.json({ error: 'Password must be at least 6 characters.' }, { status: 400 })
 
   const admin = createAdminClient()
-  const { error } = await admin.auth.admin.createUser({ email, password, email_confirm: true })
-  if (error) {
-    const dup = /registered|already|exists/i.test(error.message)
+  const { data: created, error } = await admin.auth.admin.createUser({ email, password, email_confirm: true })
+  if (error || !created.user) {
+    const message = error?.message ?? 'Could not create the account.'
+    const dup = /registered|already|exists/i.test(message)
     return NextResponse.json(
-      { error: dup ? 'An account with this email already exists. Please log in instead.' : error.message },
+      { error: dup ? 'An account with this email already exists. Please log in instead.' : message },
       { status: dup ? 409 : 400 },
     )
+  }
+  try {
+    await resolveAffiliateAttribution(admin, created.user.id, req.cookies.get(REF_COOKIE)?.value)
+  } catch (attributionError) {
+    await admin.auth.admin.deleteUser(created.user.id).catch(() => {})
+    console.error('[auth/register] referral attribution failed', attributionError)
+    return NextResponse.json({ error: 'Could not save your referral. Please try again.' }, { status: 503 })
   }
   return NextResponse.json({ ok: true })
 }

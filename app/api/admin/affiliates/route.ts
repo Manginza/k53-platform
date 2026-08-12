@@ -9,14 +9,17 @@ export async function GET() {
   if (!admin) return NextResponse.json({ error: 'Unauthorised.' }, { status: 401 })
 
   const db = createAdminClient()
-  const [{ data: affiliates }, { data: commissions }] = await Promise.all([
+  const [{ data: affiliates }, { data: referrals }, { data: commissions }] = await Promise.all([
     db.from('affiliates').select('*').order('created_at', { ascending: false }),
+    db.from('referrals')
+      .select('id, affiliate_id, referred_user_id, code, status, converted_at, created_at')
+      .order('created_at', { ascending: false }),
     db.from('affiliate_commissions')
       .select('affiliate_id, commission_cents, amount_cents, status, created_at, yoco_payment_id')
       .order('created_at', { ascending: false }),
   ])
 
-  return NextResponse.json({ affiliates: affiliates ?? [], commissions: commissions ?? [] })
+  return NextResponse.json({ affiliates: affiliates ?? [], referrals: referrals ?? [], commissions: commissions ?? [] })
 }
 
 export async function POST(req: NextRequest) {
