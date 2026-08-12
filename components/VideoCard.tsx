@@ -6,6 +6,7 @@ interface YouTubeCardProps {
   id: string
   index: number
   url: string
+  title?: string
 }
 
 interface DriveCardProps {
@@ -15,9 +16,10 @@ interface DriveCardProps {
 }
 
 // ── YouTube card — thumbnail from YouTube CDN, iframe only on click ────────
-export function YouTubeCard({ id, index, url }: YouTubeCardProps) {
+export function YouTubeCard({ id, index, url, title }: YouTubeCardProps) {
   const [playing, setPlaying] = useState(false)
   const thumbnail = `https://img.youtube.com/vi/${id}/hqdefault.jpg`
+  const accessibleTitle = title ?? `YouTube video ${index + 1}`
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden group">
@@ -25,7 +27,7 @@ export function YouTubeCard({ id, index, url }: YouTubeCardProps) {
         {playing ? (
           <iframe
             src={`https://www.youtube.com/embed/${id}?autoplay=1`}
-            title={`YouTube video ${index + 1}`}
+            title={accessibleTitle}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
             className="absolute inset-0 w-full h-full"
@@ -34,13 +36,13 @@ export function YouTubeCard({ id, index, url }: YouTubeCardProps) {
           <button
             onClick={() => setPlaying(true)}
             className="absolute inset-0 w-full h-full focus:outline-none"
-            aria-label={`Play YouTube video ${index + 1}`}
+            aria-label={`Play ${accessibleTitle}`}
           >
             {/* Thumbnail */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={thumbnail}
-              alt={`Video ${index + 1} thumbnail`}
+              alt={`${accessibleTitle} thumbnail`}
               className="w-full h-full object-cover"
             />
             {/* Dark overlay on hover */}
@@ -60,7 +62,7 @@ export function YouTubeCard({ id, index, url }: YouTubeCardProps) {
       <div className="px-4 py-3 flex items-center justify-between">
         <div>
           <span className="text-xs font-bold text-red-500 uppercase tracking-wide">YouTube</span>
-          <p className="text-sm font-semibold text-gray-800 mt-0.5">Video {index + 1}</p>
+          <p className="text-sm font-semibold text-gray-800 mt-0.5">{title ?? `Video ${index + 1}`}</p>
         </div>
         <a
           href={url}
