@@ -10,17 +10,17 @@ export const WHATSAPP_URL =
   `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`
 
 /** Support line for checkout / payment queries. */
-export const WHATSAPP_QUERIES_NUMBER = '27679609012'   // +27 67 960 9012
+export const WHATSAPP_QUERIES_NUMBER = '27631721259'   // +27 63 172 1259
 export const WHATSAPP_QUERIES_MESSAGE = 'Hi, I have a query about my course payment / checkout.'
 export const WHATSAPP_QUERIES_URL =
   `https://wa.me/${WHATSAPP_QUERIES_NUMBER}?text=${encodeURIComponent(WHATSAPP_QUERIES_MESSAGE)}`
 
 /** Live online evening study sessions on YouTube. */
-export const LIVE_SESSION_URL = 'https://youtube.com/live/uaYQ746Kr2Q?feature=share'
+export const LIVE_SESSION_URL = 'https://youtube.com/live/btSIocehZcU?feature=share'
 export const LIVE_SESSION_SCHEDULE = 'Every day, 8pm–9pm'
 export const LIVE_SESSION_NOTE = 'Sessions are recorded, so you can catch up if you miss one.'
 /** Recording of the live session on YouTube. */
-export const LIVE_SESSION_RECORDING_URL = 'https://youtube.com/live/uaYQ746Kr2Q?feature=share'
+export const LIVE_SESSION_RECORDING_URL = 'https://youtube.com/live/btSIocehZcU?feature=share'
 export const LIVE_SESSION_RECORDING_FILE_ID = ''
 
 /**
@@ -34,8 +34,8 @@ export const LIVE_SESSION_RECORDING_FILE_ID = ''
  * - Both set        → the promo activates automatically at FROM and
  *                     shuts down at UNTIL, no code change needed.
  */
-export const FREE_PROMO_FROM  = '2026-08-06T20:00:00+02:00' // opens at 8pm SAST tonight
-export const FREE_PROMO_UNTIL = '2026-08-08T06:00:00+02:00' // closes at the upcoming 6am SAST
+export const FREE_PROMO_FROM  = '2026-09-03T19:02:00+02:00'  // 7:02pm SAST
+export const FREE_PROMO_UNTIL = '2026-09-03T21:00:00+02:00'  // 9pm SAST
 
 export function isFreePromoActive(): boolean {
   if (!FREE_PROMO_UNTIL) return false
