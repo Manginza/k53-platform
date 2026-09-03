@@ -35,7 +35,7 @@ export const LIVE_SESSION_RECORDING_FILE_ID = ''
  *                     shuts down at UNTIL, no code change needed.
  */
 export const FREE_PROMO_FROM  = '2026-09-03T19:02:00+02:00'  // 7:02pm SAST
-export const FREE_PROMO_UNTIL = '2026-09-03T21:00:00+02:00'  // 9pm SAST
+export const FREE_PROMO_UNTIL = '2026-09-03T23:00:00+02:00'  // 11pm SAST
 
 export function isFreePromoActive(): boolean {
   if (!FREE_PROMO_UNTIL) return false
