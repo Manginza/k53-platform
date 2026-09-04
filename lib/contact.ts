@@ -20,7 +20,7 @@ export const LIVE_SESSION_URL = 'https://www.skdriving.co.za/videos'
 export const LIVE_SESSION_SCHEDULE = 'Every day, 8pm–9pm'
 export const LIVE_SESSION_NOTE = 'Sessions are recorded, so you can catch up if you miss one.'
 /** Recording of the live session on YouTube. */
-export const LIVE_SESSION_RECORDING_URL = 'https://youtube.com/live/btSIocehZcU?feature=share'
+export const LIVE_SESSION_RECORDING_URL = 'https://www.skdriving.co.za/videos'
 export const LIVE_SESSION_RECORDING_FILE_ID = ''
 
 /**

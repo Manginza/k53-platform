@@ -1,26 +1,16 @@
 'use client'
 
 /**
- * YoutubeRecordingPopup — "missed the live? watch the recording" nudge
- * for Monday's Rules of the Road Part 2 live lesson on YouTube.
- *
- * Shown to EVERYONE (paying and non-paying) once the live session has
- * ended (9pm SAST on 27 July) and for one week afterwards, so people
- * who couldn't tune in still get a clear hook back to the recording.
- * One-off dismissal per user via localStorage — clicking the CTA,
- * closing with × / "Maybe later", or clicking the backdrop all count
- * as a dismiss and the popup never comes back.
- *
- * The active-session popup (YoutubeLiveSessionPopup) auto-hides at
- * 9pm, so the two don't overlap.
+ * YoutubeRecordingPopup — "missed the live? watch the recording" nudge.
+ * Shows after the live session ends and for one week afterwards.
  */
 import { useEffect, useState } from 'react'
 
-const YOUTUBE_URL      = 'https://youtu.be/QzNX1F8l5RI'
-const WINDOW_START     = Date.parse('2026-07-27T00:00:00+02:00') // show immediately
-const WINDOW_END       = Date.parse('2026-08-03T21:00:00+02:00') // 7 days
+const YOUTUBE_URL      = 'https://www.skdriving.co.za/videos'
+const WINDOW_START     = Date.parse('2026-08-10T21:00:00+02:00') // after live session ends
+const WINDOW_END       = Date.parse('2026-08-17T21:00:00+02:00') // 7 days
 
-const DISMISS_KEY = 'sk_yt_recording_2026_07_27_v2'
+const DISMISS_KEY = 'sk_yt_recording_2026_08_10'
 
 export default function YoutubeRecordingPopup() {
   const [open, setOpen] = useState(false)
@@ -65,15 +55,15 @@ export default function YoutubeRecordingPopup() {
             Missed the live session? Watch it back.
           </h2>
           <p className="text-red-100 text-sm mt-1">
-            Rules of the Road Part 2 · 27 July
+            Learner&apos;s Licence Live · 10 August
           </p>
         </div>
 
         {/* Body */}
         <div className="px-7 py-6 text-center">
           <p className="text-sm text-gray-700 mb-2">
-            Couldn&apos;t make it live? The full Rules of the Road Part 2 recording is
-            up on YouTube — the rules you need to pass first time.
+            Couldn&apos;t make it live? The full Learner&apos;s Licence session recording is
+            up on YouTube — everything you need to pass first time.
           </p>
           <p className="text-xs text-gray-400 mb-5">
             Watch at your own pace, pause and rewind as much as you like.

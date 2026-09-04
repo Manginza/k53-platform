@@ -1,35 +1,23 @@
 'use client'
 
 /**
- * YoutubeLiveSessionPopup — reminder for Monday's Rules of the Road Part 2
- * live lesson on YouTube (2026-07-27, 8pm to 9pm SAST).
- *
- * Cadence: once per hour, for EVERYONE (anon, registered, paid). We store
- * the timestamp of the last time we showed the popup in localStorage;
- * on mount, if that's more than an hour ago (or never), we show it and
- * bump the timestamp to now. That means:
- *   - dismissing via X / "Maybe later" / clicking the CTA hides it for
- *     ~an hour;
- *   - just closing the tab without dismissing has the same effect —
- *     the "last shown" timestamp was already set on mount;
- *   - once the hour passes, the very next page load shows it again.
- *
- * Auto-hides entirely after the session's end time (9pm SAST), so the
- * popup won't linger into the next day.
+ * YoutubeLiveSessionPopup — reminder for tonight's Rules of the Road Part 1
+ * live lesson on YouTube (2026-07-29, 8pm to 9pm SAST).
  */
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { getAccessStatus } from '@/lib/access-cache'
 
-const YOUTUBE_URL       = 'https://youtube.com/live/En6IEUZW6Oo?feature=share'
-const YOUTUBE_EMBED_URL = 'https://www.youtube.com/embed/En6IEUZW6Oo?autoplay=1'
-const SESSION_START     = Date.parse('2026-07-27T20:00:00+02:00') // 8pm SAST Monday
-const SESSION_END       = Date.parse('2026-07-27T21:00:00+02:00') // 9pm SAST Monday
+const YOUTUBE_URL       = 'https://www.skdriving.co.za/videos'
+const YOUTUBE_EMBED_URL = 'https://www.youtube.com/embed/btSIocehZcU?autoplay=1'
+const POPUP_START       = Date.parse('2026-08-31T19:55:00+02:00') // 7:55pm — 5 min before
+const SESSION_START     = Date.parse('2026-08-31T20:00:00+02:00') // 8pm SAST
+const SESSION_END       = Date.parse('2026-08-31T21:00:00+02:00') // 9pm SAST
 const REMIND_INTERVAL_MS = 60 * 60 * 1000                          // 1 hour
-const PREVIEW_LENGTH_MS = 2 * 60 * 1000                            // 2 minutes
+const PREVIEW_LENGTH_MS = 3 * 60 * 1000                            // 3 minutes
 
-const LAST_SHOWN_KEY = 'sk_yt_live_2026_07_27_last_shown_ms'
-const PREVIEW_STARTED_KEY = 'sk_yt_live_2026_07_27_preview_started_ms'
+const LAST_SHOWN_KEY = 'sk_yt_live_2026_08_31_last_shown_ms'
+const PREVIEW_STARTED_KEY = 'sk_yt_live_2026_08_31_preview_started_ms'
 
 export default function YoutubeLiveSessionPopup() {
   const [open, setOpen] = useState(false)
@@ -42,6 +30,7 @@ export default function YoutubeLiveSessionPopup() {
   useEffect(() => {
     const now = Date.now()
     if (!SESSION_END || now >= SESSION_END) return   // session over, never show again
+    if (now < POPUP_START) return                    // too early, wait until 7:55pm
 
     let cancelled = false
 
@@ -168,7 +157,7 @@ export default function YoutubeLiveSessionPopup() {
             <span className="text-xs font-semibold text-red-100">on YouTube</span>
           </div>
           <h2 className="text-xl sm:text-2xl font-extrabold leading-snug">
-            Rules of the Road Part 2 — Live Lesson
+            Learner&apos;s Licence — Live Lesson
           </h2>
           <p className="text-red-100 text-sm mt-1">
             Tonight · <strong className="text-white">8pm to 9pm</strong> · SAST
@@ -216,7 +205,7 @@ export default function YoutubeLiveSessionPopup() {
               <p className="text-xs text-gray-400 mb-5">
                 {hasFullAccess
                   ? 'Bring your questions — the chat is open on YouTube.'
-                  : 'Guests can watch a free 2-minute preview.'}
+                  : 'Guests can watch a free 3-minute preview.'}
               </p>
 
               {hasFullAccess ? (
@@ -235,7 +224,7 @@ export default function YoutubeLiveSessionPopup() {
                   disabled={beforeStart}
                   className="block w-full bg-red-600 text-white font-bold py-3 rounded-xl hover:bg-red-700 transition-colors disabled:cursor-not-allowed disabled:bg-gray-300"
                 >
-                  {beforeStart ? 'Preview available at 8pm' : 'Watch free 2-minute preview →'}
+                  {beforeStart ? 'Preview available at 8pm' : 'Watch free 3-minute preview →'}
                 </button>
               )}
             </>
