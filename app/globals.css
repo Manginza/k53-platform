@@ -3,21 +3,16 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --background: #f8fafc;
+  --foreground: #0f172a;
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Keep remotely hosted quiz media in a stable formatting context. Older
@@ -42,4 +37,37 @@ body {
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(8px) scale(0.98); }
   to   { opacity: 1; transform: translateY(0)   scale(1); }
+}
+
+/* Hero road-line decorative animation */
+@keyframes roadDash {
+  to { stroke-dashoffset: -40; }
+}
+
+/* Smooth section reveal on scroll */
+@keyframes revealUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Glass card shimmer on hover */
+@layer components {
+  .card-elevated {
+    @apply bg-white rounded-2xl border border-gray-100 shadow-card transition-all duration-300;
+  }
+  .card-elevated:hover {
+    @apply shadow-card-hover -translate-y-0.5 border-gray-200;
+  }
+  .section-container {
+    @apply max-w-6xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+  .btn-primary {
+    @apply bg-brand-600 text-white font-bold rounded-full hover:bg-brand-700 transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98];
+  }
+  .btn-secondary {
+    @apply bg-white text-brand-700 font-bold rounded-full border-2 border-brand-200 hover:border-brand-400 hover:bg-brand-50 transition-all duration-200 active:scale-[0.98];
+  }
+  .btn-accent {
+    @apply bg-green-600 text-white font-bold rounded-full hover:bg-green-700 transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98];
+  }
 }
