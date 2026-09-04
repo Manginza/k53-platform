@@ -8,12 +8,10 @@
  * dynamic. If the tab is already open before 6pm, it pops at 6pm.
  */
 import { useEffect, useState } from 'react'
-import { LIVE_SESSION_URL, LIVE_SESSION_SCHEDULE, LIVE_SESSION_NOTE, LIVE_SESSION_RECORDING_URL } from '@/lib/contact'
+import { LIVE_SESSION_URL, LIVE_SESSION_SCHEDULE, LIVE_SESSION_NOTE } from '@/lib/contact'
 import { getAccessStatus } from '@/lib/access-cache'
 
 const DISMISS_KEY = 'sk_session_popup'
-const YOUTUBE_OVERRIDE_START = Date.parse('2026-07-27T00:00:00+02:00')
-const YOUTUBE_OVERRIDE_END = Date.parse('2026-07-28T00:00:00+02:00')
 const START_HOUR = 20   // 8pm — popup opens
 const END_HOUR   = 21   // 9pm — popup closes / never shows after this
 
@@ -21,11 +19,6 @@ export default function LiveSessionPopup() {
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
-    const nowMs = Date.now()
-    // The 23 July session is on YouTube; suppress the usual Google Meet
-    // reminder for this SAST calendar day so only the YouTube popup appears.
-    if (nowMs >= YOUTUBE_OVERRIDE_START && nowMs < YOUTUBE_OVERRIDE_END) return
-
     const today = new Date().toDateString()
     try { if (localStorage.getItem(DISMISS_KEY) === today) return } catch {}
 
@@ -77,39 +70,31 @@ export default function LiveSessionPopup() {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
-      {/* backdrop */}
-      <div className="absolute inset-0 bg-black/50" onClick={dismiss} />
-      {/* card */}
-      <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-7 text-center animate-[fadeIn_0.2s_ease-out]">
-        <button onClick={dismiss} aria-label="Close" className="absolute top-3 right-4 text-gray-400 hover:text-gray-700 text-2xl leading-none">×</button>
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={dismiss} />
+      <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center animate-[fadeIn_0.2s_ease-out]">
+        <button onClick={dismiss} aria-label="Close" className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-all duration-200">
+          <svg viewBox="0 0 20 20" className="w-5 h-5 fill-current" aria-hidden="true"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
+        </button>
 
-        <div className="text-5xl mb-3">📹</div>
-        <h2 className="text-2xl font-extrabold text-gray-900 mb-1">Learner&apos;s Licence session tonight!</h2>
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-indigo-100 mb-4">
+          <svg viewBox="0 0 24 24" className="w-8 h-8 text-indigo-600 fill-current" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+        </div>
+        <h2 className="text-2xl font-extrabold text-gray-900 mb-2">Watch Learner&apos;s Licence Videos</h2>
         <p className="text-sm text-gray-600 mb-1">
-          Join our Learner&apos;s Licence course session this evening at <strong>8pm</strong>.
+          Study for your Learner&apos;s Licence with our video lessons — available now.
         </p>
-        <p className="text-xs text-gray-500 mb-1">{LIVE_SESSION_SCHEDULE}</p>
-        <p className="text-xs text-gray-400 mb-5">{LIVE_SESSION_NOTE}</p>
+        <p className="text-xs text-gray-400 mb-6">{LIVE_SESSION_NOTE}</p>
 
         <a
           href={LIVE_SESSION_URL}
           target="_blank"
           rel="noopener noreferrer"
           onClick={dismiss}
-          className="block w-full bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-700 transition-colors"
+          className="block w-full bg-indigo-600 text-white font-bold py-3.5 rounded-xl hover:bg-indigo-700 transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98]"
         >
-          Join on Google Meet →
+          Watch Learner&apos;s Licence Videos
         </a>
-        <a
-          href={LIVE_SESSION_RECORDING_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={dismiss}
-          className="block w-full border-2 border-indigo-200 text-indigo-700 font-semibold py-2.5 rounded-xl mt-2 hover:bg-indigo-50 transition-colors text-sm"
-        >
-          📹 Missed a session? Watch the recording
-        </a>
-        <button onClick={dismiss} className="block w-full text-gray-500 font-medium py-3 mt-1 hover:text-gray-700 text-sm">
+        <button onClick={dismiss} className="block w-full text-gray-500 font-medium py-3 mt-1 hover:text-gray-700 text-sm transition-colors">
           Maybe later
         </button>
       </div>

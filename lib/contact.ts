@@ -16,7 +16,7 @@ export const WHATSAPP_QUERIES_URL =
   `https://wa.me/${WHATSAPP_QUERIES_NUMBER}?text=${encodeURIComponent(WHATSAPP_QUERIES_MESSAGE)}`
 
 /** Live online evening study sessions on YouTube. */
-export const LIVE_SESSION_URL = 'https://youtube.com/live/btSIocehZcU?feature=share'
+export const LIVE_SESSION_URL = 'https://www.skdriving.co.za/videos'
 export const LIVE_SESSION_SCHEDULE = 'Every day, 8pm–9pm'
 export const LIVE_SESSION_NOTE = 'Sessions are recorded, so you can catch up if you miss one.'
 /** Recording of the live session on YouTube. */
