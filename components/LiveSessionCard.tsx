@@ -2,7 +2,7 @@
  * LiveSessionCard — shows the live evening study-session details + YouTube
  * link to paid members (after checkout and on member pages). Server-safe.
  */
-import { LIVE_SESSION_URL, LIVE_SESSION_SCHEDULE, LIVE_SESSION_NOTE } from '@/lib/contact'
+import { LIVE_SESSION_URL, LIVE_SESSION_NOTE } from '@/lib/contact'
 
 export default function LiveSessionCard({ className = '' }: { className?: string }) {
   return (

@@ -8,7 +8,7 @@
  * dynamic. If the tab is already open before 6pm, it pops at 6pm.
  */
 import { useEffect, useState } from 'react'
-import { LIVE_SESSION_URL, LIVE_SESSION_SCHEDULE, LIVE_SESSION_NOTE } from '@/lib/contact'
+import { LIVE_SESSION_URL, LIVE_SESSION_NOTE } from '@/lib/contact'
 import { getAccessStatus } from '@/lib/access-cache'
 
 const DISMISS_KEY = 'sk_session_popup'
