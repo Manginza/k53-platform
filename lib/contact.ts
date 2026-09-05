@@ -4,13 +4,13 @@
  * Paid access is arranged over WhatsApp or via Yoco card payment for R139 →
  * 60 days of full access.
  */
-export const WHATSAPP_NUMBER = '27631721259'           // +27 63 172 1259
+export const WHATSAPP_NUMBER = '27699075971'           // +27 69 907 5971 (069 907 5971)
 export const WHATSAPP_MESSAGE = "I'm interested in buying the course for R99 (special, down from R150)."
 export const WHATSAPP_URL =
   `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`
 
 /** Support line for checkout / payment queries. */
-export const WHATSAPP_QUERIES_NUMBER = '27631721259'   // +27 63 172 1259
+export const WHATSAPP_QUERIES_NUMBER = '27699075971'   // +27 69 907 5971 (069 907 5971)
 export const WHATSAPP_QUERIES_MESSAGE = 'Hi, I have a query about my course payment / checkout.'
 export const WHATSAPP_QUERIES_URL =
   `https://wa.me/${WHATSAPP_QUERIES_NUMBER}?text=${encodeURIComponent(WHATSAPP_QUERIES_MESSAGE)}`
