@@ -10,8 +10,13 @@ export const WHATSAPP_MESSAGE = "I'm interested in buying the course for R99 (sp
 export const WHATSAPP_URL =
   `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`
 
-/** Support line for checkout / payment queries. */
-export const WHATSAPP_QUERIES_NUMBER = '27699075971'   // +27 69 907 5971
+/**
+ * Support line for checkout / payment queries — the number shown to someone
+ * who has paid but cannot get in. Deliberately separate from
+ * WHATSAPP_NUMBER, which is the sales line: these reach different people and
+ * changing one must not silently change the other.
+ */
+export const WHATSAPP_QUERIES_NUMBER = '27661063292'   // +27 66 106 3292
 export const WHATSAPP_QUERIES_MESSAGE = 'Hi, I have a query about my course payment / checkout.'
 export const WHATSAPP_QUERIES_URL =
   `https://wa.me/${WHATSAPP_QUERIES_NUMBER}?text=${encodeURIComponent(WHATSAPP_QUERIES_MESSAGE)}`
