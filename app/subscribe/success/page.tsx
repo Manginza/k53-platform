@@ -3,12 +3,19 @@
 /**
  * /subscribe/success — landing after returning from Yoco. Confirms the payment
  * directly with Yoco (via /api/yoco/confirm) and grants the logged-in account
- * 60 days of access, then sends them to the courses. Independent of the webhook.
+ * its full-access window, then sends them to the courses. Independent of the
+ * webhook.
+ *
+ * This page is the fastest of four routes to access, not the only one. If it
+ * gives up, the webhook, the on-demand recovery in /api/me/access and the
+ * scheduled sweep in /api/cron/reconcile all still apply the payment on their
+ * own. That is why the fallback below tells the buyer their access is coming
+ * rather than asking them to contact us.
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { WHATSAPP_QUERIES_URL } from '@/lib/contact'
+import { WHATSAPP_QUERIES_URL, ACCESS_DURATION_DAYS } from '@/lib/contact'
 import { invalidateAccessCache } from '@/lib/access-cache'
 import LiveSessionCard from '@/components/LiveSessionCard'
 
@@ -75,14 +82,14 @@ export default function SubscribeSuccessPage() {
           <>
             <div className="text-5xl mb-4">⏳</div>
             <h1 className="text-2xl font-extrabold text-gray-900 mb-2">Confirming your payment…</h1>
-            <p className="text-sm text-gray-500">Unlocking your 60-day full access — just a moment.</p>
+            <p className="text-sm text-gray-500">Unlocking your {ACCESS_DURATION_DAYS}-day full access — just a moment.</p>
           </>
         )}
         {status === 'done' && (
           <>
             <div className="text-6xl mb-4">🎉</div>
             <h1 className="text-2xl font-extrabold text-gray-900 mb-2">You&apos;re in!</h1>
-            <p className="text-sm text-gray-500 mb-5">Full access is unlocked on your account for 60 days.</p>
+            <p className="text-sm text-gray-500 mb-5">Full access is unlocked on your account for {ACCESS_DURATION_DAYS} days.</p>
 
             <LiveSessionCard className="mb-5" />
 
@@ -111,17 +118,22 @@ export default function SubscribeSuccessPage() {
           <>
             <div className="text-5xl mb-4">✅</div>
             <h1 className="text-2xl font-extrabold text-gray-900 mb-2">Payment received</h1>
-            <p className="text-sm text-gray-500 mb-6">
+            <p className="text-sm text-gray-500 mb-2">
               {grantError
                 ? grantError
-                : <>We&apos;re finalising your access. Tap <strong>Unlock my access</strong> below — if it still hasn&apos;t unlocked, message us on WhatsApp with the email you paid with and we&apos;ll sort it out right away.</>}
+                : <>Your payment is safe and your {ACCESS_DURATION_DAYS} days are held against your account.</>}
+            </p>
+            <p className="text-sm text-gray-500 mb-6">
+              Access unlocks by itself, usually within a few minutes. You do not need to do anything
+              or message anyone — just log in later and it will be there. Tap <strong>Unlock my access</strong>
+              {' '}if you would rather not wait.
             </p>
             <div className="flex flex-col gap-3">
               <button onClick={() => { attempts.current = 0; setGrantError(''); setStatus('confirming'); confirm() }} className="block w-full bg-blue-700 text-white font-bold py-3 rounded-xl hover:bg-blue-800 transition-colors">Unlock my access</button>
-              <a href={WHATSAPP_QUERIES_URL} target="_blank" rel="noopener noreferrer" className="block w-full bg-green-600 text-white font-bold py-3 rounded-xl hover:bg-green-700 transition-colors text-center">
-                WhatsApp us about my payment
-              </a>
               <Link href="/courses" className="block border-2 border-gray-200 text-gray-600 font-semibold py-3 rounded-xl hover:border-gray-400 transition-colors text-center">Go to courses</Link>
+              <a href={WHATSAPP_QUERIES_URL} target="_blank" rel="noopener noreferrer" className="block w-full text-sm text-gray-500 hover:text-gray-700 underline underline-offset-2 py-1 text-center">
+                Still stuck after an hour? Message us
+              </a>
             </div>
           </>
         )}
