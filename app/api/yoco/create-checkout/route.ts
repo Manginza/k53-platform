@@ -1,7 +1,7 @@
 /**
  * POST /api/yoco/create-checkout
  *
- * Creates a Yoco Hosted Checkout for the full-access / 60-day pass (price from
+ * Creates a Yoco Hosted Checkout for the full-access pass (price and length from
  * ACCESS_PRICE_CENTS). Requires a
  * logged-in account (register-before-pay). The buyer's user id is put in the
  * Yoco metadata so the payment can be tied back to their account and access
@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
       successUrl: `${BASE_URL}/subscribe/success`,
       cancelUrl:  `${BASE_URL}/pricing`,
       failureUrl: `${BASE_URL}/subscribe/failed`,
-      metadata: { userId: user.id, durationDays: String(ACCESS_DURATION_DAYS), product: 'full-access-60day', ...affiliateMeta },
+      metadata: { userId: user.id, durationDays: String(ACCESS_DURATION_DAYS), product: `full-access-${ACCESS_DURATION_DAYS}day`, ...affiliateMeta },
     })
 
     // Map the checkout to this account so access can be granted on return even
