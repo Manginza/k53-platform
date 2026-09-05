@@ -2,12 +2,42 @@ import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 import { getAdminUser } from '@/lib/admin'
 import { createAdminClient } from '@/lib/supabase-admin'
+import type { User } from '@supabase/supabase-js'
 import { getLatestRecordingUrl, getPromoWindow } from '@/lib/settings'
+import { buildDailyCash } from '@/lib/daily-cash'
 import AdminDashboard, {
   type AdminGrant, type SignupLink, type PayoutRow, type TrainerRow, type CommissionRow,
 } from '@/components/admin/AdminDashboard'
 
 export const dynamic = 'force-dynamic'
+
+/**
+ * Every auth user, not just the first page.
+ *
+ * listUsers caps perPage at 1000. A single call was fine while it only fed
+ * the email lookup, but the daily cash figures count accounts, so one page
+ * would start silently undercounting the moment the platform passes a
+ * thousand of them. Page until a short page comes back.
+ */
+async function listAllUsers(db: ReturnType<typeof createAdminClient>) {
+  const PER_PAGE = 1000
+  const MAX_PAGES = 50          // 50k accounts; a guard against looping forever
+  const users: User[] = []
+  for (let page = 1; page <= MAX_PAGES; page++) {
+    const { data, error } = await db.auth.admin.listUsers({ page, perPage: PER_PAGE })
+    if (error) {
+      // Without this the page renders a confident R0.00 when the admin API is
+      // rejecting us — which is what a SUPABASE_SERVICE_ROLE_KEY holding an
+      // anon key looks like from here. Fail loudly in the log instead.
+      console.error(`[admin] listUsers page ${page} failed:`, error.message)
+      break
+    }
+    const batch = data?.users ?? []
+    users.push(...batch)
+    if (batch.length < PER_PAGE) break
+  }
+  return users
+}
 
 export default async function AdminPage() {
   const admin = await getAdminUser()
@@ -18,11 +48,11 @@ export default async function AdminPage() {
 
   const db = createAdminClient()
   const [
-    { data: grants }, { data: list }, { data: links },
+    { data: grants }, users, { data: links },
     { data: affiliates }, { data: allCommissions }, { data: trainers },
   ] = await Promise.all([
     db.from('access_grants').select('*').order('updated_at', { ascending: false }).limit(500),
-    db.auth.admin.listUsers({ perPage: 1000 }),
+    listAllUsers(db),
     db.from('registration_tokens').select('*').eq('source', 'admin').order('created_at', { ascending: false }).limit(500),
     db.from('affiliates').select('*').order('created_at', { ascending: false }).limit(1000),
     db.from('affiliate_commissions')
@@ -32,7 +62,11 @@ export default async function AdminPage() {
     db.from('trainers').select('id,name,email,slug,province,phone,learner_price_cents,is_active,fee_paid_until,created_at').order('created_at', { ascending: false }),
   ])
 
-  const emailById = new Map((list?.users ?? []).map(u => [u.id, u.email ?? '']))
+  const emailById = new Map(users.map(u => [u.id, u.email ?? '']))
+
+  // Values every account added at the full-access price. Pipeline value, not
+  // settled cash — see lib/daily-cash.ts.
+  const dailyCash = buildDailyCash(users.map(u => u.created_at))
 
   const grantRows: AdminGrant[] = (grants ?? []).map(g => ({
     user_id: g.user_id,
@@ -105,6 +139,7 @@ export default async function AdminPage() {
       initialCommissions={commissionRows}
       initialRecordingUrl={await getLatestRecordingUrl()}
       initialPromo={await getPromoWindow()}
+      dailyCash={dailyCash}
       initialTrainers={trainerRows}
     />
   )
