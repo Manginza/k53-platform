@@ -137,6 +137,22 @@ export default function AdminDashboard({
     } catch { setReconErr('Could not reach the server.') } finally { setReconBusy(false) }
   }
 
+  // ── Payment readiness ───────────────────────────────────────────────────
+  interface HealthCheck { name: string; status: 'ok' | 'warn' | 'fail'; detail: string; fix?: string }
+  const [health, setHealth] = useState<{ status: string; checks: HealthCheck[] } | null>(null)
+  const [healthBusy, setHealthBusy] = useState(false)
+  const [healthErr, setHealthErr] = useState('')
+
+  async function runHealthCheck() {
+    setHealthBusy(true); setHealthErr(''); setHealth(null)
+    try {
+      const res = await fetch('/api/admin/payments-health')
+      const body = await res.json()
+      if (!res.ok) { setHealthErr(body.error ?? 'Check failed.'); return }
+      setHealth(body)
+    } catch { setHealthErr('Could not reach the server.') } finally { setHealthBusy(false) }
+  }
+
   // ── Access code lookup ──────────────────────────────────────────────────
   interface CodeRow {
     code: string; status: string; durationDays: number
@@ -332,6 +348,60 @@ export default function AdminDashboard({
         </div>
         <button onClick={logout} className="text-sm font-semibold text-gray-600 border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-gray-50 shrink-0">Log out</button>
       </div>
+
+      {/* ── Payment readiness ── */}
+      <section className="space-y-3">
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <h2 className="font-extrabold text-gray-900">Can customers get access?</h2>
+          <button
+            onClick={runHealthCheck}
+            disabled={healthBusy}
+            className="text-xs font-semibold text-blue-700 border border-blue-200 rounded-lg px-3 py-1.5 hover:bg-blue-50 disabled:opacity-60"
+          >
+            {healthBusy ? 'Checking…' : 'Run check'}
+          </button>
+        </div>
+        <div className="bg-white rounded-2xl shadow-md p-5">
+          <p className="text-xs text-gray-500">
+            Checks everything between a customer paying and their access appearing. All of it lives
+            outside the code and all of it fails quietly, so this is the way to find a broken key or
+            a migration that was never run before a customer does.
+          </p>
+          {healthErr && <p className="text-red-600 text-sm mt-3">{healthErr}</p>}
+
+          {health && (
+            <>
+              <div className={`mt-4 rounded-xl px-4 py-3 text-sm font-semibold ${
+                health.status === 'ok'   ? 'bg-green-50 text-green-800 border border-green-200'
+                : health.status === 'warn' ? 'bg-amber-50 text-amber-900 border border-amber-200'
+                : 'bg-red-50 text-red-800 border border-red-200'
+              }`}>
+                {health.status === 'ok'
+                  ? 'Everything a payment needs is in place.'
+                  : health.status === 'warn'
+                    ? 'Payments work, but something is degraded. See below.'
+                    : 'Something is broken. Paying customers may not be getting access.'}
+              </div>
+              <ul className="mt-4 space-y-3">
+                {health.checks.map(check => (
+                  <li key={check.name} className="flex items-start gap-3">
+                    <span className={`mt-0.5 shrink-0 text-xs font-bold ${
+                      check.status === 'ok' ? 'text-green-600' : check.status === 'warn' ? 'text-amber-600' : 'text-red-600'
+                    }`}>
+                      {check.status === 'ok' ? '✓' : check.status === 'warn' ? '!' : '✕'}
+                    </span>
+                    <div className="min-w-0">
+                      <div className="text-sm font-semibold text-gray-800">{check.name}</div>
+                      <div className="text-xs text-gray-600 leading-relaxed">{check.detail}</div>
+                      {check.fix && <div className="text-xs text-blue-700 mt-0.5">{check.fix}</div>}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </div>
+      </section>
 
       {/* ── Latest live-session recording ── */}
       <section className="space-y-3">
