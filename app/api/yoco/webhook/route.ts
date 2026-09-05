@@ -1,13 +1,16 @@
 /**
  * POST /api/yoco/webhook — independent backup to synchronous confirmation.
  * Verifies Yoco, grants account access, and records any linked commission.
+ *
+ * Applying the checkout goes through the payment ledger (lib/payments.ts),
+ * so Yoco retries and the confirm route racing this handler cannot grant the
+ * same payment twice.
  */
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase-admin'
-import { getYocoCheckout, isYocoCheckoutPaid, verifyYocoSignature } from '@/lib/yoco'
-import { grantAccess } from '@/lib/access'
-import { ACCESS_DURATION_DAYS, ACCESS_PRICE_CENTS } from '@/lib/contact'
+import { getYocoCheckout, verifyYocoSignature } from '@/lib/yoco'
 import { recordAffiliateCommission } from '@/lib/affiliate-attribution'
+import { applyPaidCheckout, checkoutRejection } from '@/lib/payments'
 
 interface YocoEventPayload {
   id?: string
@@ -64,13 +67,14 @@ export async function POST(req: NextRequest) {
   }
 
   const checkout = await getYocoCheckout(checkoutId)
-  if (!isYocoCheckoutPaid(checkout)) {
+  const rejection = checkoutRejection(checkout)
+  if (rejection === 'not_paid' || !checkout) {
     console.error('[yoco-webhook] checkout is not yet verifiably paid.', { checkoutId })
     return NextResponse.json({ error: 'Checkout could not be verified.' }, { status: 503 })
   }
-  if (checkout?.amount !== ACCESS_PRICE_CENTS || checkout.currency !== 'ZAR') {
+  if (rejection === 'amount_mismatch') {
     console.error('[yoco-webhook] paid checkout amount/currency mismatch.', {
-      checkoutId, amount: checkout?.amount, currency: checkout?.currency,
+      checkoutId, amount: checkout.amount, currency: checkout.currency,
     })
     return NextResponse.json({ error: 'Checkout amount does not match the product.' }, { status: 422 })
   }
@@ -97,56 +101,33 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Payment has no account identity.' }, { status: 422 })
   }
 
-  const days = Number(checkout.metadata?.durationDays) || ACCESS_DURATION_DAYS
+  let result
   try {
-    await grantAccess(userId, days, 'payment')
-    console.log(`[yoco-webhook] Access granted to ${userId} for ${days} days (checkout=${checkoutId}).`)
+    result = await applyPaidCheckout(admin, {
+      checkout, checkoutId, userId, eventType: type, rawPayload: event, fallbackPaymentId: payload?.id,
+    })
   } catch (error) {
-    console.error('[yoco-webhook] grantAccess failed.', {
-      userId, checkoutId, days,
+    // Non-2xx → Yoco retries, which is what we want for a transient DB failure.
+    console.error('[yoco-webhook] applyPaidCheckout failed.', {
+      userId, checkoutId,
       error: error instanceof Error ? error.message : String(error),
     })
     return NextResponse.json({ error: 'Access grant failed.' }, { status: 500 })
   }
-
-  // Keep an audit trail without duplicating rows when Yoco retries the same
-  // event. This is best-effort: entitlement has already been safely granted.
-  const { data: existingPayment, error: paymentReadError } = await admin
-    .from('payment_history')
-    .select('id')
-    .eq('yoco_checkout_id', checkoutId)
-    .maybeSingle()
-  if (paymentReadError) {
-    console.error('[yoco-webhook] payment history lookup failed (non-fatal).', {
-      checkoutId,
-      error: paymentReadError.message,
-    })
-  } else if (!existingPayment) {
-    const { error: paymentInsertError } = await admin.from('payment_history').insert({
-      user_id: userId,
-      amount_cents: checkout.amount ?? payload.amount ?? ACCESS_PRICE_CENTS,
-      currency: checkout.currency ?? payload.currency ?? 'ZAR',
-      status: 'succeeded',
-      yoco_payment_id: checkout.paymentId ?? payload.id ?? null,
-      yoco_checkout_id: checkoutId,
-      yoco_event_type: type,
-      raw_payload: event,
-    })
-    if (paymentInsertError) {
-      console.error('[yoco-webhook] payment history insert failed (non-fatal).', {
-        checkoutId,
-        error: paymentInsertError.message,
-      })
-    }
+  if (result.status === 'already_applied') {
+    // Retry of an event we already handled, or the confirm route got there first.
+    console.log(`[yoco-webhook] checkout already applied (checkout=${checkoutId}).`)
+    return NextResponse.json({ received: true })
   }
+  console.log(`[yoco-webhook] Access granted to ${userId} until ${result.expiresAt} (checkout=${checkoutId}).`)
 
   try {
     await recordAffiliateCommission(admin, checkout, checkoutId, payload?.id)
   } catch (error) {
-    // Yoco retries non-2xx responses. Both the access grant and commission
-    // insert are idempotent, so a transient referral error cannot lose a sale.
-    console.error('[yoco-webhook] affiliate commission failed.', error)
-    return NextResponse.json({ error: 'Affiliate commission failed.' }, { status: 500 })
+    // Access grant already succeeded — don't return 500 or Yoco will keep
+    // retrying a webhook whose critical work is done, and may eventually
+    // exhaust its retry budget.
+    console.error('[yoco-webhook] affiliate commission failed (non-fatal, access already granted).', error)
   }
 
   return NextResponse.json({ received: true })
