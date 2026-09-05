@@ -1,7 +1,7 @@
 /**
  * POST /api/quiz/session
  *
- * Starts (or resumes) the server-side free-preview timer for a test and
+ * Starts (or resumes) the server-side free-trial timer for a test and
  * returns the authoritative seconds remaining. Called by QuizClient on mount
  * for non-premium users.
  *
@@ -17,12 +17,15 @@ import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase-server'
 import { createAdminClient } from '@/lib/supabase-admin'
 import { hasFullAccess } from '@/lib/access'
-import { FREE_PREVIEW_SECONDS, ANON_COOKIE } from '@/lib/quiz-session'
+import {
+  FREE_PREVIEW_SECONDS,
+  ANON_COOKIE,
+  isCurrentTrialSession,
+  remainingFrom,
+} from '@/lib/quiz-session'
 
-function remainingFrom(startedAtIso: string): number {
-  const elapsed = (Date.now() - new Date(startedAtIso).getTime()) / 1000
-  return Math.max(0, Math.ceil(FREE_PREVIEW_SECONDS - elapsed))
-}
+/** Fresh full trial — used whenever persistence fails (fail open, never block). */
+const freshTrial = () => NextResponse.json({ remaining: FREE_PREVIEW_SECONDS, locked: false })
 
 export async function POST(req: NextRequest) {
   let courseId: number | undefined
@@ -54,7 +57,13 @@ export async function POST(req: NextRequest) {
     })
   }
 
-  const admin = createAdminClient()
+  let admin: ReturnType<typeof createAdminClient>
+  try {
+    admin = createAdminClient()
+  } catch (error) {
+    console.error('[quiz/session] admin client unavailable; allowing trial:', error)
+    return freshTrial()
+  }
   const match = (q: any) =>
     user ? q.eq('user_id', user.id) : q.eq('session_key', sid)
 
@@ -67,14 +76,35 @@ export async function POST(req: NextRequest) {
       .limit(1),
   ).maybeSingle()
 
-  // PGRST205 = table not in PostgREST schema cache (cold-start race or missing migration).
-  // Fail open so the user gets a fresh preview rather than a broken quiz.
-  if (selectErr && (selectErr.code === 'PGRST205' || selectErr.message?.includes('schema cache'))) {
-    console.error('[quiz/session] schema cache miss for quiz_sessions — failing open:', selectErr.message)
-    return NextResponse.json({ remaining: FREE_PREVIEW_SECONDS, locked: false })
+  // Any lookup failure (e.g. PGRST205 schema-cache miss on a cold start) fails
+  // open: the trial is a marketing sample and must never break the quiz.
+  if (selectErr) {
+    console.error('[quiz/session] lookup failed; allowing trial:', selectErr.message)
+    return freshTrial()
   }
 
   let startedAt = existing?.started_at as string | undefined
+
+  // A window started under the old trial length must not send the visitor
+  // straight to the paywall. Restart that row once for the current trial;
+  // the unique identity/test row still prevents repeated free trials.
+  if (startedAt && !isCurrentTrialSession(startedAt)) {
+    const refreshedAt = new Date().toISOString()
+    const { data: refreshed, error } = await match(
+      admin.from('quiz_sessions')
+        .update({ started_at: refreshedAt })
+        .eq('course_id', courseId)
+        .eq('test_number', testNumber)
+        .select('started_at')
+        .limit(1),
+    ).maybeSingle()
+
+    if (error) {
+      console.error('[quiz/session] stale-session refresh failed; allowing trial:', error.message)
+      return freshTrial()
+    }
+    startedAt = refreshed?.started_at ?? refreshedAt
+  }
 
   // None yet → create one starting now.
   if (!startedAt) {
@@ -92,18 +122,21 @@ export async function POST(req: NextRequest) {
     if (error) {
       // 23505 = a concurrent request already created it; re-read.
       if (error.code === '23505') {
-        const { data: again } = await match(
+        const { data: again, error: rereadError } = await match(
           admin.from('quiz_sessions')
             .select('started_at')
             .eq('course_id', courseId)
             .eq('test_number', testNumber)
             .limit(1),
         ).maybeSingle()
+        if (rereadError) {
+          console.error('[quiz/session] concurrent-session re-read failed; allowing trial:', rereadError.message)
+          return freshTrial()
+        }
         startedAt = again?.started_at
       } else {
         console.error('[quiz/session] insert error:', error.message)
-        // Fail open with a fresh full preview rather than blocking the user.
-        return NextResponse.json({ remaining: FREE_PREVIEW_SECONDS, locked: false })
+        return freshTrial()
       }
     } else {
       startedAt = inserted?.started_at

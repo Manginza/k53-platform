@@ -17,7 +17,7 @@ interface Props {
 export default async function QuizPage({ params, searchParams }: Props) {
   const testNumber = Number(searchParams.test ?? 1)
 
-  // Full-access visitors skip the timer; everyone else gets a 2-minute sample.
+  // Full-access visitors skip the timer; everyone else gets a 3-minute free trial.
   const premium = await hasFullAccess()
 
   const { data: course, error: courseError } = await supabase

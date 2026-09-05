@@ -5,12 +5,13 @@ import Link from 'next/link'
 import QuizPaywall from '@/components/QuizPaywall'
 import type { QuizQuestion } from '@/lib/types'
 import { EXPLANATIONS } from '@/lib/explanations'
+import { FREE_TRIAL_SECONDS } from '@/lib/free-trial'
 
 type Option    = 'A' | 'B' | 'C'
 type AnswerMap = Record<number, Option>
 
-/** Free preview length (seconds) before non-premium users hit the paywall. */
-const FREE_SECONDS = 120
+/** Free trial length (seconds) before non-premium users hit the paywall. */
+const FREE_SECONDS = FREE_TRIAL_SECONDS
 
 interface Props {
   questions:   QuizQuestion[]
@@ -18,7 +19,7 @@ interface Props {
   courseId:    number
   testNumber:  number
   isPremium:   boolean
-  /** Server-computed seconds left in the free preview (non-premium only). */
+  /** Server-computed seconds left in the free trial (non-premium only). */
   initialSeconds?: number
   /** Use separate K53 section pass marks instead of one combined percentage. */
   splitScoring?: boolean
@@ -370,7 +371,7 @@ export default function QuizClient({ questions, courseTitle, courseId, testNumbe
   const [failedImages, setFailedImages] = useState<Set<string>>(() => new Set())
 
   // Timer. Paid users get an exam-style limit of 1 minute per question
-  // (auto-submits to results on expiry); free users get a 2-minute sample
+  // (auto-submits to results on expiry); free users get a 3-minute trial
   // that then hits the paywall. Premium users can restart any time.
   // For free users the starting value comes from the server (initialSeconds)
   // and is reconciled with /api/quiz/session on mount so the window can't be
@@ -379,7 +380,7 @@ export default function QuizClient({ questions, courseTitle, courseId, testNumbe
   const [secondsLeft, setSecondsLeft] = useState(totalSeconds)
   const [lockedOut,   setLockedOut]   = useState(false)
 
-  // Authoritative free-preview timing from the server (start the window if new).
+  // Authoritative free-trial timing from the server (start the window if new).
   useEffect(() => {
     if (isPremium) return
     let cancelled = false
@@ -393,8 +394,9 @@ export default function QuizClient({ questions, courseTitle, courseId, testNumbe
         if (cancelled || d.unlimited) return
         if (d.locked) { setLockedOut(true); return }
         if (typeof d.remaining === 'number') {
-          // Trust the server: never allow more time than it reports.
-          setSecondsLeft(s => Math.min(s, d.remaining))
+          // The server is authoritative (it may have just restarted a stale
+          // window). Clamp malformed values to the trial length.
+          setSecondsLeft(Math.max(0, Math.min(FREE_SECONDS, Math.floor(d.remaining))))
         }
       })
       .catch(() => {})
@@ -405,7 +407,7 @@ export default function QuizClient({ questions, courseTitle, courseId, testNumbe
     if (finished || lockedOut) return
     if (secondsLeft <= 0) {
       if (isPremium) setFinished(true)   // time's up → show results
-      else           setLockedOut(true)  // free preview over → paywall
+      else           setLockedOut(true)  // free trial over → paywall
       return
     }
     const t = setTimeout(() => setSecondsLeft(s => s - 1), 1000)
@@ -578,9 +580,9 @@ export default function QuizClient({ questions, courseTitle, courseId, testNumbe
                 ? 'bg-red-100 text-red-700'
                 : isPremium ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'
             }`}
-            title={isPremium ? 'Time remaining' : 'Free preview time remaining'}
+            title={isPremium ? 'Time remaining' : 'Free trial time remaining'}
           >
-            {isPremium ? `⏱ ${fmtTime(secondsLeft)}` : `Free sample · ⏱ ${fmtTime(secondsLeft)}`}
+            {isPremium ? `⏱ ${fmtTime(secondsLeft)}` : `Free trial · ⏱ ${fmtTime(secondsLeft)}`}
           </span>
           <span className="text-sm font-bold text-gray-700 shrink-0">
             {current + 1} <span className="text-gray-400 font-normal">/ {ordered.length}</span>

@@ -1,13 +1,14 @@
 'use client'
 
 /**
- * QuizPaywall — shown when a free user's 2-minute preview has expired.
+ * QuizPaywall — shown when a free user's 3-minute trial has expired.
  * Primary CTA: pay via Yoco (card). Secondary: WhatsApp.
  * Unlocks ALL features: unlimited timed tests, Live Notes, Road Rules, Videos.
  */
 import Link from 'next/link'
 import BuyAccessButton from '@/components/BuyAccessButton'
 import { WHATSAPP_URL, ACCESS_PRICE, ACCESS_PRICE_ORIGINAL, ACCESS_DURATION_DAYS } from '@/lib/contact'
+import { FREE_TRIAL_MINUTES } from '@/lib/free-trial'
 
 const FEATURES = [
   { icon: '📝', label: 'Unlimited timed practice tests', sub: '1 minute per question — just like the real exam' },
@@ -25,7 +26,7 @@ export default function QuizPaywall({ courseId }: { courseId: number }) {
         {/* Header */}
         <div className="bg-blue-700 text-white px-8 py-6 text-center">
           <div className="text-4xl mb-2">⏱️</div>
-          <h1 className="text-2xl font-extrabold mb-1">Your free preview has ended</h1>
+          <h1 className="text-2xl font-extrabold mb-1">Your free {FREE_TRIAL_MINUTES}-minute trial has ended</h1>
           <p className="text-blue-200 text-sm">
             Get full access for{' '}
             <span className="line-through text-blue-300 mr-1">{ACCESS_PRICE_ORIGINAL}</span>

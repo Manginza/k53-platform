@@ -4,6 +4,7 @@ import {
   WHATSAPP_URL, WHATSAPP_QUERIES_URL, ACCESS_PRICE, ACCESS_PRICE_ORIGINAL,
   ACCESS_DISCOUNT_LABEL, ACCESS_DURATION_DAYS,
 } from '@/lib/contact'
+import { FREE_TRIAL_MINUTES } from '@/lib/free-trial'
 
 export const metadata = {
   title: 'Get Full Access — K53 Learner\'s',
@@ -49,7 +50,7 @@ export default function PricingPage({
         <span className="text-xs font-bold tracking-widest uppercase text-blue-200 block mb-3">SK Driving</span>
         <h1 className="text-3xl sm:text-4xl font-extrabold mb-3 leading-tight">Prepare to Pass Your K53 the First Time</h1>
         <p className="text-blue-100 text-base sm:text-lg max-w-xl mx-auto">
-          Try any test free for 3 minutes. Unlock everything for{' '}
+          Try any test free for {FREE_TRIAL_MINUTES} minutes. Unlock everything for{' '}
           <span className="line-through opacity-60 mr-1">{ACCESS_PRICE_ORIGINAL}</span>
           <span className="font-extrabold text-white">{ACCESS_PRICE}</span>.
         </p>
