@@ -10,6 +10,7 @@
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
+import { SIGNUP_VALUE_CENTS, type DailyCash } from '@/lib/daily-cash'
 
 export interface AdminGrant { user_id: string; email: string; expires_at: string | null; source: string }
 export interface SignupLink { id: string; token: string; label: string | null; status: string; usedByEmail: string | null; expires_at: string | null }
@@ -37,12 +38,19 @@ function fmtDate(iso: string | null): string {
   if (!iso) return 'Lifetime'
   return new Date(iso).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' })
 }
+/** Renders a YYYY-MM-DD report day as "Fri, 5 Sep 2026". */
+function fmtDay(date: string): string {
+  const [year, month, day] = date.split('-').map(Number)
+  return new Date(Date.UTC(year, month - 1, day)).toLocaleDateString('en-ZA', {
+    weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC',
+  })
+}
 function rand(cents: number) {
   return `R${(cents / 100).toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
 export default function AdminDashboard({
-  adminEmail, initialGrants, initialLinks, initialPayouts, initialCommissions = [], initialRecordingUrl = '', initialTrainers = [], initialPromo = { from: '', until: '' },
+  adminEmail, initialGrants, initialLinks, initialPayouts, initialCommissions = [], initialRecordingUrl = '', initialTrainers = [], initialPromo = { from: '', until: '' }, dailyCash,
 }: {
   adminEmail: string
   initialGrants: AdminGrant[]
@@ -52,6 +60,7 @@ export default function AdminDashboard({
   initialRecordingUrl?: string
   initialTrainers?: TrainerRow[]
   initialPromo?: { from: string; until: string }
+  dailyCash?: DailyCash
 }) {
   const router = useRouter()
   const origin = useMemo(() => (typeof window !== 'undefined' ? window.location.origin : ''), [])
@@ -279,6 +288,29 @@ export default function AdminDashboard({
     return l.status
   }
 
+  // ── Daily cash from signups ─────────────────────────────────────────────────
+  const [showAllDays, setShowAllDays] = useState(false)
+  const cashRows = useMemo(() => {
+    const rows = dailyCash?.rows ?? []
+    return showAllDays ? rows : rows.slice(0, 14)
+  }, [dailyCash, showAllDays])
+
+  function downloadCashCsv() {
+    if (!dailyCash) return
+    const header = 'Date,New users,Cash (R)'
+    const body = dailyCash.rows
+      .map(r => `${r.date},${r.signups},${(r.cents / 100).toFixed(2)}`)
+      .join('\n')
+    const total = `Total,${dailyCash.totalSignups},${(dailyCash.totalCents / 100).toFixed(2)}`
+    const blob = new Blob([`${header}\n${body}\n${total}\n`], { type: 'text/csv;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `daily-cash-${dailyCash.rows[0]?.date ?? 'export'}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   return (
     <main className="max-w-5xl mx-auto px-4 py-10 space-y-8">
       <div className="flex items-center justify-between gap-3">
@@ -288,6 +320,75 @@ export default function AdminDashboard({
         </div>
         <button onClick={logout} className="text-sm font-semibold text-gray-600 border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-gray-50 shrink-0">Log out</button>
       </div>
+
+      {/* ── Daily cash from signups ── */}
+      {dailyCash && (
+        <section className="space-y-3">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <h2 className="font-extrabold text-gray-900">Daily cash</h2>
+            <button
+              onClick={downloadCashCsv}
+              className="text-xs font-semibold text-blue-700 border border-blue-200 rounded-lg px-3 py-1.5 hover:bg-blue-50"
+            >
+              Download CSV
+            </button>
+          </div>
+
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {[
+              { label: 'Today',        cents: dailyCash.todayCents,  sub: `${dailyCash.todaySignups} new ${dailyCash.todaySignups === 1 ? 'user' : 'users'}` },
+              { label: 'Last 7 days',  cents: dailyCash.last7Cents,  sub: `at ${rand(SIGNUP_VALUE_CENTS)} each` },
+              { label: 'Last 30 days', cents: dailyCash.last30Cents, sub: `at ${rand(SIGNUP_VALUE_CENTS)} each` },
+              { label: 'All time',     cents: dailyCash.totalCents,  sub: `${dailyCash.totalSignups} ${dailyCash.totalSignups === 1 ? 'user' : 'users'}` },
+            ].map(tile => (
+              <div key={tile.label} className="bg-white rounded-2xl shadow-md p-4">
+                <div className="text-xs uppercase tracking-wide text-gray-500 font-semibold">{tile.label}</div>
+                <div className="text-xl font-extrabold text-gray-900 mt-1">{rand(tile.cents)}</div>
+                <div className="text-xs text-gray-500 mt-0.5">{tile.sub}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-md overflow-hidden">
+            <div className="overflow-x-auto"><table className="w-full text-sm">
+              <thead className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide"><tr>
+                <th className="text-left px-5 py-2 font-semibold">Date</th>
+                <th className="text-right px-5 py-2 font-semibold">New users</th>
+                <th className="text-right px-5 py-2 font-semibold">Cash</th>
+              </tr></thead>
+              <tbody className="divide-y divide-gray-100">
+                {cashRows.map(row => (
+                  <tr key={row.date} className={row.signups === 0 ? 'text-gray-400' : ''}>
+                    <td className="px-5 py-2.5 whitespace-nowrap">{fmtDay(row.date)}</td>
+                    <td className="px-5 py-2.5 text-right tabular-nums">{row.signups}</td>
+                    <td className="px-5 py-2.5 text-right tabular-nums font-semibold">{rand(row.cents)}</td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot className="bg-gray-50 text-gray-900 font-extrabold"><tr>
+                <td className="px-5 py-2.5">All time</td>
+                <td className="px-5 py-2.5 text-right tabular-nums">{dailyCash.totalSignups}</td>
+                <td className="px-5 py-2.5 text-right tabular-nums">{rand(dailyCash.totalCents)}</td>
+              </tr></tfoot>
+            </table></div>
+            {dailyCash.rows.length > 14 && (
+              <button
+                onClick={() => setShowAllDays(v => !v)}
+                className="w-full text-xs font-semibold text-blue-700 py-2.5 border-t border-gray-100 hover:bg-gray-50"
+              >
+                {showAllDays ? 'Show last 14 days' : `Show all ${dailyCash.rows.length} days`}
+              </button>
+            )}
+          </div>
+
+          <p className="text-xs text-gray-500">
+            Every account added is counted at {rand(SIGNUP_VALUE_CENTS)}, by South African calendar day.
+            This is signup value, <strong>not</strong> money received — accounts created during a free promo,
+            admin grants and accounts that never pay are all counted here at full price. Check
+            Payment recovery for what was actually collected.
+          </p>
+        </section>
+      )}
 
       {/* ── Latest live-session recording ── */}
       <section className="space-y-3">
