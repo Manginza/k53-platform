@@ -126,10 +126,12 @@ export default function SubscribeSuccessPage() {
             <p className="text-sm text-gray-500 mb-6">
               Access unlocks by itself, usually within a few minutes. You do not need to do anything
               or message anyone — just log in later and it will be there. Tap <strong>Unlock my access</strong>
-              {' '}if you would rather not wait.
+              {' '}if you would rather not wait. We have also emailed you a code that unlocks any
+              account you sign in to, in case you have more than one.
             </p>
             <div className="flex flex-col gap-3">
               <button onClick={() => { attempts.current = 0; setGrantError(''); setStatus('confirming'); confirm() }} className="block w-full bg-blue-700 text-white font-bold py-3 rounded-xl hover:bg-blue-800 transition-colors">Unlock my access</button>
+              <Link href="/access-code" className="block border-2 border-blue-200 text-blue-700 font-semibold py-3 rounded-xl hover:border-blue-400 transition-colors text-center">I have an access code</Link>
               <Link href="/courses" className="block border-2 border-gray-200 text-gray-600 font-semibold py-3 rounded-xl hover:border-gray-400 transition-colors text-center">Go to courses</Link>
               <a href={WHATSAPP_QUERIES_URL} target="_blank" rel="noopener noreferrer" className="block w-full text-sm text-gray-500 hover:text-gray-700 underline underline-offset-2 py-1 text-center">
                 Still stuck after an hour? Message us
