@@ -8,6 +8,8 @@ import { hasFullAccess } from '@/lib/access'
 import LockedContent from '@/components/LockedContent'
 import RulesChapterQuiz from '@/components/live-notes/RulesChapterQuiz'
 import { RULES_CHAPTERS, getRuleChapter } from '@/lib/rules-of-the-road'
+import ProgressVisit from '@/components/ProgressVisit'
+import { createClient } from '@/lib/supabase-server'
 
 export const dynamic = 'force-dynamic'
 
@@ -29,12 +31,16 @@ export default async function RulesChapterPage({ params }: Props) {
     return <LockedContent feature="Rules of the Road" description={RULES_DESC} />
   }
 
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
   const idx  = RULES_CHAPTERS.findIndex(c => c.slug === chapter.slug)
   const prev = idx > 0 ? RULES_CHAPTERS[idx - 1] : null
   const next = idx < RULES_CHAPTERS.length - 1 ? RULES_CHAPTERS[idx + 1] : null
 
   return (
     <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+      {user && <ProgressVisit section="road_rules" />}
       <Link href="/live-notes/rules" className="text-green-700 hover:underline text-sm font-medium mb-6 inline-block">
         ← All Rules of the Road chapters
       </Link>
@@ -65,7 +71,7 @@ export default async function RulesChapterPage({ params }: Props) {
       </article>
 
       {/* End-of-chapter quiz */}
-      <RulesChapterQuiz questions={chapter.quiz} />
+      <RulesChapterQuiz questions={chapter.quiz} chapterSlug={chapter.slug} />
 
       {/* Prev / next */}
       <div className="flex items-center justify-between gap-3 mt-10 pt-6 border-t border-gray-200">

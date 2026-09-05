@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import QuizPaywall from '@/components/QuizPaywall'
+import ResultAdvisory from '@/components/learner/ResultAdvisory'
 import type { QuizQuestion } from '@/lib/types'
 import { EXPLANATIONS } from '@/lib/explanations'
 
@@ -10,7 +11,7 @@ type Option    = 'A' | 'B' | 'C'
 type AnswerMap = Record<number, Option>
 
 /** Free preview length (seconds) before non-premium users hit the paywall. */
-const FREE_SECONDS = 120
+const FREE_SECONDS = 180
 
 interface Props {
   questions:   QuizQuestion[]
@@ -59,11 +60,13 @@ function SplitResultsScreen({
   answers,
   courseId,
   courseTitle,
+  submissionKey,
 }: {
   questions:   QuizQuestion[]
   answers:     AnswerMap
   courseId:    number
   courseTitle: string
+  submissionKey: string
 }) {
   const [showReview, setShowReview] = useState(false)
 
@@ -145,6 +148,16 @@ function SplitResultsScreen({
               : `Road Signs & Controls — need ${SIGNS_PASS - signsScore} more correct.`}
           </div>
         )}
+
+        <div className="mb-6">
+          <ResultAdvisory
+            courseId={courseId}
+            testNumber={2}
+            submissionKey={submissionKey}
+            answers={answers}
+            questionIds={questions.map(question => question.id)}
+          />
+        </div>
 
         {/* Actions */}
         <div className="flex gap-3 mb-6">
@@ -232,11 +245,15 @@ function StandardResultsScreen({
   answers,
   courseId,
   courseTitle,
+  testNumber,
+  submissionKey,
 }: {
   questions:   QuizQuestion[]
   answers:     AnswerMap
   courseId:    number
   courseTitle: string
+  testNumber: number
+  submissionKey: string
 }) {
   const [showReview, setShowReview] = useState(false)
 
@@ -281,9 +298,19 @@ function StandardResultsScreen({
           </div>
         </div>
 
+        <div className="mb-6">
+          <ResultAdvisory
+            courseId={courseId}
+            testNumber={testNumber}
+            submissionKey={submissionKey}
+            answers={answers}
+            questionIds={questions.map(question => question.id)}
+          />
+        </div>
+
         <div className="flex gap-3 mb-6">
           <Link
-            href={`/quiz/${courseId}?test=1`}
+            href={`/quiz/${courseId}?test=${testNumber}`}
             className="flex-1 text-center bg-blue-600 text-white font-semibold py-3 rounded-xl hover:bg-blue-700 transition-colors"
           >
             Try Again
@@ -368,9 +395,10 @@ export default function QuizClient({ questions, courseTitle, courseId, testNumbe
   const [skipMotorcycle, setSkipMotorcycle] = useState(false)
   const [motorcycleRefresherSeen, setMotorcycleRefresherSeen] = useState(false)
   const [failedImages, setFailedImages] = useState<Set<string>>(() => new Set())
+  const [submissionKey] = useState(() => crypto.randomUUID())
 
   // Timer. Paid users get an exam-style limit of 1 minute per question
-  // (auto-submits to results on expiry); free users get a 2-minute sample
+  // (auto-submits to results on expiry); free users get a 3-minute sample
   // that then hits the paywall. Premium users can restart any time.
   // For free users the starting value comes from the server (initialSeconds)
   // and is reconciled with /api/quiz/session on mount so the window can't be
@@ -483,6 +511,7 @@ export default function QuizClient({ questions, courseTitle, courseId, testNumbe
         answers={answers}
         courseId={courseId}
         courseTitle={courseTitle}
+        submissionKey={submissionKey}
       />
     ) : (
       <StandardResultsScreen
@@ -490,6 +519,8 @@ export default function QuizClient({ questions, courseTitle, courseId, testNumbe
         answers={answers}
         courseId={courseId}
         courseTitle={courseTitle}
+        testNumber={testNumber}
+        submissionKey={submissionKey}
       />
     )
   }

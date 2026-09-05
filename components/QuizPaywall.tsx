@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * QuizPaywall — shown when a free user's 2-minute preview has expired.
+ * QuizPaywall — shown when a free user's 3-minute preview has expired.
  * Primary CTA: pay via Yoco (card). Secondary: WhatsApp.
  * Unlocks ALL features: unlimited timed tests, Live Notes, Road Rules, Videos.
  */

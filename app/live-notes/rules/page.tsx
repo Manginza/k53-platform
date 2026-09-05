@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { hasFullAccess } from '@/lib/access'
 import LockedContent from '@/components/LockedContent'
 import { RULES_CHAPTERS } from '@/lib/rules-of-the-road'
+import ProgressVisit from '@/components/ProgressVisit'
+import { createClient } from '@/lib/supabase-server'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,10 +17,14 @@ export default async function RulesIndexPage() {
     return <LockedContent feature="Rules of the Road" description={RULES_DESC} />
   }
 
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
   const totalQuestions = RULES_CHAPTERS.reduce((n, c) => n + c.quiz.length, 0)
 
   return (
     <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+      {user && <ProgressVisit section="road_rules" />}
       <Link href="/live-notes" className="text-green-700 hover:underline text-sm font-medium mb-6 inline-block">
         ← Back to Live Notes
       </Link>
