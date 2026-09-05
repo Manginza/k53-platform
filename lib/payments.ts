@@ -7,11 +7,11 @@
  * admin reconcile job. Before this module each of them called grantAccess()
  * independently, which had two consequences:
  *
- *   1. Any paid checkout re-granted a fresh 60 days EVERY time it was seen.
+ *   1. Any paid checkout re-granted a fresh full window EVERY time it was seen.
  *      A member who reopened /subscribe/success (bookmark, back button,
  *      "Unlock my access") got their expiry pushed out again, and reconcile
  *      revived expired members from checkouts they paid months earlier.
- *   2. Because of (1) the grant had to RESET to now + 60 days rather than
+ *   2. Because of (1) the grant had to RESET to now + the full window rather than
  *      extend, so a member renewing early lost their remaining days.
  *
  * The fix is a ledger: `payment_history` has a unique index on

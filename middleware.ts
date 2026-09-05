@@ -48,6 +48,8 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|api/yoco/webhook|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    // api/yoco/webhook and api/cron are machine-to-machine and carry no
+    // session cookie, so refreshing an auth token for them is pure latency.
+    '/((?!_next/static|_next/image|favicon.ico|api/yoco/webhook|api/cron|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }
