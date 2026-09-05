@@ -7,7 +7,6 @@ export default function CookieBanner() {
   const [showBanner, setShowBanner] = useState(false)
 
   useEffect(() => {
-    // Only show if user hasn't accepted yet
     const consent = localStorage.getItem('k53_cookie_consent')
     if (!consent) {
       setShowBanner(true)
@@ -22,14 +21,14 @@ export default function CookieBanner() {
   if (!showBanner) return null
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 p-4 shadow-2xl z-[999]">
-      <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="text-sm text-gray-300">
-          We use cookies to improve your experience, personalize content, and serve relevant ads. By continuing to use our site, you consent to our use of cookies as described in our <Link href="/cookie-policy" className="text-blue-400 hover:underline">Cookie Policy</Link> and <Link href="/privacy-policy" className="text-blue-400 hover:underline">Privacy Policy</Link>.
+    <div className="fixed bottom-0 left-0 right-0 bg-brand-950/95 backdrop-blur-md border-t border-white/10 p-4 shadow-2xl z-[999]">
+      <div className="section-container flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="text-sm text-gray-300 leading-relaxed">
+          We use cookies to improve your experience, personalize content, and serve relevant ads. By continuing to use our site, you consent to our use of cookies as described in our <Link href="/cookie-policy" className="text-blue-400 hover:text-blue-300 underline underline-offset-2">Cookie Policy</Link> and <Link href="/privacy-policy" className="text-blue-400 hover:text-blue-300 underline underline-offset-2">Privacy Policy</Link>.
         </div>
-        <button 
+        <button
           onClick={acceptCookies}
-          className="bg-blue-600 text-white font-semibold px-6 py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors shrink-0 whitespace-nowrap"
+          className="bg-brand-600 text-white font-semibold px-6 py-2.5 rounded-xl text-sm hover:bg-brand-500 transition-all duration-200 shrink-0 whitespace-nowrap active:scale-[0.97]"
         >
           Got it
         </button>

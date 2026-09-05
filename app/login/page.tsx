@@ -82,7 +82,7 @@ function LoginForm() {
           ? await accessRes.json().catch(() => ({ fullAccess: false }))
           : { fullAccess: false }
         if (access.fullAccess) dest = nextPath ?? '/courses'
-        else if (nextPath?.startsWith('/pricing')) dest = nextPath
+        else if (nextPath?.startsWith('/pricing') || nextPath?.startsWith('/subscribe')) dest = nextPath
       }
     }
 
