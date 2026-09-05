@@ -137,6 +137,50 @@ export default function AdminDashboard({
     } catch { setReconErr('Could not reach the server.') } finally { setReconBusy(false) }
   }
 
+  // ── Access code lookup ──────────────────────────────────────────────────
+  interface CodeRow {
+    code: string; status: string; durationDays: number
+    validUntil: string | null; redeemedAt: string | null; emailedAt: string | null
+    createdAt: string; source: string
+  }
+  const [codeQuery, setCodeQuery] = useState('')
+  const [codeBusy, setCodeBusy] = useState(false)
+  const [codeErr, setCodeErr] = useState('')
+  const [codeMsg, setCodeMsg] = useState('')
+  const [codeResult, setCodeResult] = useState<{ codes: CodeRow[]; accountEmail: string; emailConfigured?: boolean } | null>(null)
+
+  async function lookupCodes(e: React.FormEvent) {
+    e.preventDefault()
+    setCodeBusy(true); setCodeErr(''); setCodeMsg(''); setCodeResult(null)
+    try {
+      const res = await fetch(`/api/admin/access-codes?q=${encodeURIComponent(codeQuery.trim())}`)
+      const body = await res.json()
+      if (!res.ok) { setCodeErr(body.error ?? 'Lookup failed.'); return }
+      setCodeResult(body)
+      if (body.notFound) setCodeErr('No account with that email address.')
+      else if (!body.codes.length) setCodeErr('That account has no access codes. Codes are only issued by a payment.')
+    } catch { setCodeErr('Could not reach the server.') } finally { setCodeBusy(false) }
+  }
+
+  async function resendCode(code: string) {
+    setCodeBusy(true); setCodeErr(''); setCodeMsg('')
+    try {
+      const res = await fetch('/api/admin/access-codes', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code }),
+      })
+      const body = await res.json()
+      if (!res.ok || !body.sent) { setCodeErr(body.error ?? 'Could not send.'); return }
+      setCodeMsg(`Emailed to ${body.to}.`)
+    } catch { setCodeErr('Could not reach the server.') } finally { setCodeBusy(false) }
+  }
+
+  function codeStatusLabel(row: CodeRow): { text: string; cls: string } {
+    if (row.status === 'revoked') return { text: 'revoked', cls: 'bg-gray-100 text-gray-500' }
+    if (row.redeemedAt || row.status === 'redeemed') return { text: 'used', cls: 'bg-gray-100 text-gray-500' }
+    if (row.validUntil && new Date(row.validUntil) <= new Date()) return { text: 'expired', cls: 'bg-gray-100 text-gray-500' }
+    return { text: 'usable', cls: 'bg-green-100 text-green-700' }
+  }
+
   // ── Grants ────────────────────────────────────────────────────────────────
   const [grants, setGrants] = useState(initialGrants)
   const [gEmail, setGEmail] = useState(''); const [gPassword, setGPassword] = useState(''); const [gDays, setGDays] = useState(60)
@@ -379,6 +423,85 @@ export default function AdminDashboard({
             </div>
           )}
         </div>
+      </section>
+
+      {/* ── Access code lookup ── */}
+      <section className="space-y-3">
+        <h2 className="font-extrabold text-gray-900">Find an access code</h2>
+        <div className="bg-white rounded-2xl shadow-md p-5">
+          <p className="text-xs text-gray-500 mb-3">
+            For a caller who paid but cannot get in. Search by the email they paid with, or by the
+            code itself. Read the code out and have them enter it at <strong>/access-code</strong> while
+            signed in to the account they want unlocked — it unlocks whichever account they are
+            signed in to, which is the fix when someone has signed up twice.
+          </p>
+          <form onSubmit={lookupCodes} className="flex flex-col sm:flex-row gap-2">
+            <input
+              value={codeQuery}
+              onChange={e => setCodeQuery(e.target.value)}
+              placeholder="email@example.com or SK-A3F9-KM2P-7QXW"
+              className="flex-1 border-2 border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:border-blue-600 focus:outline-none"
+            />
+            <button
+              type="submit"
+              disabled={codeBusy || !codeQuery.trim()}
+              className="bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-xl text-sm hover:bg-blue-800 disabled:opacity-60 shrink-0"
+            >
+              {codeBusy ? 'Searching…' : 'Search'}
+            </button>
+          </form>
+          {codeErr && <p className="text-red-600 text-sm mt-3">{codeErr}</p>}
+          {codeMsg && <p className="text-green-700 text-sm mt-3">{codeMsg}</p>}
+          {codeResult?.emailConfigured === false && codeResult.codes.length > 0 && (
+            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-3">
+              Email sending is not set up, so codes are not reaching customers by themselves.
+              Read this one out. Set RESEND_API_KEY and EMAIL_FROM to turn sending on.
+            </p>
+          )}
+        </div>
+
+        {codeResult && codeResult.codes.length > 0 && (
+          <div className="bg-white rounded-2xl shadow-md overflow-hidden">
+            {codeResult.accountEmail && (
+              <p className="px-5 pt-4 text-xs text-gray-500">Account: <strong className="text-gray-700">{codeResult.accountEmail}</strong></p>
+            )}
+            <div className="overflow-x-auto"><table className="w-full text-sm">
+              <thead className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide"><tr>
+                <th className="text-left px-5 py-2 font-semibold">Code</th>
+                <th className="text-left px-5 py-2 font-semibold">Status</th>
+                <th className="text-left px-5 py-2 font-semibold">Days</th>
+                <th className="text-left px-5 py-2 font-semibold">Issued</th>
+                <th className="text-right px-5 py-2 font-semibold">Actions</th>
+              </tr></thead>
+              <tbody className="divide-y divide-gray-100">
+                {codeResult.codes.map(row => {
+                  const st = codeStatusLabel(row)
+                  return (
+                    <tr key={row.code}>
+                      <td className="px-5 py-3 font-mono font-bold tracking-wide whitespace-nowrap">{row.code}</td>
+                      <td className="px-5 py-3">
+                        <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${st.cls}`}>{st.text}</span>
+                      </td>
+                      <td className="px-5 py-3 text-gray-600">{row.durationDays}</td>
+                      <td className="px-5 py-3 text-gray-500 text-xs whitespace-nowrap">
+                        {fmtDate(row.createdAt)}
+                        <span className="block text-gray-400">{row.emailedAt ? 'emailed' : 'not emailed'}</span>
+                      </td>
+                      <td className="px-5 py-3 text-right whitespace-nowrap">
+                        <button onClick={() => copy(row.code, row.code)} className="text-xs font-semibold text-blue-700 hover:underline mr-3">
+                          {copied === row.code ? 'Copied!' : 'Copy'}
+                        </button>
+                        <button onClick={() => resendCode(row.code)} disabled={codeBusy} className="text-xs font-semibold text-gray-600 hover:underline disabled:opacity-50">
+                          Resend
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table></div>
+          </div>
+        )}
       </section>
 
       {/* ── 1. Grant access by email ── */}

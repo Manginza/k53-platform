@@ -29,10 +29,46 @@ import type { YocoCheckoutDetail } from '@/lib/yoco'
 import { isYocoCheckoutPaid } from '@/lib/yoco'
 import { grantAccess } from '@/lib/access'
 import { ACCEPTED_ACCESS_PRICES_CENTS, ACCESS_DURATION_DAYS, ACCESS_PRICE_CENTS } from '@/lib/contact'
+import { mintCodeForCheckout, type MintedCode } from '@/lib/access-codes'
+import { sendAccessCodeEmail } from '@/lib/access-code-email'
 
 type AdminClient = ReturnType<typeof createAdminClient>
 
 const UNIQUE_VIOLATION = '23505'
+
+/**
+ * Emails the buyer their code, and records that it went out.
+ *
+ * Fire-and-forget on purpose: a payment must not wait on a mail provider,
+ * and must not fail because of one. If the send fails, or no provider is
+ * configured, the code is still on the success page and in the database for
+ * support to read out.
+ */
+async function deliverAccessCode(admin: AdminClient, userId: string, minted: MintedCode): Promise<void> {
+  try {
+    const { data } = await admin.auth.admin.getUserById(userId)
+    const email = data?.user?.email
+    if (!email) {
+      console.warn('[payments] no email on account, access code not sent', { userId })
+      return
+    }
+    const result = await sendAccessCodeEmail({
+      to: email,
+      code: minted.code,
+      durationDays: minted.durationDays,
+      baseUrl: process.env.NEXT_PUBLIC_BASE_URL ?? 'https://www.skdriving.co.za',
+    })
+    if (result.sent) {
+      await admin.from('access_codes')
+        .update({ emailed_at: new Date().toISOString() })
+        .eq('code', minted.code)
+    }
+  } catch (error) {
+    console.error('[payments] access code delivery failed', {
+      userId, error: error instanceof Error ? error.message : String(error),
+    })
+  }
+}
 
 export type CheckoutRejection = 'not_paid' | 'amount_mismatch'
 
@@ -122,6 +158,15 @@ export async function applyPaidCheckout(
     if (claimError.code === UNIQUE_VIOLATION) return { status: 'already_applied' }
     throw new Error(`Payment ledger write failed: ${claimError.message}`)
   }
+
+  // Mint the customer's code here, between claiming the payment and granting
+  // access, so it exists even when the grant is what fails. That is precisely
+  // the case where they will need something to type in. Minting never throws
+  // and never blocks the grant.
+  const minted = await mintCodeForCheckout(admin, {
+    userId, checkoutId, durationDays: checkoutDurationDays(checkout),
+  })
+  if (minted) void deliverAccessCode(admin, userId, minted)
 
   try {
     const { expiresAt } = await grantAccess(userId, checkoutDurationDays(checkout), 'payment', { extend: true })
