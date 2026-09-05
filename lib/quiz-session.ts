@@ -1,7 +1,7 @@
 /**
  * lib/quiz-session.ts — server-side free-preview timer.
  *
- * The free 2-minute quiz sample is enforced from the server so it can't be
+ * The free 3-minute quiz sample is enforced from the server so it can't be
  * reset by reloading the page or editing the client timer. The start time
  * lives in `quiz_sessions` (keyed by user_id for logged-in users, or an
  * httpOnly cookie uuid for anonymous users).
@@ -17,7 +17,7 @@ import { createClient } from '@/lib/supabase-server'
 import { createAdminClient } from '@/lib/supabase-admin'
 import { hasFullAccess } from '@/lib/access'
 
-export const FREE_PREVIEW_SECONDS = 120
+export const FREE_PREVIEW_SECONDS = 180
 export const ANON_COOKIE = 'qz_sid'
 
 export interface QuizTiming {

@@ -84,7 +84,7 @@ export default async function CoursePage({ params }: Props) {
       <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
         <h2 className="font-bold text-lg text-gray-900 mb-4">Available Tests</h2>
         <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          <strong>Not subscribed?</strong> Open any test for a free 2-minute sample. Your countdown starts at 2:00.
+          <strong>Not subscribed?</strong> Open any test for a free 3-minute sample. Your countdown starts at 3:00.
         </div>
 
         <div className="space-y-3">

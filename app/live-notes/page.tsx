@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase-server'
 import { hasFullAccess } from '@/lib/access'
 import LockedContent from '@/components/LockedContent'
+import ProgressVisit from '@/components/ProgressVisit'
 
 const LIVE_NOTES_DESC = 'Read the full Road Traffic Signs Manual — all 18 chapters with chapter quizzes — with full access.'
 
@@ -62,6 +63,7 @@ export default async function LiveNotesPage() {
 
   return (
     <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+      {user && <ProgressVisit section="live_notes" />}
 
       {/* Header */}
       <div className="mb-6 sm:mb-8">

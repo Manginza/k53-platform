@@ -4,13 +4,13 @@
  * Paid access is arranged over WhatsApp or via Yoco card payment for R139 →
  * 60 days of full access.
  */
-export const WHATSAPP_NUMBER = '27631721259'           // +27 63 172 1259
+export const WHATSAPP_NUMBER = '27699075971'           // +27 69 907 5971
 export const WHATSAPP_MESSAGE = "I'm interested in buying the course for R99 (special, down from R150)."
 export const WHATSAPP_URL =
   `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`
 
 /** Support line for checkout / payment queries. */
-export const WHATSAPP_QUERIES_NUMBER = '27631721259'   // +27 63 172 1259
+export const WHATSAPP_QUERIES_NUMBER = '27699075971'   // +27 69 907 5971
 export const WHATSAPP_QUERIES_MESSAGE = 'Hi, I have a query about my course payment / checkout.'
 export const WHATSAPP_QUERIES_URL =
   `https://wa.me/${WHATSAPP_QUERIES_NUMBER}?text=${encodeURIComponent(WHATSAPP_QUERIES_MESSAGE)}`
@@ -48,6 +48,14 @@ export function isFreePromoActive(): boolean {
 /** Headline price for full access (discounted from ACCESS_PRICE_ORIGINAL). */
 export const ACCESS_PRICE = 'R99'
 export const ACCESS_PRICE_CENTS = 9900            // R99.00 in ZAR cents (Yoco)
+/**
+ * Every price we have ever charged for full access, in cents. A checkout is
+ * created at the price current at that moment, but may be PAID after a price
+ * change deploys (buyer opens checkout, pays a few minutes later). Verifying
+ * against the current price alone rejected those genuine payments. Add the
+ * old price here whenever ACCESS_PRICE_CENTS changes.
+ */
+export const ACCEPTED_ACCESS_PRICES_CENTS: readonly number[] = [ACCESS_PRICE_CENTS, 13900, 15000]
 export const ACCESS_PRICE_ORIGINAL = 'R150'       // shown struck-through
 export const ACCESS_DISCOUNT_LABEL = 'Save R51'   // (R150 − R99); ~34% off
 export const ACCESS_DURATION_DAYS = 60

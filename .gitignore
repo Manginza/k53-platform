@@ -42,3 +42,9 @@ k53-pdfs/
 .claude/
 
 .vercel
+
+.env*
+
+# stray rebase log and scaffold archive
+rebaseout.txt
+sea-learn-scaffold.zip

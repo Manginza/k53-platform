@@ -9,12 +9,11 @@
  *   Premium access activates after verified payment → sent to /pricing.
  */
 import { Suspense, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-browser'
 
 function RegisterForm() {
-  const router = useRouter()
   const params = useSearchParams()
   const token = params.get('token') || ''
   const next = params.get('next') || '/pricing'
@@ -36,10 +35,10 @@ function RegisterForm() {
       if (!res.ok) throw new Error(body.error ?? 'Could not create your account.')
 
       const { error: signInErr } = await createClient().auth.signInWithPassword({ email, password })
-      if (signInErr) { router.push('/login'); return }
-      // Token signups already have access → go straight to courses.
-      router.push(token ? '/courses' : next)
-      router.refresh()
+      if (signInErr) { window.location.assign('/login'); return }
+      // Full-page navigation so the destination server component sees the
+      // new session cookies straight away (same reasoning as the login page).
+      window.location.assign(token ? '/courses' : next)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong.')
       setLoading(false)

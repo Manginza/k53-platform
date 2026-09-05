@@ -42,7 +42,7 @@ function rand(cents: number) {
 }
 
 export default function AdminDashboard({
-  adminEmail, initialGrants, initialLinks, initialPayouts, initialCommissions = [], initialRecordingUrl = '', initialTrainers = [],
+  adminEmail, initialGrants, initialLinks, initialPayouts, initialCommissions = [], initialRecordingUrl = '', initialTrainers = [], initialPromo = { from: '', until: '' },
 }: {
   adminEmail: string
   initialGrants: AdminGrant[]
@@ -51,6 +51,7 @@ export default function AdminDashboard({
   initialCommissions?: CommissionRow[]
   initialRecordingUrl?: string
   initialTrainers?: TrainerRow[]
+  initialPromo?: { from: string; until: string }
 }) {
   const router = useRouter()
   const origin = useMemo(() => (typeof window !== 'undefined' ? window.location.origin : ''), [])
@@ -73,6 +74,67 @@ export default function AdminDashboard({
       const body = await res.json()
       setRecMsg(res.ok ? 'Saved — this is now the recording shown on Videos and in the popup.' : (body.error ?? 'Could not save.'))
     } catch { setRecMsg('Could not save.') } finally { setRecSaving(false) }
+  }
+
+  // ── Free promo toggle ───────────────────────────────────────────────────────
+  const [promoUntil, setPromoUntil] = useState(initialPromo.until ? new Date(initialPromo.until).toLocaleString('sv-SE', { timeZone: 'Africa/Johannesburg' }).replace(' ', 'T').slice(0, 16) : '')
+  const [promoActive, setPromoActive] = useState(() => {
+    if (!initialPromo.until) return false
+    const now = Date.now()
+    const f = initialPromo.from ? Date.parse(initialPromo.from) : 0
+    const u = Date.parse(initialPromo.until)
+    return now >= f && now < u
+  })
+  const [promoBusy, setPromoBusy] = useState(false)
+  const [promoMsg, setPromoMsg] = useState('')
+
+  async function activatePromo(e: React.FormEvent) {
+    e.preventDefault(); setPromoBusy(true); setPromoMsg('')
+    if (!promoUntil) { setPromoMsg('Pick an end time.'); setPromoBusy(false); return }
+    const until = new Date(promoUntil + ':00+02:00').toISOString()
+    try {
+      const res = await fetch('/api/admin/promo', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ from: '', until }),
+      })
+      const body = await res.json()
+      if (res.ok) { setPromoActive(body.active); setPromoMsg(body.active ? 'Free promo is LIVE!' : 'Promo scheduled.') }
+      else setPromoMsg(body.error ?? 'Could not save.')
+    } catch { setPromoMsg('Could not save.') } finally { setPromoBusy(false) }
+  }
+
+  async function stopPromo() {
+    setPromoBusy(true); setPromoMsg('')
+    try {
+      const res = await fetch('/api/admin/promo', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ from: '', until: '' }),
+      })
+      if (res.ok) { setPromoActive(false); setPromoUntil(''); setPromoMsg('Promo stopped.') }
+      else setPromoMsg('Could not stop.')
+    } catch { setPromoMsg('Could not stop.') } finally { setPromoBusy(false) }
+  }
+
+  function quickPromo(hours: number) {
+    const d = new Date(Date.now() + hours * 60 * 60 * 1000)
+    d.setMinutes(0, 0, 0)
+    const local = d.toLocaleString('sv-SE', { timeZone: 'Africa/Johannesburg' }).replace(' ', 'T').slice(0, 16)
+    setPromoUntil(local)
+  }
+
+  // ── Payment reconciliation ──────────────────────────────────────────────
+  const [reconBusy, setReconBusy] = useState(false)
+  const [reconResult, setReconResult] = useState<{ checked: number; fixed: number; results: Array<{ checkout_id: string; user_id: string; email?: string; status: string; action: string }> } | null>(null)
+  const [reconErr, setReconErr] = useState('')
+  async function runReconciliation() {
+    setReconBusy(true); setReconErr(''); setReconResult(null)
+    try {
+      const res = await fetch('/api/admin/reconcile', { method: 'POST' })
+      const body = await res.json()
+      if (!res.ok) { setReconErr(body.error ?? 'Failed.'); return }
+      setReconResult(body)
+      if (body.fixed > 0) router.refresh()
+    } catch { setReconErr('Could not reach the server.') } finally { setReconBusy(false) }
   }
 
   // ── Grants ────────────────────────────────────────────────────────────────
@@ -245,6 +307,77 @@ export default function AdminDashboard({
             </button>
           </form>
           {recMsg && <p className="text-green-600 text-sm mt-2">{recMsg}</p>}
+        </div>
+      </section>
+
+      {/* ── Free promo toggle ── */}
+      <section className="space-y-3">
+        <h2 className="font-extrabold text-gray-900">Free access promo</h2>
+        <div className="bg-white rounded-2xl shadow-md p-5">
+          <div className="flex items-center gap-3 mb-3">
+            <span className={`inline-block w-3 h-3 rounded-full ${promoActive ? 'bg-green-500 animate-pulse' : 'bg-gray-300'}`} />
+            <span className={`text-sm font-bold ${promoActive ? 'text-green-700' : 'text-gray-500'}`}>
+              {promoActive ? 'LIVE — course is free right now' : 'Inactive'}
+            </span>
+          </div>
+          <p className="text-xs text-gray-500 mb-3">
+            Make the entire course free until a specific time. No deploy needed — takes effect instantly.
+          </p>
+          <form onSubmit={activatePromo} className="space-y-3">
+            <div className="flex flex-col sm:flex-row gap-2">
+              <input type="datetime-local" value={promoUntil} onChange={e => setPromoUntil(e.target.value)}
+                className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
+              <button type="submit" disabled={promoBusy}
+                className="bg-green-600 text-white font-semibold px-4 py-2 rounded-lg text-sm hover:bg-green-700 disabled:opacity-60 shrink-0">
+                {promoBusy ? 'Saving…' : 'Activate free promo'}
+              </button>
+            </div>
+            <div className="flex gap-2 flex-wrap">
+              <span className="text-xs text-gray-500 py-1">Quick:</span>
+              <button type="button" onClick={() => quickPromo(1)} className="text-xs bg-gray-100 hover:bg-gray-200 rounded-full px-3 py-1 font-medium">+1 hour</button>
+              <button type="button" onClick={() => quickPromo(2)} className="text-xs bg-gray-100 hover:bg-gray-200 rounded-full px-3 py-1 font-medium">+2 hours</button>
+              <button type="button" onClick={() => quickPromo(3)} className="text-xs bg-gray-100 hover:bg-gray-200 rounded-full px-3 py-1 font-medium">+3 hours</button>
+              <button type="button" onClick={() => quickPromo(6)} className="text-xs bg-gray-100 hover:bg-gray-200 rounded-full px-3 py-1 font-medium">+6 hours</button>
+            </div>
+          </form>
+          {promoActive && (
+            <button onClick={stopPromo} disabled={promoBusy}
+              className="mt-3 w-full bg-red-50 text-red-600 font-semibold px-4 py-2 rounded-lg text-sm hover:bg-red-100 disabled:opacity-60 border border-red-200">
+              Stop promo now
+            </button>
+          )}
+          {promoMsg && <p className="text-sm mt-2 font-medium text-green-600">{promoMsg}</p>}
+        </div>
+      </section>
+
+      {/* ── Payment reconciliation ── */}
+      <section className="space-y-3">
+        <h2 className="font-extrabold text-gray-900">Payment recovery</h2>
+        <div className="bg-white rounded-2xl shadow-md p-5">
+          <p className="text-xs text-gray-500 mb-3">
+            Checks all checkout sessions against Yoco. If someone paid but didn&apos;t get access (e.g. browser closed, session expired), this fixes it automatically.
+          </p>
+          <button onClick={runReconciliation} disabled={reconBusy}
+            className="bg-green-600 text-white font-semibold px-4 py-2 rounded-lg text-sm hover:bg-green-700 disabled:opacity-60">
+            {reconBusy ? 'Checking Yoco…' : 'Recover missing payments'}
+          </button>
+          {reconErr && <p className="text-red-500 text-sm mt-2">{reconErr}</p>}
+          {reconResult && (
+            <div className="mt-3">
+              <p className="text-sm font-medium text-gray-700">
+                Checked {reconResult.checked} users — <span className="text-green-600 font-bold">{reconResult.fixed} recovered</span>
+              </p>
+              {reconResult.results.length > 0 && (
+                <ul className="mt-2 space-y-1 text-xs text-gray-600 max-h-48 overflow-y-auto">
+                  {reconResult.results.map(r => (
+                    <li key={r.checkout_id} className={r.action === 'granted' ? 'text-green-700 font-medium' : 'text-gray-500'}>
+                      {r.email ?? r.user_id.slice(0, 8)} — {r.status} — {r.action}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
         </div>
       </section>
 

@@ -8,6 +8,8 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-server'
 import { hasFullAccess } from '@/lib/access'
+import { loadLearnerProgress } from '@/lib/learner-progress-server'
+import LearnerProgressDashboard from '@/components/learner/LearnerProgressDashboard'
 
 export const dynamic = 'force-dynamic'
 
@@ -32,13 +34,14 @@ export default async function AccountPage() {
     )
   }
 
-  const [{ data: grant }, premium] = await Promise.all([
+  const [{ data: grant }, premium, progress] = await Promise.all([
     supabase
       .from('access_grants')
       .select('expires_at, source')
       .eq('user_id', user.id)
       .maybeSingle(),
     hasFullAccess(),
+    loadLearnerProgress(supabase, user.id),
   ])
   const expiresAt = grant?.expires_at ?? null
   const lifetime = !!grant && !expiresAt
@@ -55,6 +58,8 @@ export default async function AccountPage() {
         <h1 className="text-2xl font-extrabold text-blue-700">My account</h1>
         <p className="text-sm text-gray-500 truncate">{user.email}</p>
       </div>
+
+      <LearnerProgressDashboard progress={progress} />
 
       {/* Access status card */}
       <div className="bg-white rounded-2xl shadow-md p-6">

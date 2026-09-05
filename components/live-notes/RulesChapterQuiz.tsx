@@ -8,7 +8,7 @@ import { useState } from 'react'
 import type { RoadRuleQuestion, Choice } from '@/lib/rules-of-the-road'
 import { RULES_PASS_MARK } from '@/lib/rules-of-the-road'
 
-export default function RulesChapterQuiz({ questions }: { questions: RoadRuleQuestion[] }) {
+export default function RulesChapterQuiz({ questions, chapterSlug }: { questions: RoadRuleQuestion[]; chapterSlug: string }) {
   const [answers, setAnswers] = useState<Record<number, Choice>>({})
   const [submitted, setSubmitted] = useState(false)
 
@@ -27,6 +27,17 @@ export default function RulesChapterQuiz({ questions }: { questions: RoadRuleQue
     setAnswers({})
     setSubmitted(false)
     if (typeof window !== 'undefined') window.scrollTo({ top: document.getElementById('chapter-quiz')?.offsetTop ?? 0, behavior: 'smooth' })
+  }
+
+  const submit = () => {
+    setSubmitted(true)
+    window.scrollTo({ top: document.getElementById('chapter-quiz')?.offsetTop ?? 0, behavior: 'smooth' })
+    fetch('/api/progress/section', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ section: 'road_rules', action: 'item_completed', item: chapterSlug }),
+      keepalive: true,
+    }).catch(() => {})
   }
 
   const optClass = (qi: number, key: Choice, q: RoadRuleQuestion) => {
@@ -79,7 +90,7 @@ export default function RulesChapterQuiz({ questions }: { questions: RoadRuleQue
 
       {!submitted ? (
         <button
-          onClick={() => { setSubmitted(true); window.scrollTo({ top: document.getElementById('chapter-quiz')?.offsetTop ?? 0, behavior: 'smooth' }) }}
+          onClick={submit}
           disabled={answeredCount < total}
           className="mt-5 w-full bg-blue-700 text-white font-bold py-3.5 rounded-xl hover:bg-blue-800 transition-colors disabled:opacity-50"
         >
