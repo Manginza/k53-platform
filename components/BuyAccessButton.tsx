@@ -16,12 +16,42 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
 import { ACCESS_PRICE, ACCESS_PRICE_ORIGINAL, ACCESS_DURATION_DAYS } from '@/lib/contact'
+import { getAccessStatus } from '@/lib/access-cache'
 
-export default function BuyAccessButton({ className = '' }: { className?: string }) {
+export default function BuyAccessButton({
+  className = '',
+  durationDays: durationDaysProp,
+}: {
+  className?: string
+  /**
+   * The window to quote, when the page already resolved it server-side.
+   * Pass it wherever the surrounding page also prints the number, so the two
+   * cannot disagree and nothing shifts after hydration.
+   */
+  durationDays?: number
+}) {
   const router = useRouter()
   const supabase = useMemo(() => createClient(), [])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  // A customer grandfathered onto the longer plan must be quoted the window
+  // they will actually be given, not the current standard one. The server
+  // decides that; this only asks. It starts on the standard window so the
+  // button renders immediately, and this endpoint is cached and deduplicated
+  // per tab, so asking costs nothing on top of what the page already fetches.
+  const [fetchedDays, setFetchedDays] = useState(ACCESS_DURATION_DAYS)
+  const durationDays = durationDaysProp ?? fetchedDays
+  useEffect(() => {
+    if (durationDaysProp != null) return          // the page already knows
+    let cancelled = false
+    getAccessStatus()
+      .then(status => {
+        if (!cancelled && status.accessDurationDays) setFetchedDays(status.accessDurationDays)
+      })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [durationDaysProp])
 
   const pay = useCallback(async () => {
     setLoading(true); setError('')
@@ -85,7 +115,7 @@ export default function BuyAccessButton({ className = '' }: { className?: string
           <>
             Pay <span className="line-through opacity-70 font-normal">{ACCESS_PRICE_ORIGINAL}</span>
             <span>{ACCESS_PRICE}</span>
-            <span className="font-normal opacity-80">· {ACCESS_DURATION_DAYS} days · card</span>
+            <span className="font-normal opacity-80">· {durationDays} days · card</span>
           </>
         )}
       </button>

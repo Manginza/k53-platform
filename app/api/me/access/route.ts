@@ -25,6 +25,8 @@ import { getLatestRecordingUrl } from '@/lib/settings'
 import { createClient } from '@/lib/supabase-server'
 import { createAdminClient } from '@/lib/supabase-admin'
 import { hasPendingCheckout, recoverPaidAccess } from '@/lib/payment-recovery'
+import { accessDurationDaysFor } from '@/lib/entitlement'
+import { ACCESS_DURATION_DAYS } from '@/lib/contact'
 
 export const dynamic = 'force-dynamic'
 
@@ -58,6 +60,23 @@ async function tryRecoverAccess(userId: string): Promise<boolean> {
   return false
 }
 
+/**
+ * The access window this visitor's next purchase would buy, so the buy
+ * button can quote a grandfathered customer their own longer window rather
+ * than the current standard one. Falls back to the standard window rather
+ * than failing the access check over a price label.
+ */
+async function durationDaysFor(userId: string): Promise<number> {
+  try {
+    return await accessDurationDaysFor(createAdminClient(), userId)
+  } catch (error) {
+    console.error('[me/access] entitlement lookup failed', {
+      userId, error: error instanceof Error ? error.message : String(error),
+    })
+    return ACCESS_DURATION_DAYS
+  }
+}
+
 export async function GET() {
   try {
     const supabase = createClient()
@@ -68,7 +87,12 @@ export async function GET() {
       fullAccess = await hasFullAccess()
     }
     const recordingUrl = fullAccess ? await getLatestRecordingUrl() : null
-    return NextResponse.json({ fullAccess, isLoggedIn, recordingUrl }, {
+    // Only a signed-in visitor who cannot yet see paid content is about to be
+    // shown a price, so that is the only case worth two extra reads for.
+    const accessDurationDays = !fullAccess && user
+      ? await durationDaysFor(user.id)
+      : ACCESS_DURATION_DAYS
+    return NextResponse.json({ fullAccess, isLoggedIn, recordingUrl, accessDurationDays }, {
       headers: {
         // Private (browser-only cache): reuse for 60 s without a round-trip.
         // CDN must NOT cache this — it is user-specific.
@@ -76,6 +100,6 @@ export async function GET() {
       },
     })
   } catch {
-    return NextResponse.json({ fullAccess: false, isLoggedIn: false, recordingUrl: null })
+    return NextResponse.json({ fullAccess: false, isLoggedIn: false, recordingUrl: null, accessDurationDays: ACCESS_DURATION_DAYS })
   }
 }
