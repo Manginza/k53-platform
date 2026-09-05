@@ -11,6 +11,7 @@
  * Net effect: at most ONE /api/me/access request per 5-minute window per tab,
  * down from one per component mount (= one per page load × N components).
  */
+import { ACCESS_DURATION_DAYS } from '@/lib/contact'
 
 export interface AccessStatus {
   /** STRICT — true only for admin, active grant, or free promo. Gate content on this. */
@@ -18,6 +19,12 @@ export interface AccessStatus {
   /** Account identity only. Never use this field to unlock premium content. */
   isLoggedIn:   boolean
   recordingUrl: string | null
+  /**
+   * The window this visitor's next purchase would buy, in days. Usually
+   * ACCESS_DURATION_DAYS, but longer for a customer grandfathered onto the
+   * old plan, so the buy button quotes them what they will actually get.
+   */
+  accessDurationDays: number
 }
 
 const CACHE_TTL = 5 * 60 * 1000          // 5 minutes
@@ -57,7 +64,7 @@ export async function getAccessStatus(): Promise<AccessStatus> {
   inFlight = fetch('/api/me/access', { cache: 'no-store' })
     .then(r => r.json() as Promise<AccessStatus>)
     .then(d => { toStorage(d); return d })
-    .catch(() => ({ fullAccess: false, isLoggedIn: false, recordingUrl: null }))
+    .catch(() => ({ fullAccess: false, isLoggedIn: false, recordingUrl: null, accessDurationDays: ACCESS_DURATION_DAYS }))
     .finally(() => { inFlight = null })
 
   return inFlight

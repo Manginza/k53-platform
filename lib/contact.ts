@@ -68,3 +68,23 @@ export const ACCESS_DISCOUNT_LABEL = 'Save R51'   // (R150 − R99); ~34% off
  * still gets the length they paid for even if their payment is applied later.
  */
 export const ACCESS_DURATION_DAYS = 30
+
+/**
+ * The window customers were buying before it was shortened. Anyone who had
+ * already paid keeps this on every future purchase — see lib/entitlement.ts.
+ */
+export const LEGACY_ACCESS_DURATION_DAYS = 60
+
+/**
+ * The moment the shorter window took effect.
+ *
+ * SET THIS TO THE DATE THIS ACTUALLY GOES LIVE. Anyone whose first payment
+ * predates it is treated as being on the old plan and keeps the longer
+ * window. Because the shorter window does not exist until this ships, every
+ * payment before that moment was by definition made on the old plan, so a
+ * cutover equal to the deploy date classifies everyone correctly.
+ *
+ * Setting it EARLIER than the deploy date is the harmful mistake: customers
+ * who bought the long plan in the gap would be renewed on the short one.
+ */
+export const LEGACY_PLAN_CUTOVER = '2026-09-05T00:00:00+02:00'

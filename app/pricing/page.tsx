@@ -1,5 +1,8 @@
 import Link from 'next/link'
 import BuyAccessButton from '@/components/BuyAccessButton'
+import { createClient } from '@/lib/supabase-server'
+import { createAdminClient } from '@/lib/supabase-admin'
+import { accessDurationDaysFor } from '@/lib/entitlement'
 import {
   WHATSAPP_URL, WHATSAPP_QUERIES_URL, ACCESS_PRICE, ACCESS_PRICE_ORIGINAL,
   ACCESS_DISCOUNT_LABEL, ACCESS_DURATION_DAYS,
@@ -35,12 +38,32 @@ const productSchema = {
   },
 }
 
-export default function PricingPage({
+/**
+ * Resolved per visitor, because a customer grandfathered onto the old plan
+ * buys a longer window than the current standard one and must see the window
+ * they will actually get. Anonymous visitors, and anyone whose lookup fails,
+ * see the standard offer.
+ *
+ * The product schema above deliberately keeps the standard window: that is
+ * the public offer, and it must not vary by who is reading the page.
+ */
+async function resolveDurationDays(): Promise<number> {
+  try {
+    const { data: { user } } = await createClient().auth.getUser()
+    if (!user) return ACCESS_DURATION_DAYS
+    return await accessDurationDaysFor(createAdminClient(), user.id)
+  } catch {
+    return ACCESS_DURATION_DAYS
+  }
+}
+
+export default async function PricingPage({
   searchParams,
 }: {
   searchParams?: { account?: string }
 }) {
   const isPrequalified = searchParams?.account === 'prequalified'
+  const durationDays = await resolveDurationDays()
 
   return (
     <main className="bg-gray-50 min-h-screen">
@@ -76,7 +99,7 @@ export default function PricingPage({
             <div className="flex items-end justify-center gap-2">
               <span className="text-2xl font-semibold text-gray-400 line-through mb-1">{ACCESS_PRICE_ORIGINAL}</span>
               <span className="text-4xl font-extrabold text-blue-700">{ACCESS_PRICE}</span>
-              <span className="text-sm text-gray-400 mb-1">/ {ACCESS_DURATION_DAYS} days</span>
+              <span className="text-sm text-gray-400 mb-1">/ {durationDays} days</span>
             </div>
             <p className="text-xs font-semibold text-red-600 mt-1">
               Limited-time price — down from {ACCESS_PRICE_ORIGINAL}
@@ -92,7 +115,7 @@ export default function PricingPage({
           </ul>
 
           {/* Primary: pay online with card */}
-          <BuyAccessButton />
+          <BuyAccessButton durationDays={durationDays} />
 
           {/* Alternative: WhatsApp */}
           <div className="flex items-center gap-3 my-4">

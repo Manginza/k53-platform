@@ -17,7 +17,8 @@ import { createAdminClient } from '@/lib/supabase-admin'
 import { createYocoCheckout } from '@/lib/yoco'
 import { REF_COOKIE } from '@/lib/referral'
 import { attributionMetadata, resolveAffiliateAttribution } from '@/lib/affiliate-attribution'
-import { ACCESS_PRICE_CENTS, ACCESS_DURATION_DAYS } from '@/lib/contact'
+import { ACCESS_PRICE_CENTS } from '@/lib/contact'
+import { accessDurationDaysFor } from '@/lib/entitlement'
 
 /**
  * The base URL Yoco redirects back to MUST match the domain the buyer is on,
@@ -68,13 +69,30 @@ export async function POST(req: NextRequest) {
     }, { status: 503 })
   }
 
+  // How long THIS buyer's purchase lasts. Customers who were already paying
+  // before the window was shortened keep the longer one. Decided here and
+  // written into the Yoco metadata, which every route that later applies the
+  // payment reads in preference to the constant.
+  let durationDays: number
+  try {
+    durationDays = await accessDurationDaysFor(admin, user.id)
+  } catch (entitlementError) {
+    console.error('[create-checkout] entitlement lookup failed; checkout blocked', {
+      userId: user.id,
+      error: entitlementError instanceof Error ? entitlementError.message : String(entitlementError),
+    })
+    return NextResponse.json({
+      error: 'We could not confirm your plan. Please try again in a moment.',
+    }, { status: 503 })
+  }
+
   try {
     const checkout = await createYocoCheckout({
       amountInCents: ACCESS_PRICE_CENTS,
       successUrl: `${BASE_URL}/subscribe/success`,
       cancelUrl:  `${BASE_URL}/pricing`,
       failureUrl: `${BASE_URL}/subscribe/failed`,
-      metadata: { userId: user.id, durationDays: String(ACCESS_DURATION_DAYS), product: `full-access-${ACCESS_DURATION_DAYS}day`, ...affiliateMeta },
+      metadata: { userId: user.id, durationDays: String(durationDays), product: `full-access-${durationDays}day`, ...affiliateMeta },
     })
 
     // Map the checkout to this account so access can be granted on return even
