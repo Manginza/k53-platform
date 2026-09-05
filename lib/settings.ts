@@ -39,3 +39,38 @@ export async function setLatestRecordingUrl(url: string): Promise<void> {
     .from('app_settings')
     .upsert({ key: RECORDING_KEY, value: url, updated_at: new Date().toISOString() }, { onConflict: 'key' })
 }
+
+const PROMO_FROM_KEY  = 'free_promo_from'
+const PROMO_UNTIL_KEY = 'free_promo_until'
+
+export interface PromoWindow { from: string; until: string }
+
+export async function getPromoWindow(): Promise<PromoWindow> {
+  try {
+    const db = createAdminClient()
+    const [{ data: fromRow }, { data: untilRow }] = await Promise.all([
+      db.from('app_settings').select('value').eq('key', PROMO_FROM_KEY).maybeSingle(),
+      db.from('app_settings').select('value').eq('key', PROMO_UNTIL_KEY).maybeSingle(),
+    ])
+    return { from: fromRow?.value ?? '', until: untilRow?.value ?? '' }
+  } catch {
+    return { from: '', until: '' }
+  }
+}
+
+export async function setPromoWindow(from: string, until: string): Promise<void> {
+  const db = createAdminClient()
+  const now = new Date().toISOString()
+  await Promise.all([
+    db.from('app_settings').upsert({ key: PROMO_FROM_KEY, value: from, updated_at: now }, { onConflict: 'key' }),
+    db.from('app_settings').upsert({ key: PROMO_UNTIL_KEY, value: until, updated_at: now }, { onConflict: 'key' }),
+  ])
+}
+
+export function isPromoActiveNow(window: PromoWindow): boolean {
+  if (!window.until) return false
+  const now = Date.now()
+  const from = window.from ? Date.parse(window.from) : 0
+  const until = Date.parse(window.until)
+  return now >= from && now < until
+}

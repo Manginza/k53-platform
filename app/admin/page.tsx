@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 import { getAdminUser } from '@/lib/admin'
 import { createAdminClient } from '@/lib/supabase-admin'
-import { getLatestRecordingUrl } from '@/lib/settings'
+import { getLatestRecordingUrl, getPromoWindow } from '@/lib/settings'
 import AdminDashboard, {
   type AdminGrant, type SignupLink, type PayoutRow, type TrainerRow, type CommissionRow,
 } from '@/components/admin/AdminDashboard'
@@ -104,6 +104,7 @@ export default async function AdminPage() {
       initialPayouts={payoutRows}
       initialCommissions={commissionRows}
       initialRecordingUrl={await getLatestRecordingUrl()}
+      initialPromo={await getPromoWindow()}
       initialTrainers={trainerRows}
     />
   )

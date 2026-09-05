@@ -4,7 +4,6 @@
  */
 export const ADMIN_EMAILS = [
   'lungi09@gmail.com',
-  'nongculababalwa168@gmail.com',
   'info@sikhululekile.org',
 ]
 
