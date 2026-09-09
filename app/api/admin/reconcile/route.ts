@@ -11,7 +11,7 @@
  * Admin-only. Reports emails, which the scheduled sweep does not bother with.
  */
 import { NextResponse } from 'next/server'
-import { getAdminUser } from '@/lib/admin'
+import { getAdminUser, isPrimaryAdminEmail } from '@/lib/admin'
 import { createAdminClient } from '@/lib/supabase-admin'
 import { recoverPaidAccess } from '@/lib/payment-recovery'
 
@@ -19,7 +19,7 @@ export const maxDuration = 60
 
 export async function POST() {
   const admin = await getAdminUser()
-  if (!admin) return NextResponse.json({ error: 'Unauthorised.' }, { status: 401 })
+  if (!admin || !isPrimaryAdminEmail(admin.email)) return NextResponse.json({ error: 'This area is restricted to the primary admin.' }, { status: 403 })
 
   try {
     const report = await recoverPaidAccess(createAdminClient(), { withEmails: true })

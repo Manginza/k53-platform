@@ -6,11 +6,11 @@
  * diagnose card declines (a test key in production declines all real cards).
  */
 import { NextResponse } from 'next/server'
-import { getAdminUser } from '@/lib/admin'
+import { getAdminUser, isPrimaryAdminEmail } from '@/lib/admin'
 
 export async function GET() {
   const admin = await getAdminUser()
-  if (!admin) return NextResponse.json({ error: 'Unauthorised.' }, { status: 401 })
+  if (!admin || !isPrimaryAdminEmail(admin.email)) return NextResponse.json({ error: 'This area is restricted to the primary admin.' }, { status: 403 })
 
   const key = process.env.YOCO_SECRET_KEY ?? ''
   const mode = key.startsWith('sk_test') ? 'TEST'

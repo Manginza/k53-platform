@@ -9,7 +9,7 @@
  * values, and it must never report the values themselves.
  */
 import { NextResponse } from 'next/server'
-import { getAdminUser } from '@/lib/admin'
+import { getAdminUser, isPrimaryAdminEmail } from '@/lib/admin'
 import { createAdminClient } from '@/lib/supabase-admin'
 import { isEmailConfigured } from '@/lib/email'
 import {
@@ -30,7 +30,7 @@ async function columnExists(db: AdminClient, table: string, column: string): Pro
 
 export async function GET() {
   const admin = await getAdminUser()
-  if (!admin) return NextResponse.json({ error: 'Unauthorised.' }, { status: 401 })
+  if (!admin || !isPrimaryAdminEmail(admin.email)) return NextResponse.json({ error: 'This area is restricted to the primary admin.' }, { status: 403 })
 
   const checks: HealthCheck[] = [
     serviceRoleKeyCheck(process.env.SUPABASE_SERVICE_ROLE_KEY),

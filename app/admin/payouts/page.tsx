@@ -6,7 +6,7 @@
  * the pending balance after the weekly bank transfer.
  */
 import { redirect } from 'next/navigation'
-import { getAdminUser } from '@/lib/admin'
+import { getAdminUser, isPrimaryAdminEmail } from '@/lib/admin'
 import { createAdminClient } from '@/lib/supabase-admin'
 import AffiliatePayouts, { type PayoutRow } from '@/components/admin/AffiliatePayouts'
 
@@ -15,6 +15,9 @@ export const dynamic = 'force-dynamic'
 export default async function PayoutsPage() {
   const admin = await getAdminUser()
   if (!admin) redirect('/login')
+  // Affiliate payouts are card-payment commissions — primary admin only.
+  // A signed-in secondary admin is sent back to their own dashboard.
+  if (!isPrimaryAdminEmail(admin.email)) redirect('/admin')
 
   const db = createAdminClient()
   // Read ALL commissions once and derive earned / paid / pending per
