@@ -42,9 +42,15 @@ function rand(cents: number) {
 }
 
 export default function AdminDashboard({
-  adminEmail, initialGrants, initialLinks, initialPayouts, initialCommissions = [], initialRecordingUrl = '', initialTrainers = [], initialPromo = { from: '', until: '' },
+  adminEmail, isPrimary = false, initialGrants, initialLinks, initialPayouts, initialCommissions = [], initialRecordingUrl = '', initialTrainers = [], initialPromo = { from: '', until: '' },
 }: {
   adminEmail: string
+  /**
+   * Primary (super) admin. Only then are the card-payment sections (readiness,
+   * recovery, access codes, affiliates) and the site-config sections (recording,
+   * promo, trainers) rendered. A secondary admin manages admin-added members only.
+   */
+  isPrimary?: boolean
   initialGrants: AdminGrant[]
   initialLinks: SignupLink[]
   initialPayouts: PayoutRow[]
@@ -345,10 +351,15 @@ export default function AdminDashboard({
         <div>
           <h1 className="text-2xl font-extrabold text-blue-700">Admin dashboard</h1>
           <p className="text-sm text-gray-500 truncate">{adminEmail}</p>
+          <span className={`inline-block mt-1 text-xs font-semibold px-2 py-0.5 rounded-full ${isPrimary ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>
+            {isPrimary ? 'Primary admin — full access' : 'Secondary admin — admin-added members only'}
+          </span>
         </div>
         <button onClick={logout} className="text-sm font-semibold text-gray-600 border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-gray-50 shrink-0">Log out</button>
       </div>
 
+      {/* Card-payment + site-config sections: primary admin only. */}
+      {isPrimary && (<>
       {/* ── Payment readiness ── */}
       <section className="space-y-3">
         <div className="flex items-center justify-between flex-wrap gap-3">
@@ -573,6 +584,7 @@ export default function AdminDashboard({
           </div>
         )}
       </section>
+      </>)}
 
       {/* ── 1. Grant access by email ── */}
       <section className="space-y-3">
@@ -678,6 +690,8 @@ export default function AdminDashboard({
         )}
       </section>
 
+      {/* Affiliates (card-payment commissions) + trainers: primary admin only. */}
+      {isPrimary && (<>
       {/* ── Affiliate dashboard ── */}
       <section className="space-y-4">
         <div className="flex items-center justify-between flex-wrap gap-3">
@@ -908,6 +922,7 @@ export default function AdminDashboard({
           )}
         </div>
       </section>
+      </>)}
     </main>
   )
 }

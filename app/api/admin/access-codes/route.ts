@@ -13,7 +13,7 @@
  * worth being able to answer later.
  */
 import { NextRequest, NextResponse } from 'next/server'
-import { getAdminUser } from '@/lib/admin'
+import { getAdminUser, isPrimaryAdminEmail } from '@/lib/admin'
 import { createAdminClient } from '@/lib/supabase-admin'
 import { normaliseCode } from '@/lib/access-codes'
 import { sendAccessCodeEmail } from '@/lib/access-code-email'
@@ -56,7 +56,7 @@ async function emailForUser(db: AdminClient, userId: string | null): Promise<str
 
 export async function GET(req: NextRequest) {
   const admin = await getAdminUser()
-  if (!admin) return NextResponse.json({ error: 'Unauthorised.' }, { status: 401 })
+  if (!admin || !isPrimaryAdminEmail(admin.email)) return NextResponse.json({ error: 'This area is restricted to the primary admin.' }, { status: 403 })
 
   const query = (req.nextUrl.searchParams.get('q') ?? '').trim()
   if (!query) return NextResponse.json({ error: 'Enter an email address or a code.' }, { status: 400 })
@@ -110,7 +110,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const admin = await getAdminUser()
-  if (!admin) return NextResponse.json({ error: 'Unauthorised.' }, { status: 401 })
+  if (!admin || !isPrimaryAdminEmail(admin.email)) return NextResponse.json({ error: 'This area is restricted to the primary admin.' }, { status: 403 })
 
   let code: string | undefined
   try {

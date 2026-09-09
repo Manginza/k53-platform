@@ -1,12 +1,12 @@
 // Admin affiliate management — GET (list with commissions), POST (add manually), DELETE
 import { NextRequest, NextResponse } from 'next/server'
-import { getAdminUser } from '@/lib/admin'
+import { getAdminUser, isPrimaryAdminEmail } from '@/lib/admin'
 import { createAdminClient } from '@/lib/supabase-admin'
 import { generateAffiliateCode, COMMISSION_RATE } from '@/lib/affiliate'
 
 export async function GET() {
   const admin = await getAdminUser()
-  if (!admin) return NextResponse.json({ error: 'Unauthorised.' }, { status: 401 })
+  if (!admin || !isPrimaryAdminEmail(admin.email)) return NextResponse.json({ error: 'This area is restricted to the primary admin.' }, { status: 403 })
 
   const db = createAdminClient()
   const [{ data: affiliates }, { data: referrals }, { data: commissions }] = await Promise.all([
@@ -24,7 +24,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const admin = await getAdminUser()
-  if (!admin) return NextResponse.json({ error: 'Unauthorised.' }, { status: 401 })
+  if (!admin || !isPrimaryAdminEmail(admin.email)) return NextResponse.json({ error: 'This area is restricted to the primary admin.' }, { status: 403 })
 
   const { firstName, lastName, email, bankAccountName, bankName, accountNumber, accountType } = await req.json()
   if (!firstName || !lastName || !email) return NextResponse.json({ error: 'Name and email are required.' }, { status: 400 })
@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   const admin = await getAdminUser()
-  if (!admin) return NextResponse.json({ error: 'Unauthorised.' }, { status: 401 })
+  if (!admin || !isPrimaryAdminEmail(admin.email)) return NextResponse.json({ error: 'This area is restricted to the primary admin.' }, { status: 403 })
 
   const { id } = await req.json()
   const db = createAdminClient()
