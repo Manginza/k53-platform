@@ -91,5 +91,12 @@ export const LEGACY_ACCESS_DURATION_DAYS = 60
  *
  * Setting it EARLIER than the deploy date is the harmful mistake: customers
  * who bought the long plan in the gap would be renewed on the short one.
+ *
+ * ⚠️ BUMP THIS TO THE EXACT GO-LIVE DAY WHEN YOU MERGE THIS STACK TO main.
+ * It is deliberately set to a forward date so that, until it ships, every
+ * live purchase (still the 60-day plan in production) stays grandfathered.
+ * A date slightly after deploy is safe — at worst a few brand-new buyers get
+ * the longer window. A date before deploy is NOT safe: it short-changes real
+ * 60-day customers, which is the mistake this guard exists to prevent.
  */
-export const LEGACY_PLAN_CUTOVER = '2026-09-05T00:00:00+02:00'
+export const LEGACY_PLAN_CUTOVER = '2026-09-15T00:00:00+02:00'
