@@ -28,13 +28,16 @@ import type { createAdminClient } from '@/lib/supabase-admin'
 import type { YocoCheckoutDetail } from '@/lib/yoco'
 import { isYocoCheckoutPaid } from '@/lib/yoco'
 import { grantAccess } from '@/lib/access'
-import { ACCEPTED_ACCESS_PRICES_CENTS, ACCESS_DURATION_DAYS, ACCESS_PRICE_CENTS } from '@/lib/contact'
+import {
+  ACCEPTED_ACCESS_PRICES_CENTS, ACCESS_DURATION_DAYS, ACCESS_PRICE_CENTS, LEGACY_ACCESS_DURATION_DAYS,
+} from '@/lib/contact'
 import { mintCodeForCheckout, type MintedCode } from '@/lib/access-codes'
 import { sendAccessCodeEmail } from '@/lib/access-code-email'
 
 type AdminClient = ReturnType<typeof createAdminClient>
 
 const UNIQUE_VIOLATION = '23505'
+const VALID_ACCESS_DURATION_DAYS = new Set([ACCESS_DURATION_DAYS, LEGACY_ACCESS_DURATION_DAYS])
 
 /**
  * Emails the buyer their code, and records that it went out.
@@ -83,9 +86,24 @@ export function checkoutRejection(checkout: YocoCheckoutDetail | null): Checkout
   return null
 }
 
-/** Access days this checkout buys (from Yoco metadata, else the default). */
+/**
+ * A checkout duration explicitly recorded by our checkout creator.
+ *
+ * Yoco metadata is external input when it returns to us, so only accept the
+ * exact plan lengths this application has offered. This prevents malformed
+ * metadata from turning a recovered checkout into an arbitrary entitlement.
+ */
+export function checkoutMetadataDurationDays(checkout: YocoCheckoutDetail | null): number | null {
+  const raw = checkout?.metadata?.durationDays
+  if (!raw) return null
+  const days = Number(raw)
+  if (!Number.isSafeInteger(days) || raw !== String(days)) return null
+  return VALID_ACCESS_DURATION_DAYS.has(days) ? days : null
+}
+
+/** Access days this checkout buys (from validated Yoco metadata, else the default). */
 export function checkoutDurationDays(checkout: YocoCheckoutDetail | null): number {
-  return Number(checkout?.metadata?.durationDays) || ACCESS_DURATION_DAYS
+  return checkoutMetadataDurationDays(checkout) ?? ACCESS_DURATION_DAYS
 }
 
 /**

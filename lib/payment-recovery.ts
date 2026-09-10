@@ -30,8 +30,10 @@
 import type { createAdminClient } from '@/lib/supabase-admin'
 import { getYocoCheckout } from '@/lib/yoco'
 import { grantAccess } from '@/lib/access'
-import { applyPaidCheckout, checkoutDurationDays, checkoutRejection } from '@/lib/payments'
-import { ACCESS_DURATION_DAYS } from '@/lib/contact'
+import {
+  applyPaidCheckout, checkoutDurationDays, checkoutMetadataDurationDays, checkoutRejection,
+} from '@/lib/payments'
+import { accessDurationDaysFor } from '@/lib/entitlement'
 
 type AdminClient = ReturnType<typeof createAdminClient>
 
@@ -79,7 +81,7 @@ export interface RecoveryReport {
 
 export interface SessionRow { checkout_id: string; user_id: string; created_at: string }
 export interface GrantRow { user_id: string; expires_at: string | null; updated_at: string | null }
-interface LedgerRow { yoco_checkout_id: string; user_id: string; created_at: string }
+interface LedgerRow { yoco_checkout_id: string | null; user_id: string | null; created_at: string }
 
 /** Whether this account's access is currently live. A null expiry is lifetime. */
 export function hasActiveAccess(grant: GrantRow | undefined, now: number): boolean {
@@ -174,6 +176,7 @@ export async function recoverPaidAccess(
     .from('payment_history')
     .select('yoco_checkout_id, user_id, created_at')
     .eq('status', 'succeeded')
+    .gte('created_at', windowStart)
   if (userIds?.length) ledgerQuery = ledgerQuery.in('user_id', userIds)
 
   const [sessionsRes, grantsRes, ledgerRes] = await Promise.all([sessionQuery, grantQuery, ledgerQuery])
@@ -185,12 +188,19 @@ export async function recoverPaidAccess(
   const ledger = (ledgerRes.data ?? []) as LedgerRow[]
 
   const grantByUser = new Map(grants.map(g => [g.user_id, g]))
-  const appliedCheckouts = new Set(ledger.map(l => l.yoco_checkout_id))
+  const appliedCheckouts = new Set(
+    ledger.flatMap(row => typeof row.yoco_checkout_id === 'string' ? [row.yoco_checkout_id] : []),
+  )
   const latestPaymentByUser = new Map<string, number>()
+  const latestLedgerByUser = new Map<string, LedgerRow>()
   for (const row of ledger) {
+    if (!row.user_id) continue
     const at = Date.parse(row.created_at)
     if (!Number.isFinite(at)) continue
-    if (at > (latestPaymentByUser.get(row.user_id) ?? 0)) latestPaymentByUser.set(row.user_id, at)
+    if (at > (latestPaymentByUser.get(row.user_id) ?? 0)) {
+      latestPaymentByUser.set(row.user_id, at)
+      latestLedgerByUser.set(row.user_id, row)
+    }
   }
 
   const sessionsByUser = new Map<string, SessionRow[]>()
@@ -212,25 +222,59 @@ export async function recoverPaidAccess(
   let verified = 0
   let truncated = false
 
-  const userList = Array.from(sessionsByUser.keys())
+  const userList = Array.from(new Set([
+    ...Array.from(sessionsByUser.keys()),
+    ...Array.from(latestLedgerByUser.keys()),
+  ]))
   for (const userId of userList) {
     const grant = grantByUser.get(userId)
 
     // 1. Ledger repair — a recorded payment the grant never reflected.
     if (needsLedgerRepair(grant, latestPaymentByUser.get(userId), now)) {
+      const ledgerPayment = latestLedgerByUser.get(userId)
+      let durationDays: number | null = null
+      let durationSource = 'plan history fallback'
+
+      if (ledgerPayment?.yoco_checkout_id && verified < maxVerifications) {
+        verified += 1
+        try {
+          const checkout = await getYocoCheckout(ledgerPayment.yoco_checkout_id)
+          const metadataMatches = !checkout?.metadata?.userId || checkout.metadata.userId === userId
+          if (
+            checkout?.id === ledgerPayment.yoco_checkout_id
+            && metadataMatches
+            && !checkoutRejection(checkout)
+          ) {
+            durationDays = checkoutMetadataDurationDays(checkout)
+            if (durationDays !== null) durationSource = 'checkout metadata'
+          }
+        } catch {
+          // The durable, succeeded ledger entry is still enough to recover
+          // with the known plan-history fallback below.
+        }
+      } else if (ledgerPayment?.yoco_checkout_id) {
+        truncated = true
+      }
+
       try {
-        await grantAccess(userId, ACCESS_DURATION_DAYS, 'payment')
+        // If Yoco's original metadata is unavailable, derive only one of the
+        // configured plan lengths from trusted payment/grant history. Never
+        // invent a duration from an unvalidated metadata value.
+        const recoveredDays = durationDays ?? await accessDurationDaysFor(db, userId)
+        await grantAccess(userId, recoveredDays, 'payment', { extend: true })
         results.push({
-          checkout_id: '(ledger)', user_id: userId, email: await emailOf(userId),
-          status: 'paid (recorded, grant missing)', action: 'granted',
+          checkout_id: ledgerPayment?.yoco_checkout_id ?? '(ledger)', user_id: userId, email: await emailOf(userId),
+          status: `paid (recorded, grant missing; ${recoveredDays} days via ${durationSource})`,
+          action: 'granted',
         })
       } catch (error) {
         results.push({
-          checkout_id: '(ledger)', user_id: userId,
+          checkout_id: ledgerPayment?.yoco_checkout_id ?? '(ledger)', user_id: userId,
           status: 'paid (recorded, grant missing)',
           action: `grant_failed: ${error instanceof Error ? error.message : String(error)}`,
         })
       }
+      if (truncated) break
       continue
     }
 
@@ -290,13 +334,15 @@ export async function recoverPaidAccess(
 }
 
 /**
- * Does this account have a checkout recent enough to be worth verifying?
+ * Does this account have a recent checkout or recorded payment worth recovering?
  *
  * The on-demand path runs on a normal page request, so it must cost nothing
  * for the overwhelming majority of visitors who have never started a
  * checkout. This is the cheap gate in front of it: two indexed reads and no
- * call to Yoco. It also keeps the window short, because on demand we are
- * recovering a payment made minutes ago, not sweeping history.
+ * call to Yoco. A recently recorded payment is included too: it may be the
+ * exact ledger-left-behind state that needs its grant repaired. It also keeps
+ * the window short, because on demand we are recovering a payment made
+ * minutes ago, not sweeping history.
  */
 export async function hasPendingCheckout(
   db: AdminClient,
@@ -304,22 +350,26 @@ export async function hasPendingCheckout(
   withinDays = 7,
 ): Promise<boolean> {
   const windowStart = new Date(Date.now() - withinDays * 24 * 60 * 60 * 1000).toISOString()
-  const { data: sessions, error } = await db
-    .from('checkout_sessions')
-    .select('checkout_id')
-    .eq('user_id', userId)
-    .gte('created_at', windowStart)
-    .order('created_at', { ascending: false })
-    .limit(5)
-  if (error || !sessions?.length) return false
+  const [sessionsRes, ledgerRes] = await Promise.all([
+    db
+      .from('checkout_sessions')
+      .select('checkout_id')
+      .eq('user_id', userId)
+      .gte('created_at', windowStart)
+      .order('created_at', { ascending: false })
+      .limit(5),
+    db
+      .from('payment_history')
+      .select('yoco_checkout_id')
+      .eq('user_id', userId)
+      .eq('status', 'succeeded')
+      .gte('created_at', windowStart)
+      .limit(5),
+  ])
+  if (sessionsRes.error) throw new Error(`Checkout session read failed: ${sessionsRes.error.message}`)
+  if (ledgerRes.error) throw new Error(`Payment ledger read failed: ${ledgerRes.error.message}`)
 
-  const ids = sessions.map(s => s.checkout_id as string)
-  const { data: applied, error: ledgerError } = await db
-    .from('payment_history')
-    .select('yoco_checkout_id')
-    .in('yoco_checkout_id', ids)
-  if (ledgerError) return false
-
-  const appliedIds = new Set((applied ?? []).map(r => r.yoco_checkout_id as string))
-  return ids.some(id => !appliedIds.has(id))
+  const ids = (sessionsRes.data ?? []).map(s => s.checkout_id as string)
+  const appliedIds = new Set((ledgerRes.data ?? []).map(row => row.yoco_checkout_id as string))
+  return appliedIds.size > 0 || ids.some(id => !appliedIds.has(id))
 }

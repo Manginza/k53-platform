@@ -13,10 +13,17 @@ import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-browser'
 
+/** Only allow same-site paths when returning from registration. */
+function safeNext(raw: string | null): string | null {
+  if (!raw) return null
+  if (!raw.startsWith('/') || raw.startsWith('//')) return null
+  return raw
+}
+
 function RegisterForm() {
   const params = useSearchParams()
   const token = params.get('token') || ''
-  const next = params.get('next') || '/pricing'
+  const next = safeNext(params.get('next')) ?? '/pricing'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
