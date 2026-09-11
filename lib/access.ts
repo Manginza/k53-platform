@@ -10,6 +10,7 @@ import { createAdminClient } from '@/lib/supabase-admin'
 import { getAdminUser } from '@/lib/admin'
 import { isFreePromoActive } from '@/lib/contact'
 import { getPromoWindow, isPromoActiveNow } from '@/lib/settings'
+import { readTrialActive } from '@/lib/trial-server'
 
 /** Whether the current visitor may see paid content. */
 export async function hasFullAccess(): Promise<boolean> {
@@ -19,6 +20,11 @@ export async function hasFullAccess(): Promise<boolean> {
     const window = await getPromoWindow()
     if (isPromoActiveNow(window)) return true
   } catch { /* fall through */ }
+
+  // A one-time, per-browser free trial (started from a paywall) unlocks
+  // everything for its short window. Cookie-based, so it applies to every
+  // gate this function guards, and it expires on its own.
+  if (readTrialActive()) return true
 
   if (await getAdminUser()) return true
 

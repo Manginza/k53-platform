@@ -5,6 +5,7 @@
  */
 import Link from 'next/link'
 import BuyAccessButton from '@/components/BuyAccessButton'
+import TrialButton from '@/components/TrialButton'
 import { WHATSAPP_URL, ACCESS_PRICE, ACCESS_PRICE_ORIGINAL, ACCESS_DURATION_DAYS } from '@/lib/contact'
 
 export default function LockedContent({
@@ -33,6 +34,9 @@ export default function LockedContent({
             </span>
           </li>
         </ul>
+
+        {/* One-time free trial (kicks in once the promo has closed) */}
+        <TrialButton />
 
         {/* Primary: pay online */}
         <BuyAccessButton />
