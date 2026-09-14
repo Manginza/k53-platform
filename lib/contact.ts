@@ -40,8 +40,8 @@ export const LIVE_SESSION_RECORDING_FILE_ID = ''
  * - Both set        → the promo activates automatically at FROM and
  *                     shuts down at UNTIL, no code change needed.
  */
-export const FREE_PROMO_FROM  = '2026-09-11T20:00:00+02:00'  // 8pm SAST (activated early)
-export const FREE_PROMO_UNTIL = '2026-09-11T23:30:00+02:00'  // 11:30pm SAST
+export const FREE_PROMO_FROM  = '2026-09-16T20:00:00+02:00'  // 8pm SAST (Wed 16 Sep)
+export const FREE_PROMO_UNTIL = '2026-09-17T00:00:00+02:00'  // 12am SAST
 
 export function isFreePromoActive(): boolean {
   if (!FREE_PROMO_UNTIL) return false
