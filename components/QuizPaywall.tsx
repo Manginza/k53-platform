@@ -7,7 +7,6 @@
  */
 import Link from 'next/link'
 import BuyAccessButton from '@/components/BuyAccessButton'
-import TrialButton from '@/components/TrialButton'
 import { WHATSAPP_URL, ACCESS_PRICE, ACCESS_PRICE_ORIGINAL, ACCESS_DURATION_DAYS } from '@/lib/contact'
 
 const FEATURES = [
@@ -50,9 +49,6 @@ export default function QuizPaywall({ courseId }: { courseId: number }) {
               </li>
             ))}
           </ul>
-
-          {/* One-time free trial (kicks in once the promo has closed) */}
-          <TrialButton />
 
           {/* Primary: Yoco card payment */}
           <BuyAccessButton />

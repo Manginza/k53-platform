@@ -14,7 +14,6 @@ import YoutubeLiveSessionPopup from "@/components/YoutubeLiveSessionPopup";
 import YoutubeRecordingPopup from "@/components/YoutubeRecordingPopup";
 import FreePromoBanner from "@/components/FreePromoBanner";
 import FreePromoPopup from "@/components/FreePromoPopup";
-import TrialBanner from "@/components/TrialBanner";
 
 const geistSans = localFont({
     src: "./fonts/GeistVF.woff",
@@ -126,7 +125,6 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                                   <ReferralCapture />
                         </Suspense>
                         <FreePromoBanner />
-                        <TrialBanner />
                         <Navbar />
                   {children}
                         <Footer />

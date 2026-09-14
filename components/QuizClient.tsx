@@ -11,7 +11,7 @@ type Option    = 'A' | 'B' | 'C'
 type AnswerMap = Record<number, Option>
 
 /** Free preview length (seconds) before non-premium users hit the paywall. */
-const FREE_SECONDS = 180
+const FREE_SECONDS = 120
 
 interface Props {
   questions:   QuizQuestion[]
@@ -398,7 +398,7 @@ export default function QuizClient({ questions, courseTitle, courseId, testNumbe
   const [submissionKey] = useState(() => crypto.randomUUID())
 
   // Timer. Paid users get an exam-style limit of 1 minute per question
-  // (auto-submits to results on expiry); free users get a 3-minute sample
+  // (auto-submits to results on expiry); free users get a 2-minute sample
   // that then hits the paywall. Premium users can restart any time.
   // For free users the starting value comes from the server (initialSeconds)
   // and is reconciled with /api/quiz/session on mount so the window can't be
