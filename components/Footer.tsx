@@ -15,7 +15,7 @@ export default function Footer() {
           <div className="lg:col-span-1">
             <div className="text-xl font-extrabold text-white tracking-tight">K53 Learner&apos;s</div>
             <p className="text-sm text-gray-400 mt-3 max-w-xs leading-relaxed">
-              Practise free with 3-minute timed tests. Unlock everything for {ACCESS_PRICE} ({ACCESS_DURATION_DAYS} days).
+              Practise free with 2-minute timed tests. Unlock everything for {ACCESS_PRICE} ({ACCESS_DURATION_DAYS} days).
             </p>
             <div className="flex flex-col gap-2 mt-5">
               <a
