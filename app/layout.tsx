@@ -1,19 +1,8 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { Suspense } from "react";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import ReferralCapture from "@/components/ReferralCapture";
-import CookieBanner from "@/components/CookieBanner";
-import LiveSessionPopup from "@/components/LiveSessionPopup";
-import TestPrepPopup from "@/components/TestPrepPopup";
-import K53UnpackedPopup from "@/components/K53UnpackedPopup";
-import CourseIntroPopup from "@/components/CourseIntroPopup";
-import YoutubeLiveSessionPopup from "@/components/YoutubeLiveSessionPopup";
-import YoutubeRecordingPopup from "@/components/YoutubeRecordingPopup";
-import FreePromoBanner from "@/components/FreePromoBanner";
-import FreePromoPopup from "@/components/FreePromoPopup";
 
 const geistSans = localFont({
     src: "./fonts/GeistVF.woff",
@@ -27,31 +16,22 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-    metadataBase: new URL('https://www.skdriving.co.za'),
+    metadataBase: new URL('https://socialenterprise.academy'),
     title: {
-        default: "Free K53 Learner's Licence Practice Tests | SK Driving",
-        template: '%s | SK Driving',
+        default: "Social Enterprise Academy South Africa",
+        template: '%s | Social Enterprise Academy South Africa',
     },
-    description: "Pass your K53 learner's licence test first time. Free practice tests covering road signs, vehicle controls and rules of the road — for Code 8, Code 10 and Code 14 in South Africa.",
+    description: "Learning and development programmes for people and organisations enabling social change in South Africa.",
     keywords: [
-        "learners licence test", "K53 learners licence", "learners licence practice test",
-        "K53 test questions", "learners licence questions South Africa",
-        "K53 road signs", "learners licence study guide", "how to pass learners licence",
-        "Code 8 learners licence", "Code 10 learners licence", "free learners licence test online",
-        "K53 questions and answers", "learners licence test South Africa",
-        "learners licence road signs", "South African learner driver",
+        "social enterprise", "social entrepreneurship", "community development",
+        "supplier development", "international student programme", "South Africa",
     ],
     openGraph: {
-        siteName: "SK Driving",
+        siteName: "Social Enterprise Academy South Africa",
         locale: 'en_ZA',
         type: 'website',
-        title: "Free K53 Learner's Licence Practice Tests | SK Driving",
-        description: "Pass your K53 learner's licence test first time. Free practice tests — road signs, vehicle controls, rules of the road — for all licence codes in South Africa.",
-    },
-    twitter: {
-        card: 'summary_large_image',
-        title: "Free K53 Learner's Licence Practice Tests | SK Driving",
-        description: "Pass your South African learner's licence test first time. Free K53 practice tests online.",
+        title: "Social Enterprise Academy South Africa",
+        description: "Learning and development programmes enabling social change in South Africa.",
     },
     verification: {
         google: "6uUYkLVNLPmMYVkSoW2wSlMcyOyA5MdR2vQxRUOUp7c",
@@ -121,21 +101,9 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                             />
                       </noscript>
                       {/* End Google Tag Manager (noscript) */}
-                        <Suspense fallback={null}>
-                                  <ReferralCapture />
-                        </Suspense>
-                        <FreePromoBanner />
                         <Navbar />
                   {children}
                         <Footer />
-                        <CookieBanner />
-                        <FreePromoPopup />
-                        <TestPrepPopup />
-                        <LiveSessionPopup />
-                        <K53UnpackedPopup />
-                        <CourseIntroPopup />
-                        <YoutubeLiveSessionPopup />
-                        <YoutubeRecordingPopup />
                 </body>
           </html>
         );
