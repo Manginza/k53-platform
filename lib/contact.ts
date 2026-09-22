@@ -11,6 +11,13 @@ export const WHATSAPP_URL =
   `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`
 
 /**
+ * Community WhatsApp group. Every visitor is invited once on their first
+ * visit, and the floating join button keeps the invitation available on every
+ * visit after that.
+ */
+export const WHATSAPP_GROUP_URL = 'https://chat.whatsapp.com/Kruy1Kw8iQ40VbJNvRlfeY'
+
+/**
  * Support line for checkout / payment queries — the number shown to someone
  * who has paid but cannot get in. Deliberately separate from
  * WHATSAPP_NUMBER, which is the sales line: these reach different people and
