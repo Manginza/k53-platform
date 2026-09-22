@@ -18,6 +18,27 @@ export const WHATSAPP_URL =
 export const WHATSAPP_GROUP_URL = 'https://chat.whatsapp.com/Kruy1Kw8iQ40VbJNvRlfeY'
 
 /**
+ * Temporary takeover of the first-visit popup.
+ *
+ * While this window is open the popup promotes the live YouTube session
+ * instead of the WhatsApp group. It reverts on its own at LIVE_TAKEOVER_UNTIL
+ * with no deploy needed, and dismissing the live popup does NOT use up a
+ * visitor's one-time WhatsApp group invite — the two remember separately.
+ *
+ * To end it early, set LIVE_TAKEOVER_UNTIL to ''. To run another one, set a
+ * new URL and a new end time.
+ */
+export const LIVE_TAKEOVER_URL   = 'https://www.youtube.com/live/5ZNUbifeRQM'
+export const LIVE_TAKEOVER_UNTIL = '2026-09-23T08:00:00+02:00'  // 8am SAST (Wed 23 Sep)
+
+/** True while the popup should show the live session rather than the group. */
+export function isLiveTakeoverActive(): boolean {
+  if (!LIVE_TAKEOVER_UNTIL || !LIVE_TAKEOVER_URL) return false
+  const until = Date.parse(LIVE_TAKEOVER_UNTIL)
+  return Number.isFinite(until) && Date.now() < until
+}
+
+/**
  * Support line for checkout / payment queries — the number shown to someone
  * who has paid but cannot get in. Deliberately separate from
  * WHATSAPP_NUMBER, which is the sales line: these reach different people and

@@ -15,6 +15,25 @@ function fmt({ h, m, s }: { h: number; m: number; s: number }) {
   return `${h}h ${m.toString().padStart(2, '0')}m ${s.toString().padStart(2, '0')}s`
 }
 
+/**
+ * When the promo starts, in words: "tonight", "tomorrow", "on Thursday".
+ *
+ * This used to be the hardcoded word "tonight", which was right only for the
+ * evening promos it was written for. An 8am start two days out read as
+ * "goes FREE at 8am tonight", which is simply wrong.
+ */
+function dayLabel(iso: string): string {
+  try {
+    const start = new Date(iso)
+    const midnight = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+    const days = Math.round((midnight(start) - midnight(new Date())) / 86_400_000)
+    if (days <= 0) return start.getHours() >= 17 ? 'tonight' : 'today'
+    if (days === 1) return 'tomorrow'
+    if (days < 7) return `on ${start.toLocaleDateString('en-ZA', { weekday: 'long' })}`
+    return `on ${start.toLocaleDateString('en-ZA', { weekday: 'long', day: 'numeric', month: 'long' })}`
+  } catch { return 'soon' }
+}
+
 function fmtTime(iso: string): string {
   try {
     const d = new Date(iso)
@@ -63,7 +82,7 @@ export default function FreePromoBanner() {
       <div className="bg-gradient-to-r from-brand-700 to-brand-600 text-white">
         <div className="section-container py-2.5 flex items-center justify-center gap-x-3 gap-y-1 flex-wrap text-center">
           <span className="text-sm font-bold">
-            The full course goes FREE at {fromLabel} tonight!
+            The full course goes FREE at {fromLabel} {dayLabel(fromIso)}!
           </span>
           <span className="text-xs font-semibold bg-white/20 rounded-full px-3 py-1 tabular-nums backdrop-blur-sm">
             unlocks in {fmt(t)}

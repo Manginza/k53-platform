@@ -1,12 +1,18 @@
 'use client'
 
 /**
- * WhatsAppGroupPopup — invites a first-time visitor into the SK Driving
- * WhatsApp study group.
+ * WhatsAppGroupPopup — the first-visit popup.
  *
- * Shown ONCE per visitor: the dismissal is remembered in localStorage, so
- * returning visitors are not nagged. They keep the invitation permanently
- * through WhatsAppJoinButton, which sits on every page.
+ * Normally it invites a visitor into the SK Driving WhatsApp study group,
+ * ONCE: the dismissal is remembered in localStorage so returning visitors are
+ * not nagged, and the standing invitation lives on in WhatsAppJoinButton,
+ * which sits on every page.
+ *
+ * While a live takeover is running (see LIVE_TAKEOVER_UNTIL in lib/contact.ts)
+ * the same popup promotes the live YouTube session instead. The two remember
+ * their dismissals under separate keys, so someone who closes the live popup
+ * tonight still gets the WhatsApp invite once the takeover ends, and the
+ * takeover reverts on its own with no deploy.
  *
  * The layout already mounts several popups, all of them `fixed inset-0`
  * overlays that can fire on the same page load. Rather than stack a second
@@ -17,12 +23,14 @@
  * Bump POPUP_VERSION to re-invite everyone, e.g. after a new group link.
  */
 import { useCallback, useEffect, useState } from 'react'
-import { WHATSAPP_GROUP_URL } from '@/lib/contact'
+import { LIVE_TAKEOVER_URL, WHATSAPP_GROUP_URL, isLiveTakeoverActive } from '@/lib/contact'
 import { COOKIE_BANNER_ATTR, COOKIE_BANNER_EVENT } from '@/components/CookieBanner'
 import WhatsAppIcon from '@/components/icons/WhatsAppIcon'
 
 const POPUP_VERSION = 'v1'
-const DISMISS_KEY = `sk_whatsapp_group_${POPUP_VERSION}`
+const GROUP_DISMISS_KEY = `sk_whatsapp_group_${POPUP_VERSION}`
+/** Separate key: closing the live popup must not use up the group invite. */
+const LIVE_DISMISS_KEY = `sk_live_takeover_${POPUP_VERSION}`
 
 /** Let the page paint and settle before interrupting. */
 const FIRST_DELAY_MS = 2500
@@ -48,13 +56,25 @@ function cookieBannerHeight(): number {
   return document.querySelector<HTMLElement>(`[${COOKIE_BANNER_ATTR}]`)?.offsetHeight ?? 0
 }
 
+function PlayIcon({ className = 'w-9 h-9' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M8 5.14v13.72c0 .79.87 1.27 1.54.84l10.8-6.86a1 1 0 000-1.68L9.54 4.3A1 1 0 008 5.14z" />
+    </svg>
+  )
+}
+
 export default function WhatsAppGroupPopup() {
   const [open, setOpen] = useState(false)
+  /** Which campaign is showing. Decided on the client, where the clock is. */
+  const [live, setLive] = useState(false)
   /** Space kept clear at the bottom so the cookie banner never covers a button. */
   const [bottomInset, setBottomInset] = useState(0)
 
   useEffect(() => {
-    try { if (localStorage.getItem(DISMISS_KEY)) return } catch {}
+    const isLive = isLiveTakeoverActive()
+    const key = isLive ? LIVE_DISMISS_KEY : GROUP_DISMISS_KEY
+    try { if (localStorage.getItem(key)) return } catch {}
 
     let cancelled = false
     let timer: ReturnType<typeof setTimeout> | undefined
@@ -69,6 +89,7 @@ export default function WhatsAppGroupPopup() {
       // Normally the wait above means nothing is left to clear. If we ran out
       // of patience while the banner is still up, sit above it instead.
       setBottomInset(cookieBannerHeight())
+      setLive(isLive)
       setOpen(true)
     }
 
@@ -89,9 +110,9 @@ export default function WhatsAppGroupPopup() {
   }, [open])
 
   const dismiss = useCallback(() => {
-    try { localStorage.setItem(DISMISS_KEY, new Date().toISOString()) } catch {}
+    try { localStorage.setItem(live ? LIVE_DISMISS_KEY : GROUP_DISMISS_KEY, new Date().toISOString()) } catch {}
     setOpen(false)
-  }, [])
+  }, [live])
 
   // Escape closes, matching what people expect of a modal.
   useEffect(() => {
@@ -103,53 +124,79 @@ export default function WhatsAppGroupPopup() {
 
   if (!open) return null
 
+  const accent = live
+    ? { header: 'bg-red-600', sub: 'text-red-100', close: 'text-red-100', tick: 'text-red-600', button: 'bg-red-600 hover:bg-red-700' }
+    : { header: 'bg-green-600', sub: 'text-green-100', close: 'text-green-100', tick: 'text-green-600', button: 'bg-green-600 hover:bg-green-700' }
+
+  const content = live
+    ? {
+        href: LIVE_TAKEOVER_URL,
+        title: 'We are live now',
+        subtitle: 'Join tonight’s K53 lesson on YouTube',
+        bullets: [
+          'Work through K53 questions with us',
+          'Ask your questions in the live chat',
+          'Free to watch, nothing to sign up for',
+        ],
+        cta: 'Watch the live session',
+      }
+    : {
+        href: WHATSAPP_GROUP_URL,
+        title: 'Join our WhatsApp group',
+        subtitle: 'Free study tips, test updates and help from other learners',
+        bullets: [
+          'Daily K53 questions and answers',
+          'Reminders before every live session',
+          'Ask questions and get help fast',
+        ],
+        cta: 'Join the group',
+      }
+
   return (
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center px-4 py-6 overflow-y-auto"
       style={{ paddingBottom: bottomInset ? bottomInset + 24 : undefined }}
       role="dialog"
       aria-modal="true"
-      aria-labelledby="sk-whatsapp-group-title"
+      aria-labelledby="sk-popup-title"
     >
       {/* Fixed, not absolute: the wrapper scrolls on very short screens, and a
           scrolling backdrop would slide off the top of the viewport. */}
       <div className="fixed inset-0 bg-black/50" onClick={dismiss} />
 
       <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-[fadeIn_0.2s_ease-out]">
-        <div className="bg-green-600 text-white px-7 pt-8 pb-7 text-center relative">
+        <div className={`${accent.header} text-white px-7 pt-8 pb-7 text-center relative`}>
           <button
             onClick={dismiss}
             aria-label="Close"
-            className="absolute top-3 right-4 text-green-100 hover:text-white text-2xl leading-none"
+            className={`absolute top-3 right-4 ${accent.close} hover:text-white text-2xl leading-none`}
           >×</button>
 
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/15 mb-3">
-            <WhatsAppIcon className="w-9 h-9" />
+            {live ? <PlayIcon className="w-9 h-9" /> : <WhatsAppIcon className="w-9 h-9" />}
           </div>
-          <h2 id="sk-whatsapp-group-title" className="text-2xl font-extrabold mb-1">
-            Join our WhatsApp group
-          </h2>
-          <p className="text-sm text-green-100">
-            Free study tips, test updates and help from other learners
-          </p>
+          <h2 id="sk-popup-title" className="text-2xl font-extrabold mb-1">{content.title}</h2>
+          <p className={`text-sm ${accent.sub}`}>{content.subtitle}</p>
         </div>
 
         <div className="px-7 py-6">
           <ul className="space-y-2.5 text-sm text-gray-700 mb-6">
-            <li className="flex gap-2.5"><span className="text-green-600 font-bold shrink-0">✓</span> Daily K53 questions and answers</li>
-            <li className="flex gap-2.5"><span className="text-green-600 font-bold shrink-0">✓</span> Reminders before every live session</li>
-            <li className="flex gap-2.5"><span className="text-green-600 font-bold shrink-0">✓</span> Ask questions and get help fast</li>
+            {content.bullets.map(b => (
+              <li key={b} className="flex gap-2.5">
+                <span className={`${accent.tick} font-bold shrink-0`}>✓</span> {b}
+              </li>
+            ))}
           </ul>
 
           <a
-            href={WHATSAPP_GROUP_URL}
+            href={content.href}
             target="_blank"
             rel="noopener noreferrer"
             onClick={dismiss}
-            className="flex items-center justify-center gap-2 w-full bg-green-600 text-white font-bold py-3.5 rounded-xl hover:bg-green-700 transition-colors"
+            className={`flex items-center justify-center gap-2 w-full ${accent.button} text-white font-bold py-3.5 rounded-xl transition-colors`}
           >
-            <WhatsAppIcon className="w-5 h-5" />
-            Join the group
+            {live ? <PlayIcon className="w-5 h-5" /> : <WhatsAppIcon className="w-5 h-5" />}
+            {content.cta}
           </a>
           <button
             onClick={dismiss}
