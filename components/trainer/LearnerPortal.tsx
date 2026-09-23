@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { genderFromSaId, isSaIdShaped } from '@/lib/sa-id'
 
 type Material = { id: number; title: string; description: string | null; type: string; url: string | null; content: string | null }
 
@@ -11,6 +12,7 @@ export default function LearnerPortal({ trainerId }: { trainerId: string }) {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
+  const [idNumber, setIdNumber] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [materials, setMaterials] = useState<Material[]>([])
@@ -21,7 +23,7 @@ export default function LearnerPortal({ trainerId }: { trainerId: string }) {
     const res = await fetch('/api/t/join', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ trainer_id: trainerId, name, email, phone }),
+      body: JSON.stringify({ trainer_id: trainerId, name, email, phone, id_number: idNumber }),
     })
     setLoading(false)
     if (res.ok) setStep('access')
@@ -92,6 +94,18 @@ export default function LearnerPortal({ trainerId }: { trainerId: string }) {
               className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
             <input value={phone} onChange={e => setPhone(e.target.value)} type="tel" placeholder="Phone number (optional)"
               className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <div>
+              <input value={idNumber} onChange={e => setIdNumber(e.target.value)} inputMode="numeric" maxLength={13}
+                placeholder="SA ID number (optional)"
+                className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              {idNumber && (
+                <p className="text-xs mt-1 text-gray-500">
+                  {isSaIdShaped(idNumber)
+                    ? <>Gender: <span className="font-semibold text-gray-700">{genderFromSaId(idNumber)}</span></>
+                    : 'Enter all 13 digits of your SA ID.'}
+                </p>
+              )}
+            </div>
             <button type="submit" disabled={loading}
               className="w-full bg-blue-700 text-white font-bold py-3 rounded-xl hover:bg-blue-800 disabled:opacity-50 transition-colors text-sm">
               {loading ? 'Submitting…' : 'Sign up →'}

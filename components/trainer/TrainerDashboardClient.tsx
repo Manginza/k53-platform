@@ -1,9 +1,11 @@
 'use client'
 
 import { useState } from 'react'
+import { genderFromSaId, saIdDigits } from '@/lib/sa-id'
 
 type Learner = {
   id: number; name: string; email: string; phone: string | null
+  id_number: string | null; gender: string | null
   is_paid: boolean; paid_at: string | null; amount_cents: number | null; created_at: string
 }
 type Material = {
@@ -46,6 +48,56 @@ export default function TrainerDashboardClient({
       body: JSON.stringify({ id }),
     })
     if (res.ok) setLearners(prev => prev.filter(x => x.id !== id))
+  }
+
+  // ── ID number / gender ──────────────────────────────────────────────────────
+  const [editingId, setEditingId] = useState<number | null>(null)
+  const [idDraft, setIdDraft] = useState('')
+
+  function startEditId(l: Learner) {
+    setEditingId(l.id)
+    setIdDraft(l.id_number ?? '')
+  }
+
+  async function saveId(l: Learner) {
+    const digits = saIdDigits(idDraft)
+    const gender = genderFromSaId(digits)
+    const res = await fetch('/api/t/learners', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: l.id, id_number: digits }),
+    })
+    if (res.ok) {
+      setLearners(prev => prev.map(x => x.id === l.id ? { ...x, id_number: digits || null, gender } : x))
+      setEditingId(null)
+    }
+  }
+
+  // ── CSV export ──────────────────────────────────────────────────────────────
+  function downloadCsv() {
+    const headers = ['Name', 'Email', 'Phone', 'ID number', 'Gender', 'Paid', 'Amount (R)', 'Joined']
+    const cell = (v: unknown) => {
+      const s = v == null ? '' : String(v)
+      // Quote and escape so commas, quotes and newlines can't break the CSV.
+      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
+    }
+    const rows = learners.map(l => [
+      l.name, l.email, l.phone ?? '', l.id_number ?? '', l.gender ?? '',
+      l.is_paid ? 'Yes' : 'No',
+      l.amount_cents != null ? (l.amount_cents / 100).toFixed(2) : '',
+      new Date(l.created_at).toLocaleDateString('en-ZA'),
+    ])
+    const csv = [headers, ...rows].map(r => r.map(cell).join(',')).join('\r\n')
+    // Prepend a BOM so Excel opens UTF-8 correctly.
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `learners-${trainer.slug}-${new Date().toISOString().slice(0, 10)}.csv`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(url)
   }
 
   // ── Material actions ────────────────────────────────────────────────────────
@@ -136,14 +188,44 @@ export default function TrainerDashboardClient({
       {/* Learners tab */}
       {tab === 'learners' && (
         <div className="space-y-3">
+          {learners.length > 0 && (
+            <div className="flex justify-end">
+              <button onClick={downloadCsv}
+                className="text-xs font-bold text-blue-700 border border-blue-200 rounded-lg px-4 py-2 hover:bg-blue-50 transition-colors">
+                ⬇ Download CSV
+              </button>
+            </div>
+          )}
           {learners.length === 0 && (
             <p className="text-center text-gray-400 text-sm py-10">No learners yet. Share your page link to get started.</p>
           )}
           {learners.map(l => (
             <div key={l.id} className="bg-white border border-gray-200 rounded-2xl p-4 flex items-center justify-between gap-4 flex-wrap">
-              <div>
-                <p className="font-semibold text-gray-900 text-sm">{l.name}</p>
+              <div className="min-w-0">
+                <p className="font-semibold text-gray-900 text-sm">
+                  {l.name}
+                  {l.gender && (
+                    <span className="ml-2 align-middle text-[10px] font-bold uppercase tracking-wide text-gray-500 bg-gray-100 rounded-full px-2 py-0.5">
+                      {l.gender}
+                    </span>
+                  )}
+                </p>
                 <p className="text-xs text-gray-500">{l.email}{l.phone ? ` · ${l.phone}` : ''}</p>
+                {/* SA ID number — inline editable; gender is classified from it. */}
+                {editingId === l.id ? (
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <input
+                      value={idDraft} onChange={e => setIdDraft(e.target.value)} autoFocus
+                      inputMode="numeric" maxLength={13} placeholder="13-digit SA ID"
+                      className="border border-gray-300 rounded-lg px-2 py-1 text-xs w-40 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <button onClick={() => saveId(l)} className="text-xs font-bold text-blue-700 hover:underline">Save</button>
+                    <button onClick={() => setEditingId(null)} className="text-xs text-gray-400 hover:text-gray-600">Cancel</button>
+                  </div>
+                ) : (
+                  <button onClick={() => startEditId(l)} className="text-xs text-gray-400 hover:text-blue-600 mt-0.5">
+                    {l.id_number ? `ID: ${l.id_number}` : '+ Add ID number'}
+                  </button>
+                )}
                 <p className="text-xs text-gray-400 mt-0.5">Joined {new Date(l.created_at).toLocaleDateString('en-ZA')}</p>
               </div>
               <div className="flex items-center gap-2 shrink-0">
