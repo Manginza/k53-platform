@@ -4,12 +4,13 @@ import { FREE_PROMO_FROM, FREE_PROMO_UNTIL, isFreePromoActive } from '@/lib/cont
 
 export const dynamic = 'force-dynamic'
 
-const NO_CACHE = {
-  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
-  'CDN-Cache-Control': 'no-store',
-  'Surrogate-Control': 'no-store',
-  Pragma: 'no-cache',
-  Expires: '0',
+// This route is fetched by the promo banner on every page load. The response
+// is the same for everyone, so let the CDN serve it and collapse a spike into
+// a few origin hits. The banner runs its own client-side countdown from
+// `from`/`until`, so a few seconds of staleness on `active` is harmless.
+const SHARED_CACHE = {
+  'Cache-Control': 'public, s-maxage=15, stale-while-revalidate=60, max-age=0',
+  'CDN-Cache-Control': 'public, s-maxage=15, stale-while-revalidate=60',
 }
 
 export async function GET() {
@@ -19,7 +20,7 @@ export async function GET() {
       active: isFreePromoActive(),
       from: FREE_PROMO_FROM,
       until: FREE_PROMO_UNTIL,
-    }, { headers: NO_CACHE })
+    }, { headers: SHARED_CACHE })
   }
 
   // Fall back to DB-backed promo window
@@ -30,7 +31,7 @@ export async function GET() {
         active: isPromoActiveNow(window),
         from: window.from,
         until: window.until,
-      }, { headers: NO_CACHE })
+      }, { headers: SHARED_CACHE })
     }
   } catch { /* fall through */ }
 
@@ -38,5 +39,5 @@ export async function GET() {
     active: false,
     from: '',
     until: '',
-  }, { headers: NO_CACHE })
+  }, { headers: SHARED_CACHE })
 }
