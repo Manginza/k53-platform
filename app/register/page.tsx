@@ -28,10 +28,13 @@ function RegisterForm() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  // True when registration failed because the email already has an account —
+  // the common dead-end where a learner re-registers instead of logging in.
+  const [existingAccount, setExistingAccount] = useState(false)
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-    setLoading(true); setError('')
+    setLoading(true); setError(''); setExistingAccount(false)
     try {
       const endpoint = token ? '/api/auth/register-with-token' : '/api/auth/register'
       const res = await fetch(endpoint, {
@@ -47,10 +50,15 @@ function RegisterForm() {
       // new session cookies straight away (same reasoning as the login page).
       window.location.assign(token ? '/courses' : next)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong.')
+      const message = err instanceof Error ? err.message : 'Something went wrong.'
+      setError(message)
+      setExistingAccount(/already exists|log in instead/i.test(message))
       setLoading(false)
     }
   }
+
+  const loginHref = next ? `/login?next=${encodeURIComponent(next)}` : '/login'
+  const resetHref = `/forgot-password?next=${encodeURIComponent(next)}${email ? `&email=${encodeURIComponent(email)}` : ''}`
 
   return (
     <div className="bg-white rounded-2xl shadow-md p-8 w-full max-w-md">
@@ -73,6 +81,19 @@ function RegisterForm() {
             className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="At least 6 characters" />
         </div>
         {error && <p className="text-red-500 text-sm">{error}</p>}
+        {existingAccount && (
+          <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 space-y-2">
+            <p className="text-sm text-blue-900">This email is already registered. You can:</p>
+            <div className="flex gap-2">
+              <Link href={loginHref} className="flex-1 text-center text-sm font-semibold text-white bg-blue-700 rounded-lg py-2 hover:bg-blue-800 transition-colors">
+                Log in
+              </Link>
+              <Link href={resetHref} className="flex-1 text-center text-sm font-semibold text-blue-700 border border-blue-300 rounded-lg py-2 hover:bg-blue-100 transition-colors">
+                Reset password
+              </Link>
+            </div>
+          </div>
+        )}
         <button type="submit" disabled={loading}
           className="w-full bg-blue-700 text-white font-semibold py-2.5 rounded-lg hover:bg-blue-800 transition-colors disabled:opacity-60">
           {loading ? 'Creating account…' : token ? 'Create account & unlock access' : 'Create pre-qualified account'}

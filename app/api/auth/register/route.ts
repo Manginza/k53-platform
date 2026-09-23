@@ -34,12 +34,14 @@ export async function POST(req: NextRequest) {
       { status: dup ? 409 : 400 },
     )
   }
+  // Attribution is best-effort at registration. The same referral cookie is
+  // resolved again at checkout (create-checkout), which is where commission is
+  // actually recorded, so a transient failure here must never cost the learner
+  // their account. Log it and continue rather than deleting the new user.
   try {
     await resolveAffiliateAttribution(admin, created.user.id, req.cookies.get(REF_COOKIE)?.value)
   } catch (attributionError) {
-    await admin.auth.admin.deleteUser(created.user.id).catch(() => {})
-    console.error('[auth/register] referral attribution failed', attributionError)
-    return NextResponse.json({ error: 'Could not save your referral. Please try again.' }, { status: 503 })
+    console.error('[auth/register] referral attribution failed (account kept; will retry at checkout)', attributionError)
   }
   return NextResponse.json({ ok: true })
 }
