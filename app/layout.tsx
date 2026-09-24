@@ -15,7 +15,7 @@ import YoutubeRecordingPopup from "@/components/YoutubeRecordingPopup";
 import FreePromoBanner from "@/components/FreePromoBanner";
 import FreePromoPopup from "@/components/FreePromoPopup";
 import WhatsAppGroupPopup from "@/components/WhatsAppGroupPopup";
-import WhatsAppJoinButton from "@/components/WhatsAppJoinButton";
+import LiveSessionsButton from "@/components/LiveSessionsButton";
 
 const geistSans = localFont({
     src: "./fonts/GeistVF.woff",
@@ -141,7 +141,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                         {/* First visit invites you to the WhatsApp group; the
                             button keeps the invitation on every visit after. */}
                         <WhatsAppGroupPopup />
-                        <WhatsAppJoinButton />
+                        <LiveSessionsButton />
                 </body>
           </html>
         );

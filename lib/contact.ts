@@ -49,6 +49,9 @@ export const WHATSAPP_QUERIES_MESSAGE = 'Hi, I have a query about my course paym
 export const WHATSAPP_QUERIES_URL =
   `https://wa.me/${WHATSAPP_QUERIES_NUMBER}?text=${encodeURIComponent(WHATSAPP_QUERIES_MESSAGE)}`
 
+/** Our live sessions on YouTube (the channel's live/streams tab). */
+export const LIVE_SESSIONS_URL = 'https://www.youtube.com/@lungi09/streams'
+
 /** Live online evening study sessions on YouTube. */
 export const LIVE_SESSION_URL = 'https://www.skdriving.co.za/videos'
 export const LIVE_SESSION_SCHEDULE = 'Every day, 8pm–9pm'
