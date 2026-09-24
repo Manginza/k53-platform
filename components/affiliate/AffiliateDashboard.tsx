@@ -3,18 +3,20 @@
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
-import type { Affiliate, AffiliateStats, AffiliateCommission } from '@/lib/types'
+import AffiliateScoreboard from '@/components/affiliate/AffiliateScoreboard'
+import type { Affiliate, AffiliateStats, AffiliateCommission, Scoreboard } from '@/lib/types'
 
 function rand(cents: number) {
   return `R${(cents / 100).toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
 export default function AffiliateDashboard({
-  affiliate, stats, commissions,
+  affiliate, stats, commissions, scoreboard,
 }: {
   affiliate: Affiliate
   stats: AffiliateStats
   commissions: AffiliateCommission[]
+  scoreboard: Scoreboard
 }) {
   const router = useRouter()
   const [copied, setCopied] = useState(false)
@@ -125,6 +127,9 @@ export default function AffiliateDashboard({
           <p className="text-xs text-green-600 mt-1">Lifetime payouts received</p>
         </div>
       </div>
+
+      {/* Programme leaderboard */}
+      <AffiliateScoreboard scoreboard={scoreboard} />
 
       {/* Bank details */}
       <div className="bg-white rounded-2xl shadow-md p-5">

@@ -12,6 +12,7 @@ import K53UnpackedPopup from "@/components/K53UnpackedPopup";
 import CourseIntroPopup from "@/components/CourseIntroPopup";
 import YoutubeLiveSessionPopup from "@/components/YoutubeLiveSessionPopup";
 import YoutubeRecordingPopup from "@/components/YoutubeRecordingPopup";
+import GlobalVideoPopup from "@/components/GlobalVideoPopup";
 import FreePromoBanner from "@/components/FreePromoBanner";
 import FreePromoPopup from "@/components/FreePromoPopup";
 import WhatsAppGroupPopup from "@/components/WhatsAppGroupPopup";
@@ -138,6 +139,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                         <CourseIntroPopup />
                         <YoutubeLiveSessionPopup />
                         <YoutubeRecordingPopup />
+                        <GlobalVideoPopup />
                         {/* First visit invites you to the WhatsApp group; the
                             button keeps the invitation on every visit after. */}
                         <WhatsAppGroupPopup />

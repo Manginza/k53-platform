@@ -696,9 +696,15 @@ export default function AdminDashboard({
       <section className="space-y-4">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <h2 className="font-extrabold text-gray-900">Affiliates ({payouts.length})</h2>
-          <button onClick={() => setAddingAff(a => !a)} className="text-xs font-bold bg-blue-700 text-white px-4 py-2 rounded-xl hover:bg-blue-800 transition-colors">
-            {addingAff ? 'Cancel' : '+ Add affiliate'}
-          </button>
+          <div className="flex items-center gap-2">
+            {/* The programme dashboard: scoreboard, plus editing and removing. */}
+            <a href="/affiliate" className="text-xs font-bold border border-blue-200 text-blue-700 px-4 py-2 rounded-xl hover:bg-blue-50 transition-colors">
+              Programme dashboard
+            </a>
+            <button onClick={() => setAddingAff(a => !a)} className="text-xs font-bold bg-blue-700 text-white px-4 py-2 rounded-xl hover:bg-blue-800 transition-colors">
+              {addingAff ? 'Cancel' : '+ Add affiliate'}
+            </button>
+          </div>
         </div>
 
         {/* Summary cards */}

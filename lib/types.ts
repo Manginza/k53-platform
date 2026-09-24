@@ -35,9 +35,33 @@ export interface Affiliate {
   account_type: 'cheque' | 'savings' | null
   commission_rate: number          // 0.30 = 30%
   status: 'active' | 'suspended'
+  /** Runs the programme: sees the full scoreboard, edits and removes affiliates. */
+  is_admin: boolean
   total_earned_cents: number
   total_paid_cents: number
   created_at: string
+}
+
+/** One affiliate as the programme admin manages them. */
+export interface ManagedAffiliate {
+  id: string
+  code: string
+  firstName: string
+  lastName: string
+  email: string
+  bankAccountName: string
+  bankName: string
+  accountNumber: string
+  accountType: '' | 'cheque' | 'savings'
+  commissionRate: number
+  status: 'active' | 'suspended'
+  isAdmin: boolean
+  sales: number
+  earnedCents: number
+  pendingCents: number
+  clicks: number
+  signups: number
+  joined: string
 }
 
 export interface AffiliateCommission {
@@ -61,6 +85,27 @@ export interface AffiliateStats {
   earnedCents: number      // lifetime commission earned
   pendingCents: number     // earned but not yet paid out
   paidCents: number        // already paid out
+}
+
+/** One affiliate's position on the programme-wide earnings leaderboard. */
+export interface ScoreboardEntry {
+  rank: number
+  /** Full name, falling back to the referral code for an unnamed account. */
+  name: string
+  sales: number
+  earnedCents: number
+  /** True for the row belonging to the affiliate viewing the board. */
+  isViewer: boolean
+}
+
+/** The leaderboard as one affiliate sees it. */
+export interface Scoreboard {
+  /** Highest earners, best first. */
+  top: ScoreboardEntry[]
+  /** The viewer's own row when they rank below `top`; null when in it or unranked. */
+  viewer: ScoreboardEntry | null
+  /** How many affiliates have earned anything at all. */
+  earnerCount: number
 }
 
 // ─── Access Codes (admin-issued member access) ──────────────────────────────────
