@@ -52,6 +52,16 @@ export const WHATSAPP_QUERIES_URL =
 /** Our live sessions on YouTube (the channel's live/streams tab). */
 export const LIVE_SESSIONS_URL = 'https://www.youtube.com/@lungi09/streams'
 
+/**
+ * Learners Licence class booking line (the first-visit popup CTA). Booked over
+ * WhatsApp at the special R99 price (down from R150).
+ */
+export const WHATSAPP_CLASS_NUMBER = '27631721259'          // +27 63 172 1259
+export const WHATSAPP_CLASS_MESSAGE =
+  "Hi, I'd like to join the Learners Licence class for R99 (special, down from R150)."
+export const WHATSAPP_CLASS_URL =
+  `https://wa.me/${WHATSAPP_CLASS_NUMBER}?text=${encodeURIComponent(WHATSAPP_CLASS_MESSAGE)}`
+
 /** Live online evening study sessions on YouTube. */
 export const LIVE_SESSION_URL = 'https://www.skdriving.co.za/videos'
 export const LIVE_SESSION_SCHEDULE = 'Every day, 8pm–9pm'

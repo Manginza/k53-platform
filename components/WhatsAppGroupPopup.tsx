@@ -3,10 +3,9 @@
 /**
  * WhatsAppGroupPopup — the first-visit popup.
  *
- * Normally it invites a visitor into the SK Driving WhatsApp study group,
- * ONCE: the dismissal is remembered in localStorage so returning visitors are
- * not nagged, and the standing invitation lives on in WhatsAppJoinButton,
- * which sits on every page.
+ * Normally it invites a visitor to book the Learners Licence class on WhatsApp
+ * at the special R99 price, ONCE: the dismissal is remembered in localStorage
+ * so returning visitors are not nagged.
  *
  * While a live takeover is running (see LIVE_TAKEOVER_UNTIL in lib/contact.ts)
  * the same popup promotes the live YouTube session instead. The two remember
@@ -23,11 +22,13 @@
  * Bump POPUP_VERSION to re-invite everyone, e.g. after a new group link.
  */
 import { useCallback, useEffect, useState } from 'react'
-import { LIVE_TAKEOVER_URL, WHATSAPP_GROUP_URL, isLiveTakeoverActive } from '@/lib/contact'
+import { LIVE_TAKEOVER_URL, WHATSAPP_CLASS_URL, isLiveTakeoverActive } from '@/lib/contact'
 import { COOKIE_BANNER_ATTR, COOKIE_BANNER_EVENT } from '@/components/CookieBanner'
 import WhatsAppIcon from '@/components/icons/WhatsAppIcon'
 
-const POPUP_VERSION = 'v1'
+// Bumped to v2 to re-show the popup to everyone for the Learners Licence class
+// offer (previously the WhatsApp study-group invite).
+const POPUP_VERSION = 'v2'
 const GROUP_DISMISS_KEY = `sk_whatsapp_group_${POPUP_VERSION}`
 /** Separate key: closing the live popup must not use up the group invite. */
 const LIVE_DISMISS_KEY = `sk_live_takeover_${POPUP_VERSION}`
@@ -141,15 +142,15 @@ export default function WhatsAppGroupPopup() {
         cta: 'Watch the live session',
       }
     : {
-        href: WHATSAPP_GROUP_URL,
-        title: 'Join our WhatsApp group',
-        subtitle: 'Free study tips, test updates and help from other learners',
+        href: WHATSAPP_CLASS_URL,
+        title: 'Join our Learners Licence class',
+        subtitle: 'Now just R99 — down from R150. Text us on WhatsApp to book your spot.',
         bullets: [
-          'Daily K53 questions and answers',
-          'Reminders before every live session',
-          'Ask questions and get help fast',
+          'Special price: R99 (was R150)',
+          'Guided Learners Licence class',
+          'Book by texting us on WhatsApp: +27 63 172 1259',
         ],
-        cta: 'Join the group',
+        cta: 'Book on WhatsApp for R99',
       }
 
   return (
