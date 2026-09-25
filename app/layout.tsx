@@ -6,15 +6,17 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ReferralCapture from "@/components/ReferralCapture";
 import CookieBanner from "@/components/CookieBanner";
-import LiveSessionPopup from "@/components/LiveSessionPopup";
-import TestPrepPopup from "@/components/TestPrepPopup";
-import K53UnpackedPopup from "@/components/K53UnpackedPopup";
-import CourseIntroPopup from "@/components/CourseIntroPopup";
-import YoutubeLiveSessionPopup from "@/components/YoutubeLiveSessionPopup";
-import YoutubeRecordingPopup from "@/components/YoutubeRecordingPopup";
-import GlobalVideoPopup from "@/components/GlobalVideoPopup";
+// --- Popups temporarily suspended (25 Sep) so only tonight's 9pm live-lesson
+// --- reminder shows. Restore these imports + their renders below to re-enable.
+// import LiveSessionPopup from "@/components/LiveSessionPopup";
+// import TestPrepPopup from "@/components/TestPrepPopup";
+// import K53UnpackedPopup from "@/components/K53UnpackedPopup";
+// import CourseIntroPopup from "@/components/CourseIntroPopup";
+// import YoutubeLiveSessionPopup from "@/components/YoutubeLiveSessionPopup";
+// import YoutubeRecordingPopup from "@/components/YoutubeRecordingPopup";
+// import GlobalVideoPopup from "@/components/GlobalVideoPopup";
+// import FreePromoPopup from "@/components/FreePromoPopup";
 import FreePromoBanner from "@/components/FreePromoBanner";
-import FreePromoPopup from "@/components/FreePromoPopup";
 import WhatsAppGroupPopup from "@/components/WhatsAppGroupPopup";
 import LiveSessionsButton from "@/components/LiveSessionsButton";
 
@@ -132,6 +134,9 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                   {children}
                         <Footer />
                         <CookieBanner />
+                        {/* Popups suspended (25 Sep) — see imports above. Only the
+                            first-visit popup runs, showing tonight's 9pm live-lesson
+                            reminder via the LIVE_TAKEOVER window in lib/contact.ts.
                         <FreePromoPopup />
                         <TestPrepPopup />
                         <LiveSessionPopup />
@@ -139,9 +144,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                         <CourseIntroPopup />
                         <YoutubeLiveSessionPopup />
                         <YoutubeRecordingPopup />
-                        <GlobalVideoPopup />
-                        {/* First visit invites you to the WhatsApp group; the
-                            button keeps the invitation on every visit after. */}
+                        <GlobalVideoPopup /> */}
                         <WhatsAppGroupPopup />
                         <LiveSessionsButton />
                 </body>

@@ -132,14 +132,14 @@ export default function WhatsAppGroupPopup() {
   const content = live
     ? {
         href: LIVE_TAKEOVER_URL,
-        title: 'We are live now',
-        subtitle: 'Join tonight’s K53 lesson on YouTube',
+        title: 'Learners Licence lesson tonight at 9pm',
+        subtitle: 'Free live lesson on YouTube — join us at 9pm',
         bullets: [
-          'Work through K53 questions with us',
-          'Ask your questions in the live chat',
-          'Free to watch, nothing to sign up for',
+          'Starts 9pm tonight',
+          'Work through K53 questions with us live',
+          'Free to watch — tap to set your reminder on YouTube',
         ],
-        cta: 'Watch the live session',
+        cta: 'Watch live on YouTube',
       }
     : {
         href: WHATSAPP_CLASS_URL,

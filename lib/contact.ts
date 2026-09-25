@@ -28,8 +28,8 @@ export const WHATSAPP_GROUP_URL = 'https://chat.whatsapp.com/Kruy1Kw8iQ40VbJNvRl
  * To end it early, set LIVE_TAKEOVER_UNTIL to ''. To run another one, set a
  * new URL and a new end time.
  */
-export const LIVE_TAKEOVER_URL   = 'https://www.youtube.com/live/5ZNUbifeRQM'
-export const LIVE_TAKEOVER_UNTIL = '2026-09-23T08:00:00+02:00'  // 8am SAST (Wed 23 Sep)
+export const LIVE_TAKEOVER_URL   = 'https://youtube.com/live/ra1m8VlOJLk?feature=share'
+export const LIVE_TAKEOVER_UNTIL = '2026-09-25T22:00:00+02:00'  // 10pm SAST (Thu 25 Sep) — after the 9pm lesson
 
 /** True while the popup should show the live session rather than the group. */
 export function isLiveTakeoverActive(): boolean {
