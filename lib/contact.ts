@@ -5,10 +5,18 @@
  * is ACCESS_PRICE and the window is ACCESS_DURATION_DAYS; both are defined
  * below and every surface reads them rather than restating the numbers.
  */
-export const WHATSAPP_NUMBER = '27699075971'           // +27 69 907 5971
+export const WHATSAPP_NUMBER = '27631721259'           // +27 63 172 1259
+/** The same line as it is written on screen. Keep in step with WHATSAPP_NUMBER. */
+export const WHATSAPP_DISPLAY = '+27 63 172 1259'
 export const WHATSAPP_MESSAGE = "I'm interested in buying the course for R99 (special, down from R150)."
 export const WHATSAPP_URL =
   `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`
+/**
+ * The sales line with no message prefilled, for a plain "WhatsApp us" contact
+ * link where the buying message would be the wrong thing to put in someone's
+ * mouth. WHATSAPP_URL stays the one to use from a buy button.
+ */
+export const WHATSAPP_LINK = `https://wa.me/${WHATSAPP_NUMBER}`
 
 /**
  * Community WhatsApp group. Every visitor is invited once on their first
@@ -48,6 +56,23 @@ export const WHATSAPP_QUERIES_NUMBER = '27661063292'   // +27 66 106 3292
 export const WHATSAPP_QUERIES_MESSAGE = 'Hi, I have a query about my course payment / checkout.'
 export const WHATSAPP_QUERIES_URL =
   `https://wa.me/${WHATSAPP_QUERIES_NUMBER}?text=${encodeURIComponent(WHATSAPP_QUERIES_MESSAGE)}`
+
+/**
+ * Retrieve-login line: a customer who has paid but cannot get into their
+ * account. They are sent here rather than to an emailed password reset,
+ * because a buyer who cannot reach the inbox they signed up with cannot
+ * complete a reset either, and most of them reach us on WhatsApp anyway.
+ *
+ * Its own constant even though it currently matches the queries line: these
+ * are two different jobs, and one must be movable without the other. Same
+ * rule as the sales line above.
+ */
+export const WHATSAPP_LOGIN_NUMBER = '27661063292'     // +27 66 106 3292
+export const WHATSAPP_LOGIN_DISPLAY = '066 106 3292'
+export const WHATSAPP_LOGIN_MESSAGE =
+  'Hi, I have paid for the K53 course but I cannot log in. Please help me retrieve my login.'
+export const WHATSAPP_LOGIN_URL =
+  `https://wa.me/${WHATSAPP_LOGIN_NUMBER}?text=${encodeURIComponent(WHATSAPP_LOGIN_MESSAGE)}`
 
 /** Our live sessions on YouTube (the channel's live/streams tab). */
 export const LIVE_SESSIONS_URL = 'https://www.youtube.com/@lungi09/streams'

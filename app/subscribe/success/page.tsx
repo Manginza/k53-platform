@@ -25,7 +25,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { WHATSAPP_QUERIES_URL, ACCESS_DURATION_DAYS } from '@/lib/contact'
+import { WHATSAPP_QUERIES_URL, WHATSAPP_LOGIN_URL, ACCESS_DURATION_DAYS } from '@/lib/contact'
 import { invalidateAccessCache } from '@/lib/access-cache'
 import LiveSessionCard from '@/components/LiveSessionCard'
 
@@ -181,11 +181,10 @@ export default function SubscribeSuccessPage() {
 
             <div className="flex flex-col gap-3">
               <Link href={`/login?next=${encodeURIComponent(RETURN_TO)}`} className="block w-full bg-blue-700 text-white font-bold py-3 rounded-xl hover:bg-blue-800 transition-colors text-center">Log in to continue</Link>
-              <Link href={`/forgot-password?next=${encodeURIComponent(RETURN_TO)}`} className="block w-full border-2 border-blue-200 text-blue-700 font-semibold py-3 rounded-xl hover:border-blue-400 transition-colors text-center">
-                Forgot your password?
-              </Link>
-              <a href={WHATSAPP_QUERIES_URL} target="_blank" rel="noopener noreferrer" className="block w-full text-sm text-gray-500 hover:text-gray-700 underline underline-offset-2 py-1 text-center">
-                Still stuck? Message us
+              {/* Paid customers who cannot get in are helped over WhatsApp
+                  rather than an emailed reset — see WHATSAPP_LOGIN_URL. */}
+              <a href={WHATSAPP_LOGIN_URL} target="_blank" rel="noopener noreferrer" className="block w-full border-2 border-green-500 text-green-700 font-semibold py-3 rounded-xl hover:bg-green-50 transition-colors text-center">
+                Retrieve login
               </a>
             </div>
           </>
@@ -211,7 +210,7 @@ export default function SubscribeSuccessPage() {
             <div className="flex flex-col gap-3">
               <button onClick={() => { attempts.current = 0; setGrantError(''); setStatus('confirming'); confirm() }} className="block w-full bg-blue-700 text-white font-bold py-3 rounded-xl hover:bg-blue-800 transition-colors">Unlock my access</button>
               <Link href={code ? `/access-code?code=${encodeURIComponent(code)}` : '/access-code'} className="block border-2 border-blue-200 text-blue-700 font-semibold py-3 rounded-xl hover:border-blue-400 transition-colors text-center">Use my access code</Link>
-              <Link href={`/forgot-password?next=${encodeURIComponent(RETURN_TO)}`} className="block border-2 border-gray-200 text-gray-600 font-semibold py-3 rounded-xl hover:border-gray-400 transition-colors text-center">Forgot your password?</Link>
+              <a href={WHATSAPP_LOGIN_URL} target="_blank" rel="noopener noreferrer" className="block border-2 border-green-500 text-green-700 font-semibold py-3 rounded-xl hover:bg-green-50 transition-colors text-center">Retrieve login</a>
               <Link href="/courses" className="block text-gray-500 font-medium py-2 hover:text-gray-700 text-sm text-center">Go to courses</Link>
               <a href={WHATSAPP_QUERIES_URL} target="_blank" rel="noopener noreferrer" className="block w-full text-sm text-gray-500 hover:text-gray-700 underline underline-offset-2 py-1 text-center">
                 Still stuck after an hour? Message us

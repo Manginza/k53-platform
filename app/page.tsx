@@ -3,7 +3,7 @@ import Link from 'next/link'
 import BookSlideshow from '@/components/BookSlideshow'
 import BuyAccessButton from '@/components/BuyAccessButton'
 import { hasFullAccess } from '@/lib/access'
-import { WHATSAPP_URL, ACCESS_PRICE, ACCESS_PRICE_ORIGINAL, ACCESS_DURATION_DAYS } from '@/lib/contact'
+import { WHATSAPP_URL, WHATSAPP_LINK, WHATSAPP_DISPLAY, ACCESS_PRICE, ACCESS_PRICE_ORIGINAL, ACCESS_DURATION_DAYS } from '@/lib/contact'
 
 export const dynamic = 'force-dynamic'
 
@@ -522,8 +522,8 @@ export default async function Home() {
                 <span className="shrink-0 text-base">💬</span>
                 <div>
                   <p className="font-semibold text-gray-800">WhatsApp</p>
-                  <a href="https://wa.me/27699075971" target="_blank" rel="noopener noreferrer" className="text-green-700 hover:underline">
-                    +27 69 907 5971
+                  <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer" className="text-green-700 hover:underline">
+                    {WHATSAPP_DISPLAY}
                   </a>
                 </div>
               </div>
@@ -531,7 +531,7 @@ export default async function Home() {
 
             <div className="mt-6 flex flex-col sm:flex-row gap-3">
               <a
-                href="https://wa.me/27699075971"
+                href={WHATSAPP_LINK}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex-1 btn-accent flex items-center justify-center gap-2 py-3 rounded-xl text-sm"
