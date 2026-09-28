@@ -36,14 +36,33 @@ export const WHATSAPP_GROUP_URL = 'https://chat.whatsapp.com/Kruy1Kw8iQ40VbJNvRl
  * To end it early, set LIVE_TAKEOVER_UNTIL to ''. To run another one, set a
  * new URL and a new end time.
  */
-export const LIVE_TAKEOVER_URL   = 'https://youtube.com/live/ra1m8VlOJLk?feature=share'
-export const LIVE_TAKEOVER_UNTIL = '2026-09-25T22:00:00+02:00'  // 10pm SAST (Thu 25 Sep) — after the 9pm lesson
+export const LIVE_TAKEOVER_URL   = 'https://youtube.com/live/vVb45qsgIGk?feature=share'
+export const LIVE_TAKEOVER_FROM  = '2026-09-28T21:00:00+02:00'  // 9pm SAST (Sun 28 Sep) — the lesson starts
+export const LIVE_TAKEOVER_UNTIL = '2026-09-29T00:00:00+02:00'  // 12am SAST
 
-/** True while the popup should show the live session rather than the group. */
+/**
+ * Identifies THIS takeover so the popup treats each one as a new campaign.
+ *
+ * The dismissal is remembered against this rather than a fixed name. Without
+ * it, everyone who closed the previous takeover would silently never see the
+ * next one, because they would already be marked as having dismissed it.
+ */
+export const LIVE_TAKEOVER_ID =
+  `${LIVE_TAKEOVER_FROM}${LIVE_TAKEOVER_UNTIL}`.replace(/[^0-9A-Za-z]/g, '')
+
+/**
+ * True while the popup should show the live session rather than the group.
+ *
+ * FROM is honoured as well as UNTIL, so a takeover can be deployed in advance
+ * and switch itself on at the hour the lesson starts rather than nagging
+ * everyone who visits during the day.
+ */
 export function isLiveTakeoverActive(): boolean {
   if (!LIVE_TAKEOVER_UNTIL || !LIVE_TAKEOVER_URL) return false
   const until = Date.parse(LIVE_TAKEOVER_UNTIL)
-  return Number.isFinite(until) && Date.now() < until
+  if (!Number.isFinite(until) || Date.now() >= until) return false
+  const from = LIVE_TAKEOVER_FROM ? Date.parse(LIVE_TAKEOVER_FROM) : 0
+  return !Number.isFinite(from) || Date.now() >= from
 }
 
 /**

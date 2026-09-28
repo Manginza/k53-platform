@@ -22,7 +22,7 @@
  * Bump POPUP_VERSION to re-invite everyone, e.g. after a new group link.
  */
 import { useCallback, useEffect, useState } from 'react'
-import { LIVE_TAKEOVER_URL, WHATSAPP_CLASS_URL, isLiveTakeoverActive } from '@/lib/contact'
+import { LIVE_TAKEOVER_ID, LIVE_TAKEOVER_URL, WHATSAPP_CLASS_URL, isLiveTakeoverActive } from '@/lib/contact'
 import { COOKIE_BANNER_ATTR, COOKIE_BANNER_EVENT } from '@/components/CookieBanner'
 import WhatsAppIcon from '@/components/icons/WhatsAppIcon'
 
@@ -30,8 +30,14 @@ import WhatsAppIcon from '@/components/icons/WhatsAppIcon'
 // offer (previously the WhatsApp study-group invite).
 const POPUP_VERSION = 'v2'
 const GROUP_DISMISS_KEY = `sk_whatsapp_group_${POPUP_VERSION}`
-/** Separate key: closing the live popup must not use up the group invite. */
-const LIVE_DISMISS_KEY = `sk_live_takeover_${POPUP_VERSION}`
+/**
+ * Separate key: closing the live popup must not use up the group invite.
+ *
+ * Keyed on the takeover's own window too, so every new live session is a new
+ * campaign. A fixed key meant anyone who dismissed one takeover was silently
+ * excluded from every later one.
+ */
+const LIVE_DISMISS_KEY = `sk_live_takeover_${POPUP_VERSION}_${LIVE_TAKEOVER_ID}`
 
 /** Let the page paint and settle before interrupting. */
 const FIRST_DELAY_MS = 2500
