@@ -131,7 +131,15 @@ export async function mintCodeForCheckout(
   }
 }
 
-async function findCodeForCheckout(db: AdminClient, checkoutId: string): Promise<MintedCode | null> {
+/**
+ * The code already issued for a checkout, or null.
+ *
+ * Exported because the buyer has to be able to SEE their code. Until email
+ * delivery is configured the code exists only in this table, so the payment
+ * return page reads it back and prints it on screen rather than telling
+ * someone to check an inbox nothing was sent to.
+ */
+export async function findCodeForCheckout(db: AdminClient, checkoutId: string): Promise<MintedCode | null> {
   const { data, error } = await db
     .from('access_codes')
     .select('code, duration_days, valid_until')
