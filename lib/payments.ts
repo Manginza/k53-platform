@@ -78,9 +78,16 @@ export type CheckoutRejection = 'not_paid' | 'amount_mismatch'
 /**
  * Why a fetched checkout may NOT be applied, or null when it is a genuine
  * full-access payment: verifiably paid, in ZAR, for a price we have charged.
+ *
+ * `succeededPaymentId` is only ever passed by the webhook, from a
+ * signature-verified payment.succeeded event. Every other caller has no such
+ * proof and so needs Yoco to report the checkout 'completed'.
  */
-export function checkoutRejection(checkout: YocoCheckoutDetail | null): CheckoutRejection | null {
-  if (!isYocoCheckoutPaid(checkout)) return 'not_paid'
+export function checkoutRejection(
+  checkout: YocoCheckoutDetail | null,
+  succeededPaymentId?: string | null,
+): CheckoutRejection | null {
+  if (!isYocoCheckoutPaid(checkout, succeededPaymentId)) return 'not_paid'
   const amount = checkout?.amount ?? -1
   if (checkout?.currency !== 'ZAR' || !ACCEPTED_ACCESS_PRICES_CENTS.includes(amount)) return 'amount_mismatch'
   return null

@@ -92,10 +92,28 @@ export async function getYocoCheckout(id: string): Promise<YocoCheckoutDetail | 
   return res.json() as Promise<YocoCheckoutDetail>
 }
 
-/** True when a fetched checkout represents a completed/paid transaction. */
-export function isYocoCheckoutPaid(c: YocoCheckoutDetail | null): boolean {
+/**
+ * True only when the money has actually moved.
+ *
+ * That means one of two things:
+ *   - Yoco itself reports the checkout as 'completed', or
+ *   - a signature-verified payment.succeeded webhook names the exact payment
+ *     attached to this checkout. Only the webhook can supply that id, because
+ *     only the webhook carries Yoco's signed word that the payment succeeded.
+ *
+ * A paymentId on its own is NOT proof of payment. Yoco attaches one to every
+ * attempt — declined cards, failed 3-D Secure, abandoned bank verification —
+ * and leaves the checkout 'started' so the buyer can try again. This used to
+ * accept any paymentId, and in the 60 days to 12 Oct 2026 the nightly sweep
+ * unlocked 391 checkouts on that basis, none of which Yoco ever completed.
+ */
+export function isYocoCheckoutPaid(
+  c: YocoCheckoutDetail | null,
+  succeededPaymentId?: string | null,
+): boolean {
   if (!c) return false
-  return c.status === 'completed' || !!c.paymentId
+  if (c.status === 'completed') return true
+  return !!succeededPaymentId && !!c.paymentId && c.paymentId === succeededPaymentId
 }
 
 // ─── Webhook Signature Verification ──────────────────────────────────────────

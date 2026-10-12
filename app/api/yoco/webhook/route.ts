@@ -67,7 +67,11 @@ export async function POST(req: NextRequest) {
   }
 
   const checkout = await getYocoCheckout(checkoutId)
-  const rejection = checkoutRejection(checkout)
+  // The signed event is Yoco's word that THIS payment succeeded, so it counts
+  // even if the checkout has not flipped to 'completed' yet. It only counts
+  // for the payment it names: an earlier failed attempt on the same checkout
+  // carries a different id.
+  const rejection = checkoutRejection(checkout, payload?.id ?? null)
   if (rejection === 'not_paid' || !checkout) {
     console.error('[yoco-webhook] checkout is not yet verifiably paid.', { checkoutId })
     return NextResponse.json({ error: 'Checkout could not be verified.' }, { status: 503 })
