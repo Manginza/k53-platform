@@ -22,7 +22,7 @@
  * Bump POPUP_VERSION to re-invite everyone, e.g. after a new group link.
  */
 import { useCallback, useEffect, useState } from 'react'
-import { LIVE_TAKEOVER_ID, LIVE_TAKEOVER_URL, WHATSAPP_CLASS_URL, isLiveTakeoverActive } from '@/lib/contact'
+import { LIVE_TAKEOVER_ID, LIVE_TAKEOVER_URL, WHATSAPP_CLASS_URL, WHATSAPP_DISPLAY, isLiveTakeoverActive } from '@/lib/contact'
 import { COOKIE_BANNER_ATTR, COOKIE_BANNER_EVENT } from '@/components/CookieBanner'
 import WhatsAppIcon from '@/components/icons/WhatsAppIcon'
 
@@ -154,7 +154,7 @@ export default function WhatsAppGroupPopup() {
         bullets: [
           'Special price: R99 (was R150)',
           'Guided Learners Licence class',
-          'Book by texting us on WhatsApp: +27 63 172 1259',
+          `Book by texting us on WhatsApp: ${WHATSAPP_DISPLAY}`,
         ],
         cta: 'Book on WhatsApp for R99',
       }

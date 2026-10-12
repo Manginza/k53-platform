@@ -5,9 +5,9 @@
  * is ACCESS_PRICE and the window is ACCESS_DURATION_DAYS; both are defined
  * below and every surface reads them rather than restating the numbers.
  */
-export const WHATSAPP_NUMBER = '27631721259'           // +27 63 172 1259
+export const WHATSAPP_NUMBER = '27679609012'           // +27 67 960 9012
 /** The same line as it is written on screen. Keep in step with WHATSAPP_NUMBER. */
-export const WHATSAPP_DISPLAY = '+27 63 172 1259'
+export const WHATSAPP_DISPLAY = '+27 67 960 9012'
 export const WHATSAPP_MESSAGE = "I'm interested in buying the course for R99 (special, down from R150)."
 export const WHATSAPP_URL =
   `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`
@@ -71,7 +71,7 @@ export function isLiveTakeoverActive(): boolean {
  * WHATSAPP_NUMBER, which is the sales line: these reach different people and
  * changing one must not silently change the other.
  */
-export const WHATSAPP_QUERIES_NUMBER = '27661063292'   // +27 66 106 3292
+export const WHATSAPP_QUERIES_NUMBER = '27679609012'   // +27 67 960 9012
 export const WHATSAPP_QUERIES_MESSAGE = 'Hi, I have a query about my course payment / checkout.'
 export const WHATSAPP_QUERIES_URL =
   `https://wa.me/${WHATSAPP_QUERIES_NUMBER}?text=${encodeURIComponent(WHATSAPP_QUERIES_MESSAGE)}`
@@ -100,7 +100,7 @@ export const LIVE_SESSIONS_URL = 'https://www.youtube.com/@lungi09/streams'
  * Learners Licence class booking line (the first-visit popup CTA). Booked over
  * WhatsApp at the special R99 price (down from R150).
  */
-export const WHATSAPP_CLASS_NUMBER = '27631721259'          // +27 63 172 1259
+export const WHATSAPP_CLASS_NUMBER = '27679609012'          // +27 67 960 9012
 export const WHATSAPP_CLASS_MESSAGE =
   "Hi, I'd like to join the Learners Licence class for R99 (special, down from R150)."
 export const WHATSAPP_CLASS_URL =
