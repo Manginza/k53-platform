@@ -6,23 +6,32 @@
  * below and every surface reads them rather than restating the numbers.
  */
 /**
- * The owner's own WhatsApp number: the general "WhatsApp us" contact on the
- * homepage, and the class-booking popup. NOT used at checkout — see
- * WHATSAPP_CHECKOUT_NUMBER below, which is a different line on purpose.
+ * THE WhatsApp number. Every WhatsApp link on the site follows this: contact,
+ * checkout, checkout support, retrieve login and class booking. Change it here
+ * and the whole site moves with it.
+ *
+ * Each of those jobs still has its own setting below, pointing at this one.
+ * If a job ever needs a different number, give just that setting its own value
+ * and the rest stay on the main line.
  */
-export const WHATSAPP_NUMBER = '27679609012'           // +27 67 960 9012
-/** The same line as it is written on screen. Keep in step with WHATSAPP_NUMBER. */
-export const WHATSAPP_DISPLAY = '+27 67 960 9012'
+export const WHATSAPP_MAIN_NUMBER  = '27631721259'     // +27 63 172 1259
+export const WHATSAPP_MAIN_DISPLAY = '+27 63 172 1259'
+/** The same number written the local way, for copy that reads "call 0xx…". */
+export const WHATSAPP_MAIN_DISPLAY_LOCAL = '063 172 1259'
+
+/** General "WhatsApp us" contact: homepage contact block and class popup text. */
+export const WHATSAPP_NUMBER = WHATSAPP_MAIN_NUMBER
+/** The same line as it is written on screen. */
+export const WHATSAPP_DISPLAY = WHATSAPP_MAIN_DISPLAY
 /** Plain contact link to WHATSAPP_NUMBER, no message prefilled. */
 export const WHATSAPP_LINK = `https://wa.me/${WHATSAPP_NUMBER}`
 
 /**
  * Checkout line: every "Pay via WhatsApp" / buy-on-WhatsApp link (pricing page,
  * paywall, locked-content screen, footer, contact page, homepage buy button)
- * and, below, checkout support. Kept separate from the owner's own number so
- * changing one never moves the other.
+ * and, below, checkout support.
  */
-export const WHATSAPP_CHECKOUT_NUMBER = '27631721259'  // +27 63 172 1259
+export const WHATSAPP_CHECKOUT_NUMBER = WHATSAPP_MAIN_NUMBER
 export const WHATSAPP_MESSAGE = "I'm interested in buying the course for R99 (special, down from R150)."
 export const WHATSAPP_URL =
   `https://wa.me/${WHATSAPP_CHECKOUT_NUMBER}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`
@@ -80,7 +89,7 @@ export function isLiveTakeoverActive(): boolean {
  * WHATSAPP_NUMBER, which is the sales line: these reach different people and
  * changing one must not silently change the other.
  */
-export const WHATSAPP_QUERIES_NUMBER = WHATSAPP_CHECKOUT_NUMBER  // +27 63 172 1259 — checkout support
+export const WHATSAPP_QUERIES_NUMBER = WHATSAPP_CHECKOUT_NUMBER  // checkout support
 export const WHATSAPP_QUERIES_MESSAGE = 'Hi, I have a query about my course payment / checkout.'
 export const WHATSAPP_QUERIES_URL =
   `https://wa.me/${WHATSAPP_QUERIES_NUMBER}?text=${encodeURIComponent(WHATSAPP_QUERIES_MESSAGE)}`
@@ -91,12 +100,12 @@ export const WHATSAPP_QUERIES_URL =
  * because a buyer who cannot reach the inbox they signed up with cannot
  * complete a reset either, and most of them reach us on WhatsApp anyway.
  *
- * Its own constant even though it currently matches the queries line: these
+ * Its own setting even though it currently follows the main number: these
  * are two different jobs, and one must be movable without the other. Same
  * rule as the sales line above.
  */
-export const WHATSAPP_LOGIN_NUMBER = '27661063292'     // +27 66 106 3292
-export const WHATSAPP_LOGIN_DISPLAY = '066 106 3292'
+export const WHATSAPP_LOGIN_NUMBER = WHATSAPP_MAIN_NUMBER
+export const WHATSAPP_LOGIN_DISPLAY = WHATSAPP_MAIN_DISPLAY_LOCAL
 export const WHATSAPP_LOGIN_MESSAGE =
   'Hi, I have paid for the K53 course but I cannot log in. Please help me retrieve my login.'
 export const WHATSAPP_LOGIN_URL =
@@ -109,7 +118,7 @@ export const LIVE_SESSIONS_URL = 'https://www.youtube.com/@lungi09/streams'
  * Learners Licence class booking line (the first-visit popup CTA). Booked over
  * WhatsApp at the special R99 price (down from R150).
  */
-export const WHATSAPP_CLASS_NUMBER = '27679609012'          // +27 67 960 9012
+export const WHATSAPP_CLASS_NUMBER = WHATSAPP_MAIN_NUMBER
 export const WHATSAPP_CLASS_MESSAGE =
   "Hi, I'd like to join the Learners Licence class for R99 (special, down from R150)."
 export const WHATSAPP_CLASS_URL =
