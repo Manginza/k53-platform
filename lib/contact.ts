@@ -5,18 +5,27 @@
  * is ACCESS_PRICE and the window is ACCESS_DURATION_DAYS; both are defined
  * below and every surface reads them rather than restating the numbers.
  */
+/**
+ * The owner's own WhatsApp number: the general "WhatsApp us" contact on the
+ * homepage, and the class-booking popup. NOT used at checkout — see
+ * WHATSAPP_CHECKOUT_NUMBER below, which is a different line on purpose.
+ */
 export const WHATSAPP_NUMBER = '27679609012'           // +27 67 960 9012
 /** The same line as it is written on screen. Keep in step with WHATSAPP_NUMBER. */
 export const WHATSAPP_DISPLAY = '+27 67 960 9012'
+/** Plain contact link to WHATSAPP_NUMBER, no message prefilled. */
+export const WHATSAPP_LINK = `https://wa.me/${WHATSAPP_NUMBER}`
+
+/**
+ * Checkout line: every "Pay via WhatsApp" / buy-on-WhatsApp link (pricing page,
+ * paywall, locked-content screen, footer, contact page, homepage buy button)
+ * and, below, checkout support. Kept separate from the owner's own number so
+ * changing one never moves the other.
+ */
+export const WHATSAPP_CHECKOUT_NUMBER = '27631721259'  // +27 63 172 1259
 export const WHATSAPP_MESSAGE = "I'm interested in buying the course for R99 (special, down from R150)."
 export const WHATSAPP_URL =
-  `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`
-/**
- * The sales line with no message prefilled, for a plain "WhatsApp us" contact
- * link where the buying message would be the wrong thing to put in someone's
- * mouth. WHATSAPP_URL stays the one to use from a buy button.
- */
-export const WHATSAPP_LINK = `https://wa.me/${WHATSAPP_NUMBER}`
+  `https://wa.me/${WHATSAPP_CHECKOUT_NUMBER}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`
 
 /**
  * Community WhatsApp group. Every visitor is invited once on their first
@@ -71,7 +80,7 @@ export function isLiveTakeoverActive(): boolean {
  * WHATSAPP_NUMBER, which is the sales line: these reach different people and
  * changing one must not silently change the other.
  */
-export const WHATSAPP_QUERIES_NUMBER = '27679609012'   // +27 67 960 9012
+export const WHATSAPP_QUERIES_NUMBER = WHATSAPP_CHECKOUT_NUMBER  // +27 63 172 1259 — checkout support
 export const WHATSAPP_QUERIES_MESSAGE = 'Hi, I have a query about my course payment / checkout.'
 export const WHATSAPP_QUERIES_URL =
   `https://wa.me/${WHATSAPP_QUERIES_NUMBER}?text=${encodeURIComponent(WHATSAPP_QUERIES_MESSAGE)}`
