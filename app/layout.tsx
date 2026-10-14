@@ -18,6 +18,7 @@ import CookieBanner from "@/components/CookieBanner";
 // import FreePromoPopup from "@/components/FreePromoPopup";
 import FreePromoBanner from "@/components/FreePromoBanner";
 import WhatsAppGroupPopup from "@/components/WhatsAppGroupPopup";
+import FreeAccessThankYou from "@/components/FreeAccessThankYou";
 import LiveSessionsButton from "@/components/LiveSessionsButton";
 
 const geistSans = localFont({
@@ -146,6 +147,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                         <YoutubeRecordingPopup />
                         <GlobalVideoPopup /> */}
                         <WhatsAppGroupPopup />
+                        {/* Thanks free-window users once it closes, and offers paid access. */}
+                        <FreeAccessThankYou />
                         <LiveSessionsButton />
                 </body>
           </html>
