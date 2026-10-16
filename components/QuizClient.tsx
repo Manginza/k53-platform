@@ -457,6 +457,11 @@ export default function QuizClient({ questions, courseTitle, courseId, testNumbe
 
   const q        = ordered[current]
   const finalSection = q.question.match(/^Test ([ABC]) · Question (\d+)/)
+  // Final-test questions carry a "Test A · Question N" prefix that the top bar
+  // already shows, so strip it from the question card to avoid showing it twice.
+  const questionBody = finalSection
+    ? q.question.replace(/^Test [ABC] · Question \d+\s*/, '')
+    : q.question
   const selected = answers[q.id]
   const progress = (current / ordered.length) * 100
 
@@ -694,7 +699,7 @@ export default function QuizClient({ questions, courseTitle, courseId, testNumbe
 
         {/* Question text — supports multi-line (combination questions) */}
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm px-6 py-5">
-          <p className="text-base font-semibold text-gray-900 leading-relaxed whitespace-pre-line">{q.question}</p>
+          <p className="text-base font-semibold text-gray-900 leading-relaxed whitespace-pre-line">{questionBody}</p>
         </div>
 
         {/* Options */}
