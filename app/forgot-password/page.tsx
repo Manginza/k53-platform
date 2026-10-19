@@ -67,6 +67,11 @@ function ForgotPasswordForm() {
           <Link href="/login" className="inline-block bg-blue-700 text-white font-semibold px-6 py-2.5 rounded-lg text-sm hover:bg-blue-800 transition-colors">
             Back to log in
           </Link>
+          <p className="text-sm mt-4">
+            <Link href="/still-cant-login" className="text-blue-700 font-medium hover:underline">
+              Paid but still can&apos;t log in?
+            </Link>
+          </p>
         </div>
       </div>
     )

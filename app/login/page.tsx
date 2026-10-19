@@ -138,6 +138,12 @@ function LoginForm() {
             Forgot your password?
           </Link>
         </p>
+        {/* Second option: a paid client who still cannot get in sends proof of payment. */}
+        <p className="text-sm text-center mt-2">
+          <Link href="/still-cant-login" className="text-blue-700 font-medium hover:underline">
+            Still can&apos;t log in?
+          </Link>
+        </p>
 
         <p className="text-sm text-center text-gray-500 mt-6">
           Don&apos;t have an account? Get full access on the{' '}

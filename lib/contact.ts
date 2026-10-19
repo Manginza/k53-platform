@@ -95,6 +95,13 @@ export const WHATSAPP_QUERIES_URL =
   `https://wa.me/${WHATSAPP_QUERIES_NUMBER}?text=${encodeURIComponent(WHATSAPP_QUERIES_MESSAGE)}`
 
 /**
+ * Where "Still can't log in?" requests go. The client's own email app sends
+ * the message here, with their name, surname and a link to the proof of
+ * payment they uploaded on /still-cant-login.
+ */
+export const ACCESS_HELP_EMAIL = 'lungi09@gmail.com'
+
+/**
  * Retrieve-login line: a customer who has paid but cannot get into their
  * account. They are sent here rather than to an emailed password reset,
  * because a buyer who cannot reach the inbox they signed up with cannot
