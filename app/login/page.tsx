@@ -81,7 +81,7 @@ function LoginForm() {
         const access = accessRes
           ? await accessRes.json().catch(() => ({ fullAccess: false }))
           : { fullAccess: false }
-        if (access.fullAccess) dest = nextPath ?? '/courses'
+        if (access.fullAccess) dest = nextPath ?? '/group'
         else if (nextPath?.startsWith('/pricing') || nextPath?.startsWith('/subscribe')) dest = nextPath
       }
     }

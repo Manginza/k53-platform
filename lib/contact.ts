@@ -43,6 +43,9 @@ export const WHATSAPP_URL =
  */
 export const WHATSAPP_GROUP_URL = 'https://chat.whatsapp.com/Kruy1Kw8iQ40VbJNvRlfeY'
 
+/** Learners Licence preparation group. Shown only to paid members on /group. */
+export const WHATSAPP_PREP_GROUP_URL = 'https://chat.whatsapp.com/EB22ntfNb6o9Pg7q2f54l6'
+
 /**
  * Temporary takeover of the first-visit popup.
  *
