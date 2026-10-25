@@ -3,7 +3,8 @@ import Link from 'next/link'
 import BookSlideshow from '@/components/BookSlideshow'
 import BuyAccessButton from '@/components/BuyAccessButton'
 import { hasFullAccess } from '@/lib/access'
-import { WHATSAPP_URL, WHATSAPP_LINK, WHATSAPP_DISPLAY, ACCESS_PRICE, ACCESS_PRICE_ORIGINAL, ACCESS_DURATION_DAYS } from '@/lib/contact'
+import { createClient } from '@/lib/supabase-server'
+import { EACH_ONCE_REGISTER_URL, WHATSAPP_URL, WHATSAPP_LINK, WHATSAPP_DISPLAY, ACCESS_PRICE, ACCESS_PRICE_ORIGINAL, ACCESS_DURATION_DAYS } from '@/lib/contact'
 
 export const dynamic = 'force-dynamic'
 
@@ -167,6 +168,7 @@ function FeatureIcon({ type }: { type: 'signs' | 'controls' | 'rules' }) {
 
 export default async function Home() {
   const fullAccess = await hasFullAccess()
+  const { data: { user } } = await createClient().auth.getUser()
   return (
     <main>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }} />
@@ -208,6 +210,22 @@ export default async function Home() {
               Get Full Access — {ACCESS_PRICE}
             </Link>
           </div>
+
+          {/* Each Once Special: free registration for visitors without an account */}
+          {!user && (
+            <div className="mt-8 mx-auto max-w-xl rounded-2xl bg-white/10 border border-white/25 backdrop-blur-sm px-5 py-5 sm:px-6">
+              <div className="text-[11px] font-extrabold uppercase tracking-widest text-accent-400 mb-1">Each Once Special</div>
+              <p className="text-sm sm:text-base text-blue-50 mb-4">
+                Register free and take every Code 8 and Code 10 practice test once, then get your combined score.
+              </p>
+              <Link
+                href={EACH_ONCE_REGISTER_URL}
+                className="inline-flex items-center justify-center gap-2 w-full sm:w-auto bg-green-500 hover:bg-green-400 text-white font-extrabold px-8 py-3.5 rounded-full text-base shadow-hero transition-all duration-200 active:scale-[0.97]"
+              >
+                Register Free — Try Each Test Once
+              </Link>
+            </div>
+          )}
 
           {/* Trust strip */}
           <ul className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs sm:text-sm text-blue-200">

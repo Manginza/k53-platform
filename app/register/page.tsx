@@ -23,7 +23,9 @@ function safeNext(raw: string | null): string | null {
 function RegisterForm() {
   const params = useSearchParams()
   const token = params.get('token') || ''
-  const next = safeNext(params.get('next')) ?? '/pricing'
+  // ?trial=1 — arrived from the Each Once Special (hero button / popup).
+  const trial = !token && params.get('trial') === '1'
+  const next = safeNext(params.get('next')) ?? (trial ? '/courses' : '/pricing')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -62,10 +64,19 @@ function RegisterForm() {
 
   return (
     <div className="bg-white rounded-2xl shadow-md p-8 w-full max-w-md">
-      <h1 className="text-2xl font-extrabold text-blue-700 mb-1 text-center">Create your account</h1>
+      {trial && (
+        <div className="mx-auto mb-3 w-fit rounded-full bg-green-100 px-3 py-1 text-[11px] font-extrabold uppercase tracking-widest text-green-800">
+          Each Once Special
+        </div>
+      )}
+      <h1 className="text-2xl font-extrabold text-blue-700 mb-1 text-center">
+        {trial ? 'Register free' : 'Create your account'}
+      </h1>
       <p className="text-sm text-gray-500 text-center mb-6">
         {token
           ? 'Your account unlocks 60 days of full access. This link works once, for this email only.'
+          : trial
+          ? 'Take every Code 8 and Code 10 practice test once, free, and get your combined score. One free attempt per learner.'
           : 'Create your email and password to pre-qualify. Premium access activates only after your R99 payment is verified.'}
       </p>
 
@@ -96,7 +107,7 @@ function RegisterForm() {
         )}
         <button type="submit" disabled={loading}
           className="w-full bg-blue-700 text-white font-semibold py-2.5 rounded-lg hover:bg-blue-800 transition-colors disabled:opacity-60">
-          {loading ? 'Creating account…' : token ? 'Create account & unlock access' : 'Create pre-qualified account'}
+          {loading ? 'Creating account…' : token ? 'Create account & unlock access' : trial ? 'Register & start practising' : 'Create pre-qualified account'}
         </button>
       </form>
 

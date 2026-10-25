@@ -3,7 +3,9 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import NextStepCard from '@/components/learner/NextStepCard'
+import TrialSummaryCard from '@/components/trial/TrialSummaryCard'
 import type { NextStep } from '@/lib/learner-progress'
+import type { TrialSummary } from '@/lib/trial'
 
 type Option = 'A' | 'B' | 'C'
 
@@ -18,6 +20,8 @@ interface Props {
 interface SaveResult {
   attemptCount: number
   nextStep: NextStep
+  /** Present when this was a free Each Once attempt. */
+  trial?: TrialSummary | null
 }
 
 export default function ResultAdvisory(props: Props) {
@@ -41,6 +45,7 @@ export default function ResultAdvisory(props: Props) {
     return () => { cancelled = true }
   }, [courseId, testNumber, submissionKey, answers, questionIds])
 
+  if (result?.trial) return <TrialSummaryCard summary={result.trial} />
   if (result) return <NextStepCard nextStep={result.nextStep} attemptCount={result.attemptCount} />
 
   if (error) {

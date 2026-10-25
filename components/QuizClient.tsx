@@ -23,6 +23,13 @@ interface Props {
   initialSeconds?: number
   /** Use separate K53 section pass marks instead of one combined percentage. */
   splitScoring?: boolean
+  /**
+   * Set when this is the learner's free Each Once attempt: seconds left on
+   * the full exam clock. The attempt is claimed on mount via /api/trial/start.
+   */
+  trialSeconds?: number
+  /** Offer the free Each Once registration on the paywall (Code 8 / 10). */
+  trialCta?: boolean
 }
 
 /** mm:ss formatter for the countdown pill. */
@@ -387,7 +394,8 @@ function StandardResultsScreen({
 }
 
 // ── Main quiz component ───────────────────────────────────────────────────────
-export default function QuizClient({ questions, courseTitle, courseId, testNumber, isPremium, initialSeconds, splitScoring = false }: Props) {
+export default function QuizClient({ questions, courseTitle, courseId, testNumber, isPremium, initialSeconds, splitScoring = false, trialSeconds, trialCta = false }: Props) {
+  const isTrial = !isPremium && trialSeconds != null
   const [current,  setCurrent]  = useState(0)
   const [answers,  setAnswers]  = useState<AnswerMap>({})
   const [revealed, setRevealed] = useState(false)
@@ -403,13 +411,35 @@ export default function QuizClient({ questions, courseTitle, courseId, testNumbe
   // For free users the starting value comes from the server (initialSeconds)
   // and is reconciled with /api/quiz/session on mount so the window can't be
   // reset by reloading or editing the client timer.
-  const totalSeconds = isPremium ? questions.length * 60 : (initialSeconds ?? FREE_SECONDS)
+  // A free Each Once attempt runs on the full exam clock (trialSeconds).
+  const totalSeconds = isPremium ? questions.length * 60 : isTrial ? trialSeconds! : (initialSeconds ?? FREE_SECONDS)
   const [secondsLeft, setSecondsLeft] = useState(totalSeconds)
   const [lockedOut,   setLockedOut]   = useState(false)
 
+  // Each Once: claim the free attempt (records email + IP) and take the
+  // server's clock. If it was used up or refused meanwhile, reload so the
+  // page renders the right screen.
+  useEffect(() => {
+    if (!isTrial) return
+    let cancelled = false
+    fetch('/api/trial/start', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ courseId, testNumber }),
+    })
+      .then(r => r.json())
+      .then(d => {
+        if (cancelled || d.unlimited) return
+        if (d.status === 'used' || d.status === 'blocked_ip') { window.location.reload(); return }
+        if (typeof d.seconds === 'number') setSecondsLeft(s => Math.min(s, d.seconds))
+      })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [isTrial, courseId, testNumber])
+
   // Authoritative free-preview timing from the server (start the window if new).
   useEffect(() => {
-    if (isPremium) return
+    if (isPremium || isTrial) return
     let cancelled = false
     fetch('/api/quiz/session', {
       method: 'POST',
@@ -427,18 +457,18 @@ export default function QuizClient({ questions, courseTitle, courseId, testNumbe
       })
       .catch(() => {})
     return () => { cancelled = true }
-  }, [isPremium, courseId, testNumber])
+  }, [isPremium, isTrial, courseId, testNumber])
 
   useEffect(() => {
     if (finished || lockedOut) return
     if (secondsLeft <= 0) {
-      if (isPremium) setFinished(true)   // time's up → show results
-      else           setLockedOut(true)  // free preview over → paywall
+      if (isPremium || isTrial) setFinished(true)   // time's up → show results
+      else                      setLockedOut(true)  // free preview over → paywall
       return
     }
     const t = setTimeout(() => setSecondsLeft(s => s - 1), 1000)
     return () => clearTimeout(t)
-  }, [isPremium, finished, lockedOut, secondsLeft])
+  }, [isPremium, isTrial, finished, lockedOut, secondsLeft])
 
   const isSplitTest = splitScoring
 
@@ -506,7 +536,7 @@ export default function QuizClient({ questions, courseTitle, courseId, testNumbe
   }
 
   if (lockedOut) {
-    return <QuizPaywall courseId={courseId} />
+    return <QuizPaywall courseId={courseId} trialCta={trialCta} />
   }
 
   if (finished) {
@@ -610,13 +640,16 @@ export default function QuizClient({ questions, courseTitle, courseId, testNumbe
           </span>
           <span
             className={`text-xs font-bold px-2.5 py-1 rounded-full shrink-0 tabular-nums ${
-              secondsLeft <= (isPremium ? 60 : 30)
+              secondsLeft <= (isPremium || isTrial ? 60 : 30)
                 ? 'bg-red-100 text-red-700'
-                : isPremium ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'
+                : isPremium ? 'bg-blue-100 text-blue-700'
+                : isTrial ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
             }`}
-            title={isPremium ? 'Time remaining' : 'Free preview time remaining'}
+            title={isPremium ? 'Time remaining' : isTrial ? 'Free attempt time remaining' : 'Free preview time remaining'}
           >
-            {isPremium ? `⏱ ${fmtTime(secondsLeft)}` : `Free sample · ⏱ ${fmtTime(secondsLeft)}`}
+            {isPremium ? `⏱ ${fmtTime(secondsLeft)}`
+              : isTrial ? `Free attempt · ⏱ ${fmtTime(secondsLeft)}`
+              : `Free sample · ⏱ ${fmtTime(secondsLeft)}`}
           </span>
           <span className="text-sm font-bold text-gray-700 shrink-0">
             {current + 1} <span className="text-gray-400 font-normal">/ {ordered.length}</span>

@@ -1,7 +1,12 @@
 import { notFound } from 'next/navigation'
+import { headers } from 'next/headers'
 import { supabase } from '@/lib/supabase'
 import { hasFullAccess } from '@/lib/access'
 import { readQuizTiming } from '@/lib/quiz-session'
+import { createClient } from '@/lib/supabase-server'
+import { createAdminClient } from '@/lib/supabase-admin'
+import { getClientIp, getTrialState, getTrialSummary, isTrialCourse, isTrialTest } from '@/lib/trial'
+import { TrialBlockedScreen, TrialUsedScreen } from '@/components/trial/TrialScreens'
 import QuizClient from '@/components/QuizClient'
 import QuizPaywall from '@/components/QuizPaywall'
 import type { Course, QuizQuestion } from '@/lib/types'
@@ -60,12 +65,27 @@ export default async function QuizPage({ params, searchParams }: Props) {
   // has already expired, render the paywall here — a reload or a tampered
   // client timer can't get past this.
   let initialSeconds: number | undefined
+  // Each Once: a registered learner without paid access takes each Code 8 /
+  // Code 10 test once, full length, instead of the 2-minute sample.
+  let trialSeconds: number | undefined
+  const trialCourse = isTrialCourse(c.code)
   if (!premium) {
-    const timing = await readQuizTiming(c.id, testNumber)
-    if (timing.locked) {
-      return <QuizPaywall courseId={c.id} />
+    const user = isTrialTest(c.code, testNumber) ? (await createClient().auth.getUser()).data.user : null
+    if (user) {
+      const admin = createAdminClient()
+      const state = await getTrialState(admin, user.id, c.id, testNumber, questions.length, getClientIp(headers()))
+      if (state.status === 'used') {
+        return <TrialUsedScreen summary={await getTrialSummary(admin, user.id, c.id)} testNumber={testNumber} />
+      }
+      if (state.status === 'blocked_ip') return <TrialBlockedScreen courseId={c.id} />
+      trialSeconds = state.seconds
+    } else {
+      const timing = await readQuizTiming(c.id, testNumber)
+      if (timing.locked) {
+        return <QuizPaywall courseId={c.id} trialCta={trialCourse} />
+      }
+      initialSeconds = timing.remaining
     }
-    initialSeconds = timing.remaining
   }
 
   return (
@@ -76,6 +96,8 @@ export default async function QuizPage({ params, searchParams }: Props) {
       testNumber={testNumber}
       isPremium={premium}
       initialSeconds={initialSeconds}
+      trialSeconds={trialSeconds}
+      trialCta={trialCourse}
       splitScoring={testNumber === 2 && ['code8', 'code10'].includes(c.code)}
     />
   )

@@ -47,6 +47,13 @@ export const WHATSAPP_GROUP_URL = 'https://chat.whatsapp.com/Kruy1Kw8iQ40VbJNvRl
 export const WHATSAPP_PREP_GROUP_URL = 'https://chat.whatsapp.com/EB22ntfNb6o9Pg7q2f54l6'
 
 /**
+ * Each Once Special: free registration that unlocks one full attempt at each
+ * Code 8 / Code 10 practice test (see lib/trial.ts). Used by the hero button
+ * and the visitor popup.
+ */
+export const EACH_ONCE_REGISTER_URL = '/register?trial=1&next=/courses'
+
+/**
  * Temporary takeover of the first-visit popup.
  *
  * While this window is open the popup promotes the live YouTube session

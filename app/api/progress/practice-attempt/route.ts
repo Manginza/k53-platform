@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase-server'
+import { createAdminClient } from '@/lib/supabase-admin'
+import { hasFullAccess } from '@/lib/access'
 import { loadLearnerProgress } from '@/lib/learner-progress-server'
+import { completeTrial, getTrialSummary, isTrialTest, type TrialSummary } from '@/lib/trial'
 import type { CategoryScore } from '@/lib/learner-progress'
 
 type Option = 'A' | 'B' | 'C'
@@ -122,7 +125,22 @@ export async function POST(request: NextRequest) {
   const currentAttempts = progress.tests.find(test => test.courseId === courseId && test.testNumber === testNumber)?.attempts
     ?? (isFinal ? progress.practiceAttempts.filter(item => item.course_id === courseId).length : 1)
 
+  // Each Once: close the free attempt with its score and return the learner's
+  // progress across the course's tests (combined score once all are done).
+  let trial: TrialSummary | null = null
+  if (isTrialTest(course.code, testNumber) && !(await hasFullAccess())) {
+    const admin = createAdminClient()
+    try {
+      await completeTrial(admin, user.id, courseId, testNumber, score, total, percentage)
+      const summary = await getTrialSummary(admin, user.id, courseId)
+      if (summary.tests.some(t => t.testNumber === testNumber && t.done)) trial = summary
+    } catch (trialError) {
+      console.error('[progress/practice-attempt] trial update failed:', trialError)
+    }
+  }
+
   return NextResponse.json({
+    trial,
     saved: true,
     attemptId: attempt.id,
     attemptCount: currentAttempts,

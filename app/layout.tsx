@@ -18,6 +18,7 @@ import CookieBanner from "@/components/CookieBanner";
 // import FreePromoPopup from "@/components/FreePromoPopup";
 import FreePromoBanner from "@/components/FreePromoBanner";
 import WhatsAppGroupPopup from "@/components/WhatsAppGroupPopup";
+import EachOncePopup from "@/components/EachOncePopup";
 import FreeAccessThankYou from "@/components/FreeAccessThankYou";
 import LiveSessionsButton from "@/components/LiveSessionsButton";
 
@@ -146,6 +147,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                         <YoutubeLiveSessionPopup />
                         <YoutubeRecordingPopup />
                         <GlobalVideoPopup /> */}
+                        {/* Each Once Special: free-trial invite for visitors who are not logged in. */}
+                        <EachOncePopup />
                         <WhatsAppGroupPopup />
                         {/* Thanks free-window users once it closes, and offers paid access. */}
                         <FreeAccessThankYou />

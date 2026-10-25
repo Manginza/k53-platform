@@ -4,6 +4,8 @@
  * QuizPaywall — shown when a free user's 2-minute preview has expired.
  * Primary CTA: pay via Yoco (card). Secondary: WhatsApp.
  * Unlocks ALL features: unlimited timed tests, Live Notes, Road Rules, Videos.
+ * With trialCta (Code 8 / Code 10), visitors who are not registered are also
+ * offered the free Each Once attempt.
  */
 import Link from 'next/link'
 import BuyAccessButton from '@/components/BuyAccessButton'
@@ -17,7 +19,7 @@ const FEATURES = [
   { icon: '🗂️', label: 'Study resources', sub: 'Guides, notes and Code 10 memo slides' },
 ]
 
-export default function QuizPaywall({ courseId }: { courseId: number }) {
+export default function QuizPaywall({ courseId, trialCta = false }: { courseId: number; trialCta?: boolean }) {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-10">
       <div className="bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden">
@@ -49,6 +51,21 @@ export default function QuizPaywall({ courseId }: { courseId: number }) {
               </li>
             ))}
           </ul>
+
+          {trialCta && (
+            <div className="mb-5 rounded-xl border-2 border-green-200 bg-green-50 p-4 text-center">
+              <p className="text-sm font-bold text-green-900">Each Once Special</p>
+              <p className="mt-1 mb-3 text-xs text-green-800">
+                Register free and take every test once, full length, then see your combined score.
+              </p>
+              <Link
+                href={`/register?trial=1&next=${encodeURIComponent(`/courses/${courseId}`)}`}
+                className="block w-full rounded-xl bg-green-600 py-3 font-bold text-white hover:bg-green-700 transition-colors"
+              >
+                Register free — try each test once
+              </Link>
+            </div>
+          )}
 
           {/* Primary: Yoco card payment */}
           <BuyAccessButton />
