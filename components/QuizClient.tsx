@@ -6,9 +6,121 @@ import QuizPaywall from '@/components/QuizPaywall'
 import ResultAdvisory from '@/components/learner/ResultAdvisory'
 import type { QuizQuestion } from '@/lib/types'
 import { EXPLANATIONS } from '@/lib/explanations'
+import LearnButton from '@/components/learn/LearnButton'
+import LearnPanel from '@/components/learn/LearnPanel'
+import { useQuestionAttempt } from '@/components/learn/useQuestionAttempt'
+import type { QuestionExplanation } from '@/lib/learn-mode-logic'
 
 type Option    = 'A' | 'B' | 'C'
 type AnswerMap = Record<number, Option>
+
+function buildTrafficDepartmentAlternatives(question: string, imageUrl?: string | null): string[] {
+  const normalized = question.trim()
+  if (!normalized) return []
+
+  const alternatives: string[] = []
+
+  const addAlt = (value: string) => {
+    const cleaned = value.trim()
+    if (cleaned && cleaned !== normalized && !alternatives.includes(cleaned)) alternatives.push(cleaned)
+  }
+
+  if (/hooter|horn|sound your horn|sound the hooter/i.test(normalized)) {
+    addAlt('At the traffic department they may ask: "When you see this sign, may you sound your hooter before the sign?"')
+    addAlt('At the traffic department they may ask: "Can you drive past this sign sounding your hooter?"')
+    addAlt('At the traffic department they may ask: "What is the rule about hooters before and after this sign?"')
+  }
+
+  if (/100m|100 m|100 metre|100 meter|100m rule|100m from/i.test(normalized)) {
+    addAlt('At the traffic department they may ask: "How does the 100 m rule apply here: before the sign, after the sign, or only after the sign?"')
+    addAlt('At the traffic department they may ask: "Does the 100 m rule apply only after the sign or does it also apply before it?"')
+  }
+
+  if (/stop|no stopping|parking|stop line|stopping/i.test(normalized)) {
+    addAlt('At the traffic department they may ask: "What is the legal requirement when this sign is displayed?"')
+  }
+
+  if (/yield|give way|give-way|right of way|right-of-way/i.test(normalized)) {
+    addAlt('At the traffic department they may ask: "Who has priority here and what should a driver do?"')
+  }
+
+  if (/overtak|pass another vehicle|passing/i.test(normalized)) {
+    addAlt('At the traffic department they may ask: "When is overtaking allowed or prohibited in this situation?"')
+  }
+
+  if (imageUrl) {
+    const base = 'At the traffic department they may ask: "What does this sign mean in practical driving terms?"'
+    addAlt(base)
+  }
+
+  const explicit = normalized.match(/(.*?)(?:\?|:)(.*)/)
+  if (explicit && explicit[1]) {
+    const variant = `${explicit[1].trim()}?`
+    addAlt(`At the traffic department they may ask: "${variant}"`)
+  }
+
+  if (alternatives.length === 0) {
+    addAlt('At the traffic department they may ask: "What does this sign or rule mean in everyday driving terms?"')
+  }
+
+  return alternatives.slice(0, 2)
+}
+
+function getQuestionDisplayText(q: QuizQuestion): { question: string; alternativeVariants: string[] } {
+  const explicit = q.traffic_department_variants?.filter(Boolean) ?? []
+  const variants = explicit.length > 0 ? explicit : buildTrafficDepartmentAlternatives(q.question, q.image_url)
+  return { question: q.question, alternativeVariants: variants }
+}
+
+function OptionalTrafficQuestionNote({ variants }: { variants: string[] }) {
+  const [open, setOpen] = useState(false)
+
+  if (!variants.length) return null
+
+  return (
+    <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50">
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left"
+      >
+        <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-amber-700">Traffic department wording</span>
+        <span className="text-xs font-medium text-amber-800">{open ? 'Hide' : 'Explore'} </span>
+      </button>
+      {open && (
+        <ul className="space-y-1 border-t border-amber-200 px-3 py-2 text-xs leading-relaxed text-amber-900">
+          {variants.map((variant, index) => (
+            <li key={`${variant}-${index}`} className="list-disc pl-4">{variant}</li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+
+function ReviewQuestionText({ q }: { q: QuizQuestion }) {
+  const display = getQuestionDisplayText(q)
+  return (
+    <div>
+      <p className="text-sm font-medium text-gray-800 leading-relaxed whitespace-pre-line">{display.question}</p>
+      {display.alternativeVariants.length > 0 && (
+        <OptionalTrafficQuestionNote variants={display.alternativeVariants} />
+      )}
+    </div>
+  )
+}
+
+function QuestionText({ q, hideVariants = false }: { q: QuizQuestion; hideVariants?: boolean }) {
+  const display = getQuestionDisplayText(q)
+  return (
+    <div>
+      <p className="text-base font-semibold text-gray-900 leading-relaxed whitespace-pre-line">{display.question}</p>
+      {!hideVariants && display.alternativeVariants.length > 0 && (
+        <OptionalTrafficQuestionNote variants={display.alternativeVariants} />
+      )}
+    </div>
+  )
+}
 
 /** Free preview length (seconds) before non-premium users hit the paywall. */
 const FREE_SECONDS = 120
@@ -30,6 +142,10 @@ interface Props {
   trialSeconds?: number
   /** Offer the free Each Once registration on the paywall (Code 8 / 10). */
   trialCta?: boolean
+  /** Learn Mode explanations for the questions in this test, keyed by question id. */
+  explanations?: Record<number, QuestionExplanation>
+  /** Whether the visitor is signed in (first-time tracking only works then). */
+  isLoggedIn?: boolean
 }
 
 /** mm:ss formatter for the countdown pill. */
@@ -206,7 +322,9 @@ function SplitResultsScreen({
                     }`}>
                       {i + 1}
                     </span>
-                    <p className="text-sm font-medium text-gray-800 leading-relaxed whitespace-pre-line">{q.question}</p>
+                    <div className="flex-1">
+                      <ReviewQuestionText q={q} />
+                    </div>
                   </div>
                   {q.image_url && (
                     <div className="ml-9 mb-3">
@@ -353,7 +471,9 @@ function StandardResultsScreen({
                     }`}>
                       {i + 1}
                     </span>
-                    <p className="text-sm font-medium text-gray-800 leading-relaxed whitespace-pre-line">{q.question}</p>
+                    <div className="flex-1">
+                      <ReviewQuestionText q={q} />
+                    </div>
                   </div>
                   {q.image_url && (
                     <div className="ml-9 mb-3">
@@ -394,8 +514,10 @@ function StandardResultsScreen({
 }
 
 // ── Main quiz component ───────────────────────────────────────────────────────
-export default function QuizClient({ questions, courseTitle, courseId, testNumber, isPremium, initialSeconds, splitScoring = false, trialSeconds, trialCta = false }: Props) {
+export default function QuizClient({ questions, courseTitle, courseId, testNumber, isPremium, initialSeconds, splitScoring = false, trialSeconds, trialCta = false, explanations = {}, isLoggedIn = false }: Props) {
   const isTrial = !isPremium && trialSeconds != null
+  const { record: recordAttempt } = useQuestionAttempt()
+  const [learnOpen, setLearnOpen] = useState(false)
   const [current,  setCurrent]  = useState(0)
   const [answers,  setAnswers]  = useState<AnswerMap>({})
   const [revealed, setRevealed] = useState(false)
@@ -487,13 +609,13 @@ export default function QuizClient({ questions, courseTitle, courseId, testNumbe
 
   const q        = ordered[current]
   const finalSection = q.question.match(/^Test ([ABC]) · Question (\d+)/)
-  // Final-test questions carry a "Test A · Question N" prefix that the top bar
-  // already shows, so strip it from the question card to avoid showing it twice.
-  const questionBody = finalSection
-    ? q.question.replace(/^Test [ABC] · Question \d+\s*/, '')
-    : q.question
   const selected = answers[q.id]
   const progress = (current / ordered.length) * 100
+  const explanation = explanations[q.id]
+
+  // Each question starts with its Learn panel closed; it opens on answer
+  // (per the attempt rules) or when the learner taps the Learn button.
+  useEffect(() => { setLearnOpen(false) }, [q.id])
 
   // Section label for split test
   const rulesCount = isSplitTest ? ordered.filter(q => !q.image_url).length : 0
@@ -512,8 +634,19 @@ export default function QuizClient({ questions, courseTitle, courseId, testNumbe
 
   const handleSelect = (opt: Option) => {
     if (revealed) return
+    const correct = opt === q.correct_answer
     setAnswers(prev => ({ ...prev, [q.id]: opt }))
     setRevealed(true)
+    // Learn Mode: decide whether to auto-open the explanation. Logged-in users
+    // get per-question first-time tracking from the server; anonymous users
+    // have no durable record, so the panel shows after every answer.
+    if (explanation) {
+      if (isLoggedIn) {
+        recordAttempt(q.id, correct).then(d => { if (d.autoShow) setLearnOpen(true) })
+      } else {
+        setLearnOpen(true)
+      }
+    }
   }
 
   const handleNext = () => {
@@ -732,7 +865,12 @@ export default function QuizClient({ questions, courseTitle, courseId, testNumbe
 
         {/* Question text — supports multi-line (combination questions) */}
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm px-6 py-5">
-          <p className="text-base font-semibold text-gray-900 leading-relaxed whitespace-pre-line">{questionBody}</p>
+          {explanation && (
+            <div className="mb-3 flex justify-end">
+              <LearnButton active={learnOpen} onClick={() => setLearnOpen(o => !o)} />
+            </div>
+          )}
+          <QuestionText q={q} hideVariants={!!explanation} />
         </div>
 
         {/* Options */}
@@ -766,7 +904,7 @@ export default function QuizClient({ questions, courseTitle, courseId, testNumbe
                     : `Incorrect. The correct answer is ${q.correct_answer}.`}
                 </span>
               </div>
-              {(EXPLANATIONS[q.id] ?? q.explanation) && (
+              {!explanation && (EXPLANATIONS[q.id] ?? q.explanation) && (
                 <p className="mt-2 text-xs leading-relaxed opacity-90 border-t border-current/20 pt-2">
                   {EXPLANATIONS[q.id] ?? q.explanation}
                 </p>
@@ -780,6 +918,17 @@ export default function QuizClient({ questions, courseTitle, courseId, testNumbe
               {current === ordered.length - 1 ? '🏁 See My Results' : 'Next Question →'}
             </button>
           </div>
+        )}
+
+        {/* Learn Mode panel — opens on answer (per the attempt rules) or via the
+            Learn button. In-flow and scrollable, so it never blocks Next. */}
+        {learnOpen && explanation && (
+          <LearnPanel
+            explanation={explanation}
+            correctLetter={q.correct_answer}
+            correctLabel={{ A: q.option_a, B: q.option_b, C: q.option_c }[q.correct_answer]}
+            wasCorrect={revealed ? selected === q.correct_answer : null}
+          />
         )}
       </div>
     </div>

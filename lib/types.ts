@@ -18,6 +18,7 @@ export interface QuizQuestion {
   image_url: string | null
   image_ref: string | null
   explanation?: string | null
+  traffic_department_variants?: string[] | null
 }
 
 // ─── Affiliate / Referral ──────────────────────────────────────────────────────

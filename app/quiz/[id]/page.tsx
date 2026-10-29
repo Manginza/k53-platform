@@ -9,6 +9,7 @@ import { getClientIp, getTrialState, getTrialSummary, isTrialCourse, isTrialTest
 import { TrialBlockedScreen, TrialUsedScreen } from '@/components/trial/TrialScreens'
 import QuizClient from '@/components/QuizClient'
 import QuizPaywall from '@/components/QuizPaywall'
+import { getExplanationsForQuestions } from '@/lib/learn-mode'
 import type { Course, QuizQuestion } from '@/lib/types'
 
 // Per-visitor paywall state (reads cookies) — must render dynamically.
@@ -24,6 +25,9 @@ export default async function QuizPage({ params, searchParams }: Props) {
 
   // Full-access visitors skip the timer; everyone else gets a 2-minute sample.
   const premium = await hasFullAccess()
+
+  // Sign-in state drives Learn Mode's per-question first-time tracking.
+  const { data: { user: authUser } } = await createClient().auth.getUser()
 
   const { data: course, error: courseError } = await supabase
     .from('courses')
@@ -70,7 +74,7 @@ export default async function QuizPage({ params, searchParams }: Props) {
   let trialSeconds: number | undefined
   const trialCourse = isTrialCourse(c.code)
   if (!premium) {
-    const user = isTrialTest(c.code, testNumber) ? (await createClient().auth.getUser()).data.user : null
+    const user = isTrialTest(c.code, testNumber) ? authUser : null
     if (user) {
       const admin = createAdminClient()
       const state = await getTrialState(admin, user.id, c.id, testNumber, questions.length, getClientIp(headers()))
@@ -88,6 +92,8 @@ export default async function QuizPage({ params, searchParams }: Props) {
     }
   }
 
+  const explanations = await getExplanationsForQuestions((questions as QuizQuestion[]).map(q => q.id))
+
   return (
     <QuizClient
       questions={questions as QuizQuestion[]}
@@ -99,6 +105,8 @@ export default async function QuizPage({ params, searchParams }: Props) {
       trialSeconds={trialSeconds}
       trialCta={trialCourse}
       splitScoring={testNumber === 2 && ['code8', 'code10'].includes(c.code)}
+      explanations={explanations}
+      isLoggedIn={!!authUser}
     />
   )
 }

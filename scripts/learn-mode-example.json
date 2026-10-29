@@ -1,0 +1,44 @@
+{
+  "_comment": "Worked Learn Mode example and FORMAT TEMPLATE (task section 3). This is the mandatory keep-left sign. The current question bank has no matching question, so scripts/generate-explanations.mjs attaches it only if one is found (by the `match` hints); otherwise it stands as the authoring template for every other explanation. All prose is original plain-language wording of K53 / National Road Traffic Regulations facts.",
+  "match": {
+    "question_contains": ["left of the obstacle", "pass to the left", "keep left"],
+    "image_ref_contains": ["keep-left", "keepleft", "r4"]
+  },
+  "original": {
+    "question": "When seeing this sign the driver knows that he/she must...",
+    "options": [
+      "come to a complete stop before the obstacle",
+      "pass to the left of the obstacle on which the sign has been placed",
+      "pass to the right of the obstacle on which the sign has been placed"
+    ],
+    "correct": "B"
+  },
+  "explanation": {
+    "why": "This is a mandatory 'keep left' sign — a blue disc with a white arrow angled down to the left. A blue disc is a command sign: it tells you what you must do, not merely what is allowed. The arrow shows the side you must pass, and the sign is fixed to the island or obstacle it protects. So you must steer to the left of it. That is why the correct answer is B.",
+    "practical": "As you approach the island or obstacle, stay in your lane, keep both hands on the wheel, guide the vehicle to the left of the sign and then carry on straight. You do not stop or give way just because of this sign.",
+    "common_mistake": "Passing to the right (option C) ignores the command and puts you on the wrong side of the island. Stopping (option A) is wrong too — a blue command sign is not a red prohibition or a triangular warning, and nothing here tells you to stop.",
+    "alt_questions": [
+      {
+        "question": "What does this sign mean in practical driving terms?",
+        "options": [
+          "Keep the island on your right and pass to its left",
+          "Stop before the island and give way",
+          "You may not enter this road"
+        ],
+        "correct": 0,
+        "reason": "A blue disc with a left-pointing arrow is a command to pass to the left of the obstacle it marks."
+      },
+      {
+        "question": "Where must a driver position the vehicle when approaching an island marked with this sign?",
+        "options": [
+          "To the left of the island",
+          "To the right of the island",
+          "Straddling the island markings"
+        ],
+        "correct": 0,
+        "reason": "The mandatory arrow points left, so the vehicle must pass to the left of the island."
+      }
+    ],
+    "related_href": null
+  }
+}
