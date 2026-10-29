@@ -15,7 +15,7 @@ import { setShowUnreviewed } from '@/lib/learn-mode'
 
 export const dynamic = 'force-dynamic'
 
-const TEXT_FIELDS = ['why', 'practical', 'common_mistake', 'related_href'] as const
+const TEXT_FIELDS = ['why', 'practical', 'common_mistake', 'category', 'how_asked', 'related_href'] as const
 
 export async function PATCH(req: NextRequest) {
   const admin = await getAdminUser()

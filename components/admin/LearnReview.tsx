@@ -7,7 +7,6 @@
  * A global toggle lets unreviewed content show to learners when desired.
  */
 import { useState } from 'react'
-import type { AltQuestion } from '@/lib/learn-mode-logic'
 
 export interface ReviewItem {
   questionId: number
@@ -18,8 +17,9 @@ export interface ReviewItem {
   why: string | null
   practical: string | null
   common_mistake: string | null
+  category: string | null
+  how_asked: string | null
   related_href: string | null
-  altQuestions: AltQuestion[]
   needsReview: boolean
 }
 
@@ -30,6 +30,8 @@ function ItemCard({ item, onApproved }: { item: ReviewItem; onApproved: (id: num
   const [practical, setPractical] = useState(item.practical ?? '')
   const [commonMistake, setCommonMistake] = useState(item.common_mistake ?? '')
   const [related, setRelated] = useState(item.related_href ?? '')
+  const [category, setCategory] = useState(item.category ?? '')
+  const [howAsked, setHowAsked] = useState(item.how_asked ?? '')
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState('')
 
@@ -48,7 +50,7 @@ function ItemCard({ item, onApproved }: { item: ReviewItem; onApproved: (id: num
     } catch { setMsg('Could not reach the server.') } finally { setBusy(false) }
   }
 
-  const fields = { why, practical, common_mistake: commonMistake, related_href: related }
+  const fields = { why, practical, common_mistake: commonMistake, category, how_asked: howAsked, related_href: related }
 
   return (
     <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
@@ -83,26 +85,19 @@ function ItemCard({ item, onApproved }: { item: ReviewItem; onApproved: (id: num
           <textarea value={commonMistake} onChange={e => setCommonMistake(e.target.value)} rows={2}
             className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm font-normal text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </label>
+        <label className="block text-xs font-bold text-gray-600">Category (e.g. Information sign, Rule of the road)
+          <input value={category} onChange={e => setCategory(e.target.value)}
+            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm font-normal text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </label>
+        <label className="block text-xs font-bold text-gray-600">How it&apos;s tested (typical question wording)
+          <textarea value={howAsked} onChange={e => setHowAsked(e.target.value)} rows={2}
+            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm font-normal text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </label>
         <label className="block text-xs font-bold text-gray-600">Related (Study Guide URL)
           <input value={related} onChange={e => setRelated(e.target.value)}
             className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm font-normal text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </label>
       </div>
-
-      {item.altQuestions.length > 0 && (
-        <div className="mt-4 rounded-xl bg-gray-50 p-3">
-          <p className="mb-2 text-xs font-bold text-gray-600">Alternative questions (shown to learners)</p>
-          <div className="space-y-2">
-            {item.altQuestions.map((alt, i) => (
-              <div key={i} className="text-xs text-gray-600">
-                <p className="font-semibold text-gray-800">{alt.question}</p>
-                <p>{alt.options.map((o, j) => `${LETTERS[j]}. ${o}`).join('  ·  ')}</p>
-                <p className="text-green-700">Answer {LETTERS[alt.correct]} — {alt.reason}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       <div className="mt-4 flex items-center gap-3">
         <button onClick={() => send(fields, false)} disabled={busy}

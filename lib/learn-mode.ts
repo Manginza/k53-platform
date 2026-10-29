@@ -7,7 +7,7 @@
  * the caller has authenticated the user; RLS protects any direct access.
  */
 import { createAdminClient } from '@/lib/supabase-admin'
-import type { AltQuestion, QuestionExplanation } from '@/lib/learn-mode-logic'
+import type { QuestionExplanation } from '@/lib/learn-mode-logic'
 
 type AdminClient = ReturnType<typeof createAdminClient>
 
@@ -18,20 +18,9 @@ interface ExplanationRow {
   why: string | null
   practical: string | null
   common_mistake: string | null
-  alt_questions: unknown
+  category: string | null
+  how_asked: string | null
   related_href: string | null
-}
-
-/** Normalise the jsonb alt_questions into a typed, length-capped array. */
-function parseAlts(value: unknown): AltQuestion[] {
-  if (!Array.isArray(value)) return []
-  return value
-    .filter((a): a is AltQuestion =>
-      !!a && typeof a === 'object'
-      && typeof (a as AltQuestion).question === 'string'
-      && Array.isArray((a as AltQuestion).options)
-      && typeof (a as AltQuestion).correct === 'number')
-    .slice(0, 2)
 }
 
 /** Whether learners should be shown explanations that are not yet reviewed. */
@@ -66,7 +55,7 @@ export async function getExplanationsForQuestions(
     const allowUnreviewed = await showUnreviewedEnabled(db)
     let query = db
       .from('question_explanations')
-      .select('question_id, why, practical, common_mistake, alt_questions, related_href')
+      .select('question_id, why, practical, common_mistake, category, how_asked, related_href')
       .in('question_id', questionIds)
     if (!allowUnreviewed) query = query.eq('reviewed', true)
 
@@ -80,7 +69,8 @@ export async function getExplanationsForQuestions(
         why: row.why,
         practical: row.practical,
         common_mistake: row.common_mistake,
-        alt_questions: parseAlts(row.alt_questions),
+        category: row.category,
+        how_asked: row.how_asked,
         related_href: row.related_href,
       }
     }

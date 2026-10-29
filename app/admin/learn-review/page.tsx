@@ -21,7 +21,8 @@ interface ExplanationRow {
   why: string | null
   practical: string | null
   common_mistake: string | null
-  alt_questions: unknown
+  category: string | null
+  how_asked: string | null
   related_href: string | null
   needs_review: boolean
 }
@@ -36,7 +37,7 @@ export default async function LearnReviewPage() {
   const db = createAdminClient()
   const { data: exps } = await db
     .from('question_explanations')
-    .select('question_id, why, practical, common_mistake, alt_questions, related_href, needs_review')
+    .select('question_id, why, practical, common_mistake, category, how_asked, related_href, needs_review')
     .eq('reviewed', false)
     .order('needs_review', { ascending: false })
     .order('updated_at', { ascending: false })
@@ -65,8 +66,9 @@ export default async function LearnReviewPage() {
       why: r.why,
       practical: r.practical,
       common_mistake: r.common_mistake,
+      category: r.category,
+      how_asked: r.how_asked,
       related_href: r.related_href,
-      altQuestions: Array.isArray(r.alt_questions) ? r.alt_questions : [],
       needsReview: r.needs_review,
     }
   })

@@ -130,7 +130,7 @@ async function main() {
     if (draft && !agreesWithStoredAnswer(draft, q.correct_answer)) {
       // Content disagreed with the stored answer — never override the answer; flag instead.
       await db.from('question_explanations').upsert({
-        question_id: q.id, why: null, practical: null, common_mistake: null, alt_questions: [],
+        question_id: q.id, why: null, practical: null, common_mistake: null, category: null, how_asked: null,
         reviewed: false, needs_review: true, source: 'generated', updated_at: new Date().toISOString(),
       }, { onConflict: 'question_id' })
       flagged++
@@ -142,7 +142,8 @@ async function main() {
       why: draft?.why ?? null,
       practical: draft?.practical ?? null,
       common_mistake: draft?.common_mistake ?? null,
-      alt_questions: draft?.alt_questions ?? [],
+      category: draft?.category ?? null,
+      how_asked: draft?.how_asked ?? null,
       related_href: draft?.related_href ?? null,
       reviewed: false,
       needs_review: true,

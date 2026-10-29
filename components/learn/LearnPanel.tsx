@@ -7,7 +7,6 @@
  */
 import { useState } from 'react'
 import type { QuestionExplanation } from '@/lib/learn-mode-logic'
-import AlternativeQuestion from '@/components/learn/AlternativeQuestion'
 
 function Section({ title, defaultOpen = false, children }: {
   title: string
@@ -38,7 +37,7 @@ export default function LearnPanel({ explanation, correctLetter, correctLabel, w
   /** null when the panel was opened before answering. */
   wasCorrect: boolean | null
 }) {
-  const hasAlts = explanation.alt_questions.length > 0
+  const hasCategoriser = Boolean(explanation.category || explanation.how_asked)
 
   return (
     <div
@@ -67,13 +66,14 @@ export default function LearnPanel({ explanation, correctLetter, correctLabel, w
             <span className="whitespace-pre-line">{explanation.common_mistake}</span>
           </Section>
         )}
-        {hasAlts && (
-          <Section title="How the traffic department could ask this">
-            <div className="space-y-3">
-              {explanation.alt_questions.map((alt, i) => (
-                <AlternativeQuestion key={i} alt={alt} index={i} />
-              ))}
-            </div>
+        {hasCategoriser && (
+          <Section title="Sign type & how it's tested">
+            {explanation.category && (
+              <span className="mb-2 inline-block rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-bold text-blue-700">
+                {explanation.category}
+              </span>
+            )}
+            {explanation.how_asked && <p>{explanation.how_asked}</p>}
           </Section>
         )}
         {explanation.related_href && (

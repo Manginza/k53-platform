@@ -16,22 +16,15 @@
  * a learner can open the explanation at any time, before or after answering.
  */
 
-export interface AltQuestion {
-  question: string
-  /** 2–4 answer options, matching the quiz's own A/B/C house style. */
-  options: string[]
-  /** Index into `options` of the single correct option. */
-  correct: number
-  /** One line on why that option is correct. */
-  reason: string
-}
-
 export interface QuestionExplanation {
   question_id: number
   why: string | null
   practical: string | null
   common_mistake: string | null
-  alt_questions: AltQuestion[]
+  /** Short label classifying the item, e.g. "Information sign", "Rule of the road". */
+  category: string | null
+  /** One or two sentences on how the test typically asks about this kind of item. */
+  how_asked: string | null
   related_href: string | null
 }
 
@@ -61,18 +54,4 @@ export function decideLearnPanel(
 
   // Repeat: auto-open only when they got it wrong.
   return { autoShow: !wasCorrect, showButton: true }
-}
-
-/**
- * Whether an alternative question is well-formed: non-empty text, 2–4 options,
- * exactly one correct index in range, and not a verbatim copy of the original.
- * Used by the generator/seed to refuse bad alternatives rather than ship them.
- */
-export function isValidAltQuestion(alt: AltQuestion, originalQuestion: string): boolean {
-  if (!alt || typeof alt.question !== 'string' || !alt.question.trim()) return false
-  if (!Array.isArray(alt.options) || alt.options.length < 2 || alt.options.length > 4) return false
-  if (alt.options.some(o => typeof o !== 'string' || !o.trim())) return false
-  if (!Number.isInteger(alt.correct) || alt.correct < 0 || alt.correct >= alt.options.length) return false
-  if (alt.question.trim().toLowerCase() === originalQuestion.trim().toLowerCase()) return false
-  return true
 }

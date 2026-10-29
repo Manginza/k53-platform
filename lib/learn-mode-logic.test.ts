@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { decideLearnPanel, isValidAltQuestion } from './learn-mode-logic'
+import { decideLearnPanel } from './learn-mode-logic'
 
 describe('decideLearnPanel', () => {
   it('first time, correct → auto-shows', () => {
@@ -27,34 +27,5 @@ describe('decideLearnPanel', () => {
   it('untracked (anonymous) → always shows after answering', () => {
     expect(decideLearnPanel({ attemptCountBefore: 0, wasCorrect: true, tracked: false }).autoShow).toBe(true)
     expect(decideLearnPanel({ attemptCountBefore: 9, wasCorrect: true, tracked: false }).autoShow).toBe(true)
-  })
-})
-
-describe('isValidAltQuestion', () => {
-  const original = 'When seeing this sign the driver knows that he/she must...'
-
-  it('accepts a well-formed alternative', () => {
-    expect(isValidAltQuestion(
-      { question: 'What does this sign mean?', options: ['Keep left', 'Keep right', 'Stop'], correct: 0, reason: 'r' },
-      original,
-    )).toBe(true)
-  })
-
-  it('rejects an out-of-range correct index', () => {
-    expect(isValidAltQuestion(
-      { question: 'Q', options: ['a', 'b'], correct: 2, reason: 'r' }, original,
-    )).toBe(false)
-  })
-
-  it('rejects fewer than two options', () => {
-    expect(isValidAltQuestion(
-      { question: 'Q', options: ['only one'], correct: 0, reason: 'r' }, original,
-    )).toBe(false)
-  })
-
-  it('rejects a verbatim copy of the original question', () => {
-    expect(isValidAltQuestion(
-      { question: original, options: ['a', 'b'], correct: 0, reason: 'r' }, original,
-    )).toBe(false)
   })
 })
