@@ -100,7 +100,15 @@ export default function WhatsAppGroupPopup() {
       setOpen(true)
     }
 
-    timer = setTimeout(attempt, FIRST_DELAY_MS)
+    // Paid (full-access) visitors have nothing to buy, so don't show them the
+    // popup. If the access check fails we fall back to showing it (the default
+    // for the non-paid majority).
+    const schedule = () => { if (!cancelled) timer = setTimeout(attempt, FIRST_DELAY_MS) }
+    fetch('/api/me/access', { cache: 'no-store' })
+      .then(r => r.json())
+      .then(d => { if (!d?.fullAccess) schedule() })
+      .catch(schedule)
+
     return () => { cancelled = true; if (timer) clearTimeout(timer) }
   }, [])
 
