@@ -23,7 +23,7 @@ interface Props {
 export default async function QuizPage({ params, searchParams }: Props) {
   const testNumber = Number(searchParams.test ?? 1)
 
-  // Full-access visitors skip the timer; everyone else gets a 9-minute sample.
+  // Full-access visitors skip the timer; everyone else gets a 2-minute sample.
   const premium = await hasFullAccess()
 
   // Sign-in state drives Learn Mode's per-question first-time tracking.
@@ -70,7 +70,7 @@ export default async function QuizPage({ params, searchParams }: Props) {
   // client timer can't get past this.
   let initialSeconds: number | undefined
   // Each Once: a registered learner without paid access takes each Code 8 /
-  // Code 10 test once, full length, instead of the 9-minute sample.
+  // Code 10 test once, full length, instead of the 2-minute sample.
   let trialSeconds: number | undefined
   const trialCourse = isTrialCourse(c.code)
   if (!premium) {
