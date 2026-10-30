@@ -91,11 +91,11 @@ export default async function CoursePage({ params }: Props) {
             then get a combined score.{' '}
             <Link href={EACH_ONCE_REGISTER_URL} className="font-bold underline">Register free</Link> or{' '}
             <Link href={`/login?next=/courses/${c.id}`} className="font-bold underline">log in</Link>.
-            Not registered? Any test opens as a 2-minute sample.
+            Not registered? Any test opens as a 9-minute sample.
           </div>
         ) : (
           <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-            <strong>Not subscribed?</strong> Open any test for a free 2-minute sample. Your countdown starts at 2:00.
+            <strong>Not subscribed?</strong> Open any test for a free 9-minute sample. Your countdown starts at 9:00.
           </div>
         )}
 
