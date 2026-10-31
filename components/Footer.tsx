@@ -43,6 +43,7 @@ export default function Footer() {
               <Link href="/k53-learners-study-guide" className="text-sm text-gray-400 hover:text-white transition-colors">Free K53 Study Guide</Link>
               <Link href="/manifesto" className="text-sm text-gray-400 hover:text-white transition-colors">Manifesto</Link>
               <Link href="/resources" className="text-sm text-gray-400 hover:text-white transition-colors">Resources</Link>
+              <Link href="/blog" className="text-sm text-gray-400 hover:text-white transition-colors">Blog</Link>
             </div>
           </div>
 

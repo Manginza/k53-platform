@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { RULES_CHAPTERS } from '@/lib/rules-of-the-road'
+import { BLOG_POSTS } from '@/lib/blog'
 
 const BASE = 'https://www.skdriving.co.za'
 
@@ -20,6 +21,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/about',
     '/contact',
     '/affiliate',
+    '/blog',
   ]
 
   const staticEntries: MetadataRoute.Sitemap = staticPaths.map(p => ({
@@ -56,5 +58,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.8,
   }))
 
-  return [...staticEntries, ...provinceEntries, ...schoolProvinceEntries, ...ruleEntries]
+  const blogEntries: MetadataRoute.Sitemap = BLOG_POSTS.map(p => ({
+    url: `${BASE}/blog/${p.slug}`,
+    lastModified: new Date(p.dateModified),
+    changeFrequency: 'monthly',
+    priority: 0.8,
+  }))
+
+  return [...staticEntries, ...blogEntries, ...provinceEntries, ...schoolProvinceEntries, ...ruleEntries]
 }

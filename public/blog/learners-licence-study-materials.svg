@@ -1,0 +1,80 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="South African learners licence study materials and computerised K53 practice test">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1a3fa8"/>
+      <stop offset="1" stop-color="#0a1d4a"/>
+    </linearGradient>
+    <linearGradient id="screen" x1="700" y1="150" x2="1120" y2="470" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#eef3ff"/>
+    </linearGradient>
+    <style>
+      .h { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight: 800; fill: #ffffff; }
+      .s { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight: 600; fill: #b9cdff; }
+      .k { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight: 800; fill: #0f2a6e; }
+      .o { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight: 600; fill: #475569; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <!-- subtle grid dots -->
+  <g fill="#2f55b8" opacity="0.25">
+    <circle cx="80" cy="540" r="4"/><circle cx="120" cy="540" r="4"/><circle cx="160" cy="540" r="4"/>
+    <circle cx="80" cy="580" r="4"/><circle cx="120" cy="580" r="4"/><circle cx="160" cy="580" r="4"/>
+  </g>
+
+  <!-- Left: headline -->
+  <text x="80" y="150" class="s" font-size="22" letter-spacing="3">SK DRIVING  ·  K53 LEARNER'S LICENCE</text>
+  <rect x="80" y="172" width="64" height="6" rx="3" fill="#facc15"/>
+  <text x="78" y="250" class="h" font-size="60">Learners Licence</text>
+  <text x="78" y="320" class="h" font-size="60">Study Materials</text>
+  <text x="80" y="380" class="s" font-size="26" fill="#dce6ff">Prepare for South Africa's computerised K53 test</text>
+
+  <!-- free pill -->
+  <rect x="80" y="420" width="250" height="56" rx="28" fill="#16a34a"/>
+  <text x="112" y="456" font-family="Segoe UI, Roboto, Arial, sans-serif" font-weight="800" font-size="22" fill="#ffffff">Free practice tests</text>
+
+  <!-- decorative traffic signs -->
+  <g transform="translate(118,520)">
+    <polygon points="0,-34 34,28 -34,28" fill="#ffffff" stroke="#dc2626" stroke-width="7" stroke-linejoin="round"/>
+    <text x="0" y="22" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-weight="800" font-size="34" fill="#111827">!</text>
+  </g>
+  <g transform="translate(210,520)">
+    <circle r="33" fill="#1d4ed8" stroke="#ffffff" stroke-width="6"/>
+    <path d="M14 -4 L-10 -4 L-10 -16 L-24 2 L-10 20 L-10 8 L14 8 Z" fill="#ffffff" transform="rotate(90)"/>
+  </g>
+
+  <!-- Right: monitor with quiz mock -->
+  <g>
+    <rect x="690" y="150" width="430" height="300" rx="18" fill="#0f2a6e"/>
+    <rect x="702" y="162" width="406" height="276" rx="12" fill="url(#screen)"/>
+    <!-- screen header -->
+    <rect x="702" y="162" width="406" height="46" rx="12" fill="#1d4ed8"/>
+    <rect x="702" y="190" width="406" height="18" fill="#1d4ed8"/>
+    <text x="724" y="192" class="k" fill="#ffffff" font-size="18">K53 Practice Test · Question 4 / 30</text>
+    <!-- sign on screen -->
+    <g transform="translate(770,262)">
+      <polygon points="0,-30 30,24 -30,24" fill="#ffffff" stroke="#dc2626" stroke-width="6" stroke-linejoin="round"/>
+      <path d="M-2 -14 L10 6 L-14 6 Z" fill="#111827"/>
+    </g>
+    <text x="824" y="250" class="k" font-size="18">What does this road</text>
+    <text x="824" y="274" class="k" font-size="18">sign mean?</text>
+    <!-- options -->
+    <rect x="724" y="320" width="362" height="30" rx="8" fill="#eef2f7"/>
+    <text x="736" y="340" class="o" font-size="15">A.  Give way to oncoming traffic</text>
+    <rect x="724" y="356" width="362" height="30" rx="8" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+    <text x="736" y="376" font-family="Segoe UI, Arial, sans-serif" font-weight="700" font-size="15" fill="#166534">B.  Slow down and be ready to stop  ✓</text>
+    <rect x="724" y="392" width="362" height="30" rx="8" fill="#eef2f7"/>
+    <text x="736" y="412" class="o" font-size="15">C.  The road ahead is closed</text>
+    <!-- stand -->
+    <rect x="876" y="450" width="58" height="26" fill="#0f2a6e"/>
+    <rect x="828" y="476" width="154" height="12" rx="6" fill="#0a1d4a"/>
+  </g>
+
+  <!-- 5000+ badge -->
+  <g transform="translate(980,120)">
+    <circle r="66" fill="#facc15"/>
+    <text x="0" y="-6" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-weight="800" font-size="34" fill="#0a1d4a">5000+</text>
+    <text x="0" y="22" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-weight="700" font-size="15" fill="#0a1d4a">passed</text>
+  </g>
+</svg>
