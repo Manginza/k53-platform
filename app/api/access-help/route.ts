@@ -89,6 +89,28 @@ export async function POST(req: NextRequest) {
 
   const db = createAdminClient()
 
+  // One open request per email per day. People who could not tell whether
+  // their first request arrived kept sending it again (one sent 7 in a night).
+  // A repeat gets the original reference back and nothing new is stored.
+  const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+  const { data: earlier } = await db
+    .from('access_help_requests')
+    .select('id, created_at')
+    .eq('email', email)
+    .eq('status', 'new')
+    .gte('created_at', dayAgo)
+    .order('created_at', { ascending: true })
+    .limit(1)
+    .maybeSingle()
+  if (earlier) {
+    console.log('[access-help] repeat request not stored', { id: earlier.id, email })
+    return NextResponse.json({
+      duplicate: true,
+      reference: String(earlier.id).slice(0, 8).toUpperCase(),
+      receivedAt: earlier.created_at,
+    })
+  }
+
   const since = new Date(Date.now() - 60 * 60 * 1000).toISOString()
   const { count, error: countError } = await db
     .from('access_help_requests')

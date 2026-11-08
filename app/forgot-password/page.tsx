@@ -105,6 +105,10 @@ function ForgotPasswordForm() {
             If an account exists for <strong>{sentTo}</strong>, we&apos;ve just sent it a password-reset link.
             Open the email and follow the link to set a new password.
           </p>
+          <p className="text-sm text-gray-700 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 mb-3">
+            Open the <strong>newest</strong> email from us and tap its link <strong>once</strong>. Each new
+            email cancels the link in the ones before it.
+          </p>
           <p className="text-xs text-gray-400 mb-6">
             The link expires in about an hour. If it doesn&apos;t arrive within a few minutes, check your
             spam folder. Mistyped your address? Try again with the correct one.

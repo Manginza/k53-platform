@@ -41,6 +41,25 @@ function ResetPasswordForm() {
   useEffect(() => {
     let cancelled = false
     ;(async () => {
+      // Links come back in one of two shapes:
+      //   #access_token=…&refresh_token=…&type=recovery  (sent by our server route)
+      //   ?code=…                                        (sent from a browser)
+      // The browser client is set up for the second shape only and rejects the
+      // first, so the tokens are read here and handed over directly.
+      const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''))
+      if (hash.get('error') || hash.get('error_code')) {
+        setStatus('invalid'); return
+      }
+      const accessToken = hash.get('access_token')
+      const refreshToken = hash.get('refresh_token')
+      if (accessToken && refreshToken) {
+        const { error } = await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
+        // Take the tokens out of the address bar so they are not bookmarked or shared.
+        window.history.replaceState(null, '', window.location.pathname + window.location.search)
+        if (cancelled) return
+        if (error) { setStatus('invalid'); return }
+      }
+
       const code = params.get('code')
       if (code) {
         const { error } = await supabase.auth.exchangeCodeForSession(code)
@@ -91,9 +110,13 @@ function ResetPasswordForm() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
         <div className="bg-white rounded-2xl shadow-md p-8 w-full max-w-md text-center">
           <div className="text-4xl mb-3">⚠️</div>
-          <h1 className="text-2xl font-extrabold text-blue-700 mb-2">This link isn&apos;t valid</h1>
+          <h1 className="text-2xl font-extrabold text-blue-700 mb-2">This link has expired</h1>
+          <p className="text-sm text-gray-600 mb-2">
+            Reset links work once, for about an hour. If you asked for more than one, only the newest
+            email&apos;s link works.
+          </p>
           <p className="text-sm text-gray-600 mb-6">
-            Your reset link may have already been used or expired. Request a new one and try again.
+            Ask for a new link, then open the <strong>newest</strong> email and tap its link once.
           </p>
           <Link
             href={nextPath ? `/forgot-password?next=${encodeURIComponent(nextPath)}` : '/forgot-password'}

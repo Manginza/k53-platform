@@ -59,6 +59,7 @@ export default function StillCantLoginForm() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [sent, setSent] = useState<Sent | null>(null)
+  const [already, setAlready] = useState<{ reference: string; receivedAt: string } | null>(null)
   const [copied, setCopied] = useState(false)
 
   async function submit(e: React.FormEvent) {
@@ -79,6 +80,10 @@ export default function StillCantLoginForm() {
 
       const res = await fetch('/api/access-help', { method: 'POST', body: fd })
       const data = await res.json().catch(() => ({}))
+      if (res.ok && data.duplicate) {
+        setAlready({ reference: data.reference, receivedAt: data.receivedAt })
+        return
+      }
       if (!res.ok || !data.proofUrl) {
         setError(data.error ?? `Something went wrong. Please email your proof of payment to ${ACCESS_HELP_EMAIL}.`)
         return
@@ -112,19 +117,56 @@ export default function StillCantLoginForm() {
     }
   }
 
+  if (already) {
+    const when = new Date(already.receivedAt).toLocaleString('en-ZA', { weekday: 'long', hour: '2-digit', minute: '2-digit' })
+    return (
+      <div className="bg-white rounded-2xl shadow-md p-8 w-full max-w-md text-center">
+        <div className="text-5xl mb-3" aria-hidden="true">✅</div>
+        <h1 className="text-2xl font-extrabold text-blue-700 mb-2">We already have your request</h1>
+        <p className="text-sm text-gray-600 mb-2">
+          Your proof of payment reached us on <strong>{when}</strong>, reference{' '}
+          <strong className="font-mono">{already.reference}</strong>.
+        </p>
+        <p className="text-sm text-gray-600 mb-6">
+          <strong>You don&apos;t need to send it again.</strong> Sending it more times does not make it faster.
+        </p>
+        <div className="text-left rounded-xl bg-blue-50 border border-blue-200 p-4 mb-5">
+          <p className="text-sm font-bold text-blue-900 mb-1">Your account may already be unlocked</p>
+          <p className="text-sm text-blue-900 mb-3">
+            If you just don&apos;t know your password, reset it: open the <strong>newest</strong> email we send
+            you and tap its link once. You&apos;ll be asked to choose a new password.
+          </p>
+          <Link href="/forgot-password" className="block text-center bg-blue-700 text-white font-semibold py-2.5 rounded-lg hover:bg-blue-800 transition-colors">
+            Reset my password
+          </Link>
+        </div>
+        <Link href="/login" className="text-sm text-blue-700 font-medium hover:underline">Back to log in</Link>
+      </div>
+    )
+  }
+
   if (sent) {
     return (
       <div className="bg-white rounded-2xl shadow-md p-8 w-full max-w-md text-center">
-        <div className="text-5xl mb-3" aria-hidden="true">📨</div>
-        <h1 className="text-2xl font-extrabold text-blue-700 mb-2">Almost done: press Send</h1>
-        <p className="text-sm text-gray-600 mb-5">
-          Your email app should now be open with everything filled in, addressed to{' '}
-          <strong>{ACCESS_HELP_EMAIL}</strong>. Press <strong>Send</strong> and we&apos;ll unlock your
-          account. Your reference is <strong className="font-mono">{sent.reference}</strong>.
+        <div className="text-5xl mb-3" aria-hidden="true">✅</div>
+        <h1 className="text-2xl font-extrabold text-blue-700 mb-2">Received</h1>
+        <p className="text-sm text-gray-600 mb-2">
+          Your proof of payment is saved with us. Your reference is{' '}
+          <strong className="font-mono">{sent.reference}</strong>.{' '}
+          <strong>You only need to send this once.</strong>
         </p>
-        <a href={sent.mailto} className="block w-full bg-blue-700 text-white font-semibold py-2.5 rounded-lg hover:bg-blue-800 transition-colors mb-6">
+        <p className="text-sm text-gray-600 mb-5">
+          Your email app should also have opened, addressed to <strong>{ACCESS_HELP_EMAIL}</strong>. Press
+          {' '}<strong>Send</strong> there so we see it sooner.
+        </p>
+        <a href={sent.mailto} className="block w-full bg-blue-700 text-white font-semibold py-2.5 rounded-lg hover:bg-blue-800 transition-colors mb-4">
           Open my email again
         </a>
+        <p className="text-sm text-gray-600 mb-6">
+          While you wait, try{' '}
+          <Link href="/forgot-password" className="text-blue-700 font-semibold hover:underline">resetting your password</Link>:
+          your account may already be unlocked.
+        </p>
 
         <div className="text-left rounded-xl bg-gray-50 border border-gray-200 p-4">
           <p className="text-xs font-bold text-gray-700 mb-1">Email app didn&apos;t open?</p>

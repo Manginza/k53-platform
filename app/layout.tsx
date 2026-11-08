@@ -20,6 +20,7 @@ import FreePromoBanner from "@/components/FreePromoBanner";
 import WhatsAppGroupPopup from "@/components/WhatsAppGroupPopup";
 import EachOncePopup from "@/components/EachOncePopup";
 import FreeAccessThankYou from "@/components/FreeAccessThankYou";
+import RecoveryLinkCatcher from "@/components/RecoveryLinkCatcher";
 import LiveSessionsButton from "@/components/LiveSessionsButton";
 
 const geistSans = localFont({
@@ -152,6 +153,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                         <WhatsAppGroupPopup />
                         {/* Thanks free-window users once it closes, and offers paid access. */}
                         <FreeAccessThankYou />
+                        <RecoveryLinkCatcher />
                         <LiveSessionsButton />
                 </body>
           </html>

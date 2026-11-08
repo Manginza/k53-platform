@@ -25,14 +25,20 @@ export const dynamic = 'force-dynamic'
 const SAME_ADDRESS_GAP_MS = 60_000
 const PER_NETWORK_PER_HOUR = 10
 
-/** Sites the reset link may send people back to. Anything else falls back to the main site. */
-const ALLOWED_ORIGINS = new Set([
-  'https://www.skdriving.co.za',
-  'https://skdriving.co.za',
-  'https://sa-learners-licence.vercel.app',
-  'http://localhost:3000',
-])
-const FALLBACK_ORIGIN = 'https://www.skdriving.co.za'
+/**
+ * Where the link in the reset email takes people.
+ *
+ * Supabase only honours return addresses on its "Redirect URLs" allow list.
+ * Anything else is silently replaced with the project's Site URL, which drops
+ * the person on the homepage with no way to set a new password. That was why
+ * paid learners kept resetting, failing, and then sending proof of payment
+ * again and again.
+ *
+ * Today the allow list holds the Vercel address only, so that is the default.
+ * Once https://www.skdriving.co.za/** is added to the allow list in Supabase,
+ * set AUTH_REDIRECT_ORIGIN=https://www.skdriving.co.za in Vercel to switch.
+ */
+const RESET_ORIGIN = (process.env.AUTH_REDIRECT_ORIGIN || 'https://sa-learners-licence.vercel.app').replace(/\/+$/, '')
 
 function safeNext(raw: unknown): string | null {
   if (typeof raw !== 'string' || !raw.startsWith('/') || raw.startsWith('//')) return null
@@ -67,10 +73,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: CAPTCHA_MESSAGE, problem: 'captcha' }, { status: 400 })
   }
 
-  const originHeader = req.headers.get('origin') ?? ''
-  const origin = ALLOWED_ORIGINS.has(originHeader) ? originHeader : FALLBACK_ORIGIN
   const next = safeNext(body.next)
-  const redirectTo = `${origin}/reset-password${next ? `?next=${encodeURIComponent(next)}` : ''}`
+  const redirectTo = `${RESET_ORIGIN}/reset-password${next ? `?next=${encodeURIComponent(next)}` : ''}`
 
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
