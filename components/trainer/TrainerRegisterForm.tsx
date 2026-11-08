@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase-browser'
+import { checkEmail } from '@/lib/email-check'
 
 const PROVINCES = [
   'Gauteng', 'Western Cape', 'KwaZulu-Natal', 'Eastern Cape',
@@ -38,13 +39,18 @@ export default function TrainerRegisterForm() {
       return setError('Please fill in all required fields.')
     if (password.length < 8)
       return setError('Password must be at least 8 characters.')
+    // This form signs up in the browser, so the address check runs here before
+    // anything is created or any confirmation email is sent.
+    const emailCheck = checkEmail(email)
+    if (!emailCheck.ok) return setError(emailCheck.message)
+    const cleanEmail = emailCheck.email
 
     setLoading(true)
     try {
       const supabase = createClient()
 
       // 1. Create Supabase auth account
-      const { data: auth, error: authErr } = await supabase.auth.signUp({ email, password })
+      const { data: auth, error: authErr } = await supabase.auth.signUp({ email: cleanEmail, password })
       if (authErr) throw new Error(authErr.message)
       if (!auth.user) throw new Error('Account creation failed.')
 

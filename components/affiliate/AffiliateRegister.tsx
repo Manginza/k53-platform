@@ -9,6 +9,9 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-browser'
+import EmailSuggestion from '@/components/EmailSuggestion'
+import TurnstileWidget, { TURNSTILE_ENABLED } from '@/components/TurnstileWidget'
+import { checkEmail } from '@/lib/email-check'
 
 export default function AffiliateRegister({ loggedIn = false }: { loggedIn?: boolean }) {
   const router = useRouter()
@@ -16,6 +19,9 @@ export default function AffiliateRegister({ loggedIn = false }: { loggedIn?: boo
     firstName: '', lastName: '', email: '', password: '',
     bankAccountName: '', bankName: '', accountNumber: '', accountType: 'cheque',
   })
+  const [emailTouched, setEmailTouched] = useState(false)
+  const [captchaToken, setCaptchaToken] = useState('')
+  const [captchaKey, setCaptchaKey] = useState(0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -24,11 +30,19 @@ export default function AffiliateRegister({ loggedIn = false }: { loggedIn?: boo
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-    setLoading(true); setError('')
+    setEmailTouched(true)
+    setError('')
+    if (!loggedIn) {
+      const check = checkEmail(f.email)
+      if (!check.ok) { setError(check.message); return }
+      if (TURNSTILE_ENABLED && !captchaToken) { setError('Please complete the security check first.'); return }
+    }
+    setLoading(true)
     try {
       const endpoint = loggedIn ? '/api/affiliate/enroll' : '/api/affiliate/register'
       const res = await fetch(endpoint, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(f),
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(loggedIn ? f : { ...f, email: checkEmail(f.email).email, captchaToken }),
       })
       const body = await res.json()
       if (!res.ok) throw new Error(body.error ?? 'Could not register.')
@@ -41,6 +55,8 @@ export default function AffiliateRegister({ loggedIn = false }: { loggedIn?: boo
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong.')
       setLoading(false)
+      setCaptchaToken('')
+      setCaptchaKey(k => k + 1)
     }
   }
 
@@ -72,8 +88,10 @@ export default function AffiliateRegister({ loggedIn = false }: { loggedIn?: boo
           <>
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Email</label>
-              <input type="email" required value={f.email} onChange={set('email')} className={input} placeholder="you@example.com" />
+              <input type="email" required value={f.email} onChange={e => { set('email')(e); setError('') }} onBlur={() => setEmailTouched(true)} autoCapitalize="none" autoComplete="email" className={input} placeholder="you@example.com" />
+              <EmailSuggestion value={f.email} touched={emailTouched} onAccept={c => setF(prev => ({ ...prev, email: c }))} />
             </div>
+            <TurnstileWidget key={captchaKey} onToken={setCaptchaToken} />
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Password</label>
               <input type="password" required minLength={6} value={f.password} onChange={set('password')} className={input} placeholder="At least 6 characters" />

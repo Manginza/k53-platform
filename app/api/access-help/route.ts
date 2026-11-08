@@ -20,6 +20,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createHash, randomUUID } from 'crypto'
 import { createAdminClient } from '@/lib/supabase-admin'
 import { ACCESS_HELP_EMAIL } from '@/lib/contact'
+import { gateEmail } from '@/lib/email-gate'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 30
@@ -67,13 +68,15 @@ export async function POST(req: NextRequest) {
 
   const firstName = text(form.get('firstName'), 60)
   const surname   = text(form.get('surname'), 60)
-  const email     = text(form.get('email'), 120).toLowerCase()
+  const rawEmail  = text(form.get('email'), 120)
   const phone     = text(form.get('phone'), 30)
   const paidOn    = text(form.get('paidOn'), 30)
   const proof     = form.get('proof')
 
   if (!firstName || !surname) return fail('Please enter your name and surname.')
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return fail('Please enter the email address you registered with.')
+  const gate = await gateEmail(rawEmail)
+  if (!gate.ok) return fail(gate.message)
+  const email = gate.email
   if (!(proof instanceof File) || proof.size === 0) return fail('Please attach your proof of payment.')
   if (proof.size > MAX_BYTES) return fail('That file is larger than 4 MB. Please attach a screenshot or a smaller PDF.')
 

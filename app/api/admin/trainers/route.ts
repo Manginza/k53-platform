@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase-admin'
 import { getAdminUser, isPrimaryAdminEmail } from '@/lib/admin'
+import { gateEmail } from '@/lib/email-gate'
 
 export async function GET() {
   const admin = await getAdminUser()
@@ -20,8 +21,13 @@ export async function POST(req: NextRequest) {
   const admin = await getAdminUser()
   if (!admin || !isPrimaryAdminEmail(admin.email)) return NextResponse.json({ error: 'This area is restricted to the primary admin.' }, { status: 403 })
 
-  const { name, email, slug, province, phone, learner_price_cents, fee_paid_until } = await req.json()
-  if (!name || !email || !slug) return NextResponse.json({ error: 'name, email and slug are required.' }, { status: 400 })
+  const { name, email: rawEmail, slug, province, phone, learner_price_cents, fee_paid_until } = await req.json()
+  if (!name || !rawEmail || !slug) return NextResponse.json({ error: 'name, email and slug are required.' }, { status: 400 })
+
+  // An invite is an email. Never send one to an address that cannot receive it.
+  const gate = await gateEmail(rawEmail)
+  if (!gate.ok) return NextResponse.json({ error: gate.message, suggestion: gate.suggestion, problem: gate.problem }, { status: gate.status })
+  const email = gate.email
 
   const db = createAdminClient()
 

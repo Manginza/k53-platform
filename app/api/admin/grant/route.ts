@@ -16,6 +16,7 @@ import { getAdminUser } from '@/lib/admin'
 import { createAdminClient } from '@/lib/supabase-admin'
 import { grantAccess } from '@/lib/access'
 import { ACCESS_DURATION_DAYS } from '@/lib/contact'
+import { gateEmail } from '@/lib/email-gate'
 
 export async function POST(req: NextRequest) {
   const admin = await getAdminUser()
@@ -34,6 +35,13 @@ export async function POST(req: NextRequest) {
   if (!email) return NextResponse.json({ error: 'Enter the member\'s email.' }, { status: 400 })
   if (password && password.length < 6) {
     return NextResponse.json({ error: 'Password must be at least 6 characters.' }, { status: 400 })
+  }
+  // Only creating a new account needs a deliverable address. Finding an
+  // existing account by email does not, so it is not blocked here.
+  if (password) {
+    const gate = await gateEmail(email)
+    if (!gate.ok) return NextResponse.json({ error: gate.message, suggestion: gate.suggestion, problem: gate.problem }, { status: gate.status })
+    email = gate.email
   }
 
   const db = createAdminClient()

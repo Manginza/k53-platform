@@ -6,12 +6,19 @@
  * - With ?token=… (admin signup link): single-use, locked to this first email;
  *   registering grants 60-day access immediately → sent to /courses.
  * - Without a token (open): credentials create a pre-qualified account only.
- *   Premium access activates after verified payment → sent to /pricing.
+ *   Premium access activates only after verified payment → sent to /pricing.
+ *
+ * Email is checked here as it is typed (typo suggestions) and again on the
+ * server, which is the real gate. The address must be typed twice, so a single
+ * slip cannot create an account nobody can reach.
  */
 import { Suspense, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-browser'
+import EmailSuggestion from '@/components/EmailSuggestion'
+import TurnstileWidget, { TURNSTILE_ENABLED } from '@/components/TurnstileWidget'
+import { checkEmail, normaliseEmail } from '@/lib/email-check'
 
 /** Only allow same-site paths when returning from registration. */
 function safeNext(raw: string | null): string | null {
@@ -27,26 +34,53 @@ function RegisterForm() {
   const trial = !token && params.get('trial') === '1'
   const next = safeNext(params.get('next')) ?? (trial ? '/courses' : '/pricing')
   const [email, setEmail] = useState('')
+  const [confirmEmail, setConfirmEmail] = useState('')
+  const [emailTouched, setEmailTouched] = useState(false)
+  const [confirmTouched, setConfirmTouched] = useState(false)
   const [password, setPassword] = useState('')
+  const [captchaToken, setCaptchaToken] = useState('')
+  const [captchaKey, setCaptchaKey] = useState(0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   // True when registration failed because the email already has an account —
   // the common dead-end where a learner re-registers instead of logging in.
   const [existingAccount, setExistingAccount] = useState(false)
 
+  const emailMismatch = confirmTouched && confirmEmail.length > 0 && normaliseEmail(confirmEmail) !== normaliseEmail(email)
+
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-    setLoading(true); setError(''); setExistingAccount(false)
+    setEmailTouched(true); setConfirmTouched(true)
+    setError(''); setExistingAccount(false)
+
+    const check = checkEmail(email)
+    if (!check.ok) { setError(check.message); return }
+    if (normaliseEmail(confirmEmail) !== check.email) {
+      setError('The two email addresses do not match. Please type your email address again in both boxes.')
+      return
+    }
+    if (!token && TURNSTILE_ENABLED && !captchaToken) {
+      setError('Please complete the security check first.')
+      return
+    }
+
+    setLoading(true)
     try {
       const endpoint = token ? '/api/auth/register-with-token' : '/api/auth/register'
+      const payload = token
+        ? { token, email: check.email, password }
+        : { email: check.email, password, captchaToken }
       const res = await fetch(endpoint, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(token ? { token, email, password } : { email, password }),
+        body: JSON.stringify(payload),
       })
-      const body = await res.json()
-      if (!res.ok) throw new Error(body.error ?? 'Could not create your account.')
+      const body = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        if (body.suggestion) setEmail(body.suggestion)
+        throw new Error(body.error ?? 'Could not create your account.')
+      }
 
-      const { error: signInErr } = await createClient().auth.signInWithPassword({ email, password })
+      const { error: signInErr } = await createClient().auth.signInWithPassword({ email: check.email, password })
       if (signInErr) { window.location.assign('/login'); return }
       // Full-page navigation so the destination server component sees the
       // new session cookies straight away (same reasoning as the login page).
@@ -56,6 +90,8 @@ function RegisterForm() {
       setError(message)
       setExistingAccount(/already exists|log in instead/i.test(message))
       setLoading(false)
+      setCaptchaToken('')
+      setCaptchaKey(k => k + 1)
     }
   }
 
@@ -80,17 +116,34 @@ function RegisterForm() {
           : 'Create your email and password to pre-qualify. Premium access activates only after your R99 payment is verified.'}
       </p>
 
-      <form onSubmit={submit} className="space-y-4">
+      <form onSubmit={submit} className="space-y-4" noValidate>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-          <input type="email" required value={email} onChange={e => setEmail(e.target.value)}
+          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="reg-email">Email</label>
+          <input id="reg-email" type="email" value={email}
+            onChange={e => { setEmail(e.target.value); setError('') }}
+            onBlur={() => setEmailTouched(true)}
+            autoComplete="email" inputMode="email" autoCapitalize="none"
             className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="you@example.com" />
+          <EmailSuggestion value={email} touched={emailTouched} onAccept={c => { setEmail(c); setError('') }} />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-          <input type="password" required minLength={6} value={password} onChange={e => setPassword(e.target.value)}
+          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="reg-confirm">Type your email again</label>
+          <input id="reg-confirm" type="email" value={confirmEmail}
+            onChange={e => { setConfirmEmail(e.target.value); setError('') }}
+            onBlur={() => setConfirmTouched(true)}
+            autoComplete="off" inputMode="email" autoCapitalize="none"
+            className={`w-full border rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${emailMismatch ? 'border-red-400' : 'border-gray-300'}`}
+            placeholder="Same email, typed again" />
+          {emailMismatch && <p className="mt-1 text-sm text-red-600">These do not match yet.</p>}
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="reg-password">Password</label>
+          <input id="reg-password" type="password" required minLength={6} value={password} onChange={e => setPassword(e.target.value)}
             className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="At least 6 characters" />
         </div>
+
+        {!token && <TurnstileWidget key={captchaKey} onToken={setCaptchaToken} />}
+
         {error && <p className="text-red-500 text-sm">{error}</p>}
         {existingAccount && (
           <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 space-y-2">

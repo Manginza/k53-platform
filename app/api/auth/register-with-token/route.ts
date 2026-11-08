@@ -11,6 +11,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase-admin'
 import { grantAccess } from '@/lib/access'
+import { gateEmail } from '@/lib/email-gate'
 
 export async function POST(req: NextRequest) {
   let token: string | undefined, email: string | undefined, password: string | undefined
@@ -21,10 +22,17 @@ export async function POST(req: NextRequest) {
   }
 
   token = token?.trim()
-  email = email?.trim().toLowerCase()
   if (!token) return NextResponse.json({ error: 'Missing signup link token.' }, { status: 400 })
-  if (!email || !password) return NextResponse.json({ error: 'Email and password are required.' }, { status: 400 })
+  if (!password) return NextResponse.json({ error: 'Email and password are required.' }, { status: 400 })
   if (password.length < 6) return NextResponse.json({ error: 'Password must be at least 6 characters.' }, { status: 400 })
+
+  // The same address rules as open sign-up: no typos, no disposable inboxes,
+  // and the domain must be able to receive mail.
+  const gate = await gateEmail(email)
+  if (!gate.ok) {
+    return NextResponse.json({ error: gate.message, suggestion: gate.suggestion, problem: gate.problem }, { status: gate.status })
+  }
+  email = gate.email
 
   const admin = createAdminClient()
 

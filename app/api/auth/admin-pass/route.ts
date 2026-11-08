@@ -1,18 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase-admin'
 import { grantAccess } from '@/lib/access'
+import { gateEmail } from '@/lib/email-gate'
 
 export async function POST(req: NextRequest) {
-  let email: string | undefined, password: string | undefined
+  let rawEmail: string | undefined, password: string | undefined
   try {
-    ({ email, password } = await req.json())
+    ({ email: rawEmail, password } = await req.json())
   } catch {
     return NextResponse.json({ error: 'Invalid request.' }, { status: 400 })
   }
 
-  email = email?.trim().toLowerCase()
-  if (!email || !password) return NextResponse.json({ error: 'Email and password are required.' }, { status: 400 })
+  if (!password) return NextResponse.json({ error: 'Email and password are required.' }, { status: 400 })
   if (password.length < 6) return NextResponse.json({ error: 'Password must be at least 6 characters.' }, { status: 400 })
+
+  const gate = await gateEmail(rawEmail)
+  if (!gate.ok) return NextResponse.json({ error: gate.message, suggestion: gate.suggestion, problem: gate.problem }, { status: gate.status })
+  const email = gate.email
 
   const admin = createAdminClient()
 

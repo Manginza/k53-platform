@@ -11,6 +11,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase-admin'
 import { generateAffiliateCode, COMMISSION_RATE } from '@/lib/affiliate'
+import { gateEmail } from '@/lib/email-gate'
+import { verifyTurnstile, CAPTCHA_MESSAGE } from '@/lib/turnstile'
+import { clientIp } from '@/lib/rate-limit'
 
 export async function POST(req: NextRequest) {
   let b: Record<string, string>
@@ -22,7 +25,7 @@ export async function POST(req: NextRequest) {
 
   const firstName = b.firstName?.trim()
   const lastName  = b.lastName?.trim()
-  const email     = b.email?.trim().toLowerCase()
+  const emailCheck = await gateEmail(b.email)
   const password  = b.password
   const bankAccountName = b.bankAccountName?.trim()
   const bankName  = b.bankName?.trim()
@@ -30,10 +33,18 @@ export async function POST(req: NextRequest) {
   const accountType = b.accountType?.trim().toLowerCase()
 
   if (!firstName || !lastName) return NextResponse.json({ error: 'Please enter your name and surname.' }, { status: 400 })
-  if (!email || !password) return NextResponse.json({ error: 'Email and password are required.' }, { status: 400 })
+  if (!password) return NextResponse.json({ error: 'Email and password are required.' }, { status: 400 })
+  if (!emailCheck.ok) {
+    return NextResponse.json({ error: emailCheck.message, suggestion: emailCheck.suggestion, problem: emailCheck.problem }, { status: 400 })
+  }
+  const email = emailCheck.email
   if (password.length < 6) return NextResponse.json({ error: 'Password must be at least 6 characters.' }, { status: 400 })
   if (!bankAccountName || !bankName || !accountNumber) return NextResponse.json({ error: 'Please provide your bank account details.' }, { status: 400 })
   if (accountType !== 'cheque' && accountType !== 'savings') return NextResponse.json({ error: 'Account type must be Cheque or Savings.' }, { status: 400 })
+
+  // Public sign-up: a CAPTCHA check, when it is configured.
+  const captcha = await verifyTurnstile(b.captchaToken, clientIp(req.headers))
+  if (!captcha.ok) return NextResponse.json({ error: CAPTCHA_MESSAGE, problem: 'captcha' }, { status: 400 })
 
   const admin = createAdminClient()
 

@@ -18,6 +18,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireAffiliateAdmin } from '@/lib/affiliate-admin'
 import { createAdminClient } from '@/lib/supabase-admin'
 import { generateAffiliateCode, COMMISSION_RATE } from '@/lib/affiliate'
+import { gateEmail } from '@/lib/email-gate'
 
 const FORBIDDEN = NextResponse.json(
   { error: 'This area is restricted to the affiliate programme admin.' },
@@ -44,8 +45,13 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   if (!await requireAffiliateAdmin()) return FORBIDDEN
 
-  const { firstName, lastName, email, bankAccountName, bankName, accountNumber, accountType } = await req.json()
-  if (!firstName || !lastName || !email) return NextResponse.json({ error: 'Name and email are required.' }, { status: 400 })
+  const { firstName, lastName, email: rawEmail, bankAccountName, bankName, accountNumber, accountType } = await req.json()
+  if (!firstName || !lastName || !rawEmail) return NextResponse.json({ error: 'Name and email are required.' }, { status: 400 })
+
+  // An invite is an email: never send one to an address that cannot receive it.
+  const gate = await gateEmail(rawEmail)
+  if (!gate.ok) return NextResponse.json({ error: gate.message, suggestion: gate.suggestion, problem: gate.problem }, { status: gate.status })
+  const email = gate.email
 
   const db = createAdminClient()
 
@@ -125,6 +131,13 @@ export async function PATCH(req: NextRequest) {
 
   const built = buildPatch(body)
   if ('error' in built) return NextResponse.json({ error: built.error }, { status: 400 })
+
+  // A changed address is where the affiliate's emails will go from now on.
+  if (typeof built.patch.email === 'string' && built.patch.email) {
+    const gate = await gateEmail(built.patch.email)
+    if (!gate.ok) return NextResponse.json({ error: gate.message, suggestion: gate.suggestion, problem: gate.problem }, { status: gate.status })
+    built.patch.email = gate.email
+  }
 
   const { data, error } = await createAdminClient()
     .from('affiliates')
