@@ -1,10 +1,11 @@
 /**
  * lib/trial.ts — "Each Once" free trial (server-only).
  *
- * A registered learner WITHOUT paid access may take each Code 8 and Code 10
- * practice test once, full length, with the normal exam timer (1 minute per
- * question). When every test for that code is done they see one combined
- * score and are invited to buy full access.
+ * A registered learner WITHOUT paid access gets two free goes at each Code 8
+ * and Code 10 practice test:
+ *   1st attempt: 10 minutes (TRIAL_MAX_SECONDS), recorded here;
+ *   2nd attempt: the ordinary 2-minute sample (lib/quiz-session.ts).
+ * After that the test shows the combined score and the offer to buy access.
  *
  * Anti-abuse: each claim is stored in `trial_attempts` (migration 25) with the
  * account email and the IP address it came from. A course's trial is refused
@@ -30,8 +31,16 @@ export const TRIAL_TEST_NUMBERS = [1, 2, 3]
  */
 export const TRIAL_MAX_ACCOUNTS_PER_IP = 1
 
-/** Exam-style limit, same as paid tests: 1 minute per question. */
+/** Exam-style pace, same as paid tests: 1 minute per question. */
 export const TRIAL_SECONDS_PER_QUESTION = 60
+
+/** The free first attempt is capped at 10 minutes. */
+export const TRIAL_MAX_SECONDS = 10 * 60
+
+/** Length of a learner's free first attempt at a test with this many questions. */
+export function trialLimitSeconds(questionCount: number): number {
+  return Math.min(questionCount * TRIAL_SECONDS_PER_QUESTION, TRIAL_MAX_SECONDS)
+}
 
 export function isTrialCourse(code: string | null | undefined): boolean {
   return !!code && TRIAL_COURSE_CODES.includes(code)
@@ -63,7 +72,7 @@ interface TrialRow {
 }
 
 function secondsLeft(row: TrialRow, questionCount: number): number {
-  const limit = questionCount * TRIAL_SECONDS_PER_QUESTION
+  const limit = trialLimitSeconds(questionCount)
   const elapsed = (Date.now() - new Date(row.started_at).getTime()) / 1000
   return Math.max(0, Math.ceil(limit - elapsed))
 }
@@ -104,7 +113,7 @@ export async function getTrialState(
     return seconds > 0 ? { status: 'in_progress', seconds } : { status: 'used' }
   }
   if (await ipTakenByOthers(admin, ip, courseId, userId)) return { status: 'blocked_ip' }
-  return { status: 'available', seconds: questionCount * TRIAL_SECONDS_PER_QUESTION }
+  return { status: 'available', seconds: trialLimitSeconds(questionCount) }
 }
 
 /**

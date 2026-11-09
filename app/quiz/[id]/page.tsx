@@ -69,9 +69,13 @@ export default async function QuizPage({ params, searchParams }: Props) {
   // has already expired, render the paywall here — a reload or a tampered
   // client timer can't get past this.
   let initialSeconds: number | undefined
-  // Each Once: a registered learner without paid access takes each Code 8 /
-  // Code 10 test once, full length, instead of the 2-minute sample.
+  // Each Once: a registered learner without paid access gets two free goes at
+  // each Code 8 / Code 10 test: a 10-minute first attempt, then the 2-minute
+  // sample as a second attempt. After both, the combined-score screen.
   let trialSeconds: number | undefined
+  // True while a registered learner is on their 2-minute second attempt. The
+  // paywall must not then invite them to "register free": they already have.
+  let secondAttempt = false
   const trialCourse = isTrialCourse(c.code)
   if (!premium) {
     const user = isTrialTest(c.code, testNumber) ? authUser : null
@@ -79,10 +83,17 @@ export default async function QuizPage({ params, searchParams }: Props) {
       const admin = createAdminClient()
       const state = await getTrialState(admin, user.id, c.id, testNumber, questions.length, getClientIp(headers()))
       if (state.status === 'used') {
-        return <TrialUsedScreen summary={await getTrialSummary(admin, user.id, c.id)} testNumber={testNumber} />
+        const timing = await readQuizTiming(c.id, testNumber)
+        if (timing.locked) {
+          return <TrialUsedScreen summary={await getTrialSummary(admin, user.id, c.id)} testNumber={testNumber} />
+        }
+        initialSeconds = timing.remaining
+        secondAttempt = true
+      } else if (state.status === 'blocked_ip') {
+        return <TrialBlockedScreen courseId={c.id} />
+      } else {
+        trialSeconds = state.seconds
       }
-      if (state.status === 'blocked_ip') return <TrialBlockedScreen courseId={c.id} />
-      trialSeconds = state.seconds
     } else {
       const timing = await readQuizTiming(c.id, testNumber)
       if (timing.locked) {
@@ -103,7 +114,7 @@ export default async function QuizPage({ params, searchParams }: Props) {
       isPremium={premium}
       initialSeconds={initialSeconds}
       trialSeconds={trialSeconds}
-      trialCta={trialCourse}
+      trialCta={trialCourse && !secondAttempt}
       splitScoring={testNumber === 2 && ['code8', 'code10'].includes(c.code)}
       explanations={explanations}
       isLoggedIn={!!authUser}

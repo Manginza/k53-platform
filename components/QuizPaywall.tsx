@@ -56,7 +56,7 @@ export default function QuizPaywall({ courseId, trialCta = false }: { courseId: 
             <div className="mb-5 rounded-xl border-2 border-green-200 bg-green-50 p-4 text-center">
               <p className="text-sm font-bold text-green-900">Each Once Special</p>
               <p className="mt-1 mb-3 text-xs text-green-800">
-                Register free and take every test once, full length, then see your combined score.
+                Register free for 10 minutes on every test (then a 2-minute second go), and see your combined score.
               </p>
               <Link
                 href={`/register?trial=1&next=${encodeURIComponent(`/courses/${courseId}`)}`}

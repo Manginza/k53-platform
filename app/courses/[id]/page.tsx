@@ -87,8 +87,8 @@ export default async function CoursePage({ params }: Props) {
         <h2 className="font-bold text-lg text-gray-900 mb-4">Available Tests</h2>
         {isTrialCourse(c.code) ? (
           <div className="mb-4 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-900">
-            <strong>Each Once Special:</strong> registered learners take every test below once, free and full length,
-            then get a combined score.{' '}
+            <strong>Each Once Special:</strong> registered learners get every test below free: 10 minutes on the
+            first attempt and 2 minutes on the second, then a combined score.{' '}
             <Link href={EACH_ONCE_REGISTER_URL} className="font-bold underline">Register free</Link> or{' '}
             <Link href={`/login?next=/courses/${c.id}`} className="font-bold underline">log in</Link>.
             Not registered? Any test opens as a 2-minute sample.

@@ -14,7 +14,7 @@ export function TrialUsedScreen({ summary, testNumber }: { summary: TrialSummary
     <main className="min-h-screen bg-gray-50 px-4 py-10">
       <div className="mx-auto max-w-md">
         <p className="mb-4 text-center text-sm text-gray-600">
-          You have already used your free attempt at <strong>Test {testNumber}</strong>.
+          You have used both free attempts at <strong>Test {testNumber}</strong> (10 minutes, then 2 minutes).
         </p>
         <TrialSummaryCard summary={summary} />
         <Link href={`/courses/${summary.courseId}`} className="mt-4 block text-center text-sm text-gray-500 hover:underline">

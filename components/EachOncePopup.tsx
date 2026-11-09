@@ -89,7 +89,7 @@ export default function EachOncePopup() {
         <div className="px-7 py-6">
           <ul className="space-y-2.5 text-sm text-gray-700 mb-6">
             {[
-              'Take Code 8 Tests 1–3 and Code 10 Tests 1–3, each once, full length',
+              'Take Code 8 Tests 1–3 and Code 10 Tests 1–3: 10 minutes each, then a 2-minute second go',
               'Get your combined score across all the tests',
               `Like it? Unlock unlimited retakes until you pass for ${ACCESS_PRICE}`,
             ].map(b => (
