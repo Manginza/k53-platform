@@ -12,7 +12,7 @@
  */
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase-admin'
-import { isWhatsAppConfigured, verifySignature, sendText } from '@/lib/whatsapp/api'
+import { isWhatsAppConfigured, verifySignature, sendText, setting } from '@/lib/whatsapp/api'
 import { handleIncoming } from '@/lib/whatsapp/bot'
 
 export const dynamic = 'force-dynamic'
@@ -20,8 +20,11 @@ export const maxDuration = 30
 
 export async function GET(req: NextRequest) {
   const p = req.nextUrl.searchParams
-  const expected = process.env.WHATSAPP_VERIFY_TOKEN
-  if (expected && p.get('hub.mode') === 'subscribe' && p.get('hub.verify_token') === expected) {
+  // .trim() ignores a space or line break that slipped in while pasting the
+  // phrase into Vercel or Meta.
+  const expected = setting('WHATSAPP_VERIFY_TOKEN')
+  const given = p.get('hub.verify_token')?.trim()
+  if (expected && p.get('hub.mode') === 'subscribe' && given === expected) {
     return new NextResponse(p.get('hub.challenge') ?? '', { status: 200, headers: { 'Content-Type': 'text/plain' } })
   }
   return new NextResponse('Forbidden', { status: 403 })
@@ -54,7 +57,7 @@ export async function POST(req: NextRequest) {
   try { payload = JSON.parse(raw) } catch { return new NextResponse('Bad JSON', { status: 400 }) }
 
   const db = createAdminClient()
-  const ourNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID
+  const ourNumberId = setting('WHATSAPP_PHONE_NUMBER_ID')
 
   for (const entry of payload.entry ?? []) {
     for (const change of entry.changes ?? []) {

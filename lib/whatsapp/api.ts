@@ -16,20 +16,28 @@
  */
 import { createHmac, timingSafeEqual } from 'crypto'
 
-const GRAPH_VERSION = process.env.WHATSAPP_GRAPH_VERSION || 'v23.0'
+/**
+ * Reads a setting with any pasted space or line break removed. A stray space
+ * in a token or secret would otherwise make every call fail.
+ */
+export function setting(name: string): string {
+  return (process.env[name] ?? '').trim()
+}
+
+const GRAPH_VERSION = setting('WHATSAPP_GRAPH_VERSION') || 'v23.0'
 
 export function isWhatsAppConfigured(): boolean {
   return Boolean(
-    process.env.WHATSAPP_TOKEN &&
-    process.env.WHATSAPP_PHONE_NUMBER_ID &&
-    process.env.WHATSAPP_APP_SECRET &&
-    process.env.WHATSAPP_VERIFY_TOKEN,
+    setting('WHATSAPP_TOKEN') &&
+    setting('WHATSAPP_PHONE_NUMBER_ID') &&
+    setting('WHATSAPP_APP_SECRET') &&
+    setting('WHATSAPP_VERIFY_TOKEN'),
   )
 }
 
 /** True when `signatureHeader` (X-Hub-Signature-256) matches the raw body. */
 export function verifySignature(rawBody: string, signatureHeader: string | null): boolean {
-  const secret = process.env.WHATSAPP_APP_SECRET
+  const secret = setting('WHATSAPP_APP_SECRET')
   if (!secret || !signatureHeader?.startsWith('sha256=')) return false
   const expected = createHmac('sha256', secret).update(rawBody, 'utf8').digest()
   let given: Buffer
@@ -52,8 +60,8 @@ export function safeImageUrl(url: string): string {
 type Payload = Record<string, unknown>
 
 async function send(to: string, message: Payload): Promise<boolean> {
-  const token = process.env.WHATSAPP_TOKEN
-  const phoneId = process.env.WHATSAPP_PHONE_NUMBER_ID
+  const token = setting('WHATSAPP_TOKEN')
+  const phoneId = setting('WHATSAPP_PHONE_NUMBER_ID')
   if (!token || !phoneId) {
     console.warn('[whatsapp] not configured, message not sent')
     return false
