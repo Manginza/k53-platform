@@ -49,7 +49,14 @@ export async function POST(req: NextRequest) {
   if (!isWhatsAppConfigured()) return new NextResponse('WhatsApp is not configured', { status: 503 })
 
   const raw = await req.text()
-  if (!verifySignature(raw, req.headers.get('x-hub-signature-256'))) {
+  const signature = req.headers.get('x-hub-signature-256')
+  if (!verifySignature(raw, signature)) {
+    // Logged so a wrong WHATSAPP_APP_SECRET shows up in the Vercel logs.
+    // Only whether a signature was present is logged, never any secret.
+    console.warn('[whatsapp] signature check failed', {
+      signaturePresent: Boolean(signature),
+      fromMeta: /facebook/i.test(req.headers.get('user-agent') ?? ''),
+    })
     return new NextResponse('Invalid signature', { status: 401 })
   }
 
@@ -63,7 +70,15 @@ export async function POST(req: NextRequest) {
     for (const change of entry.changes ?? []) {
       const value = change.value
       if (!value?.messages?.length) continue                     // delivery/read receipts: nothing to do
-      if (value.metadata?.phone_number_id !== ourNumberId) continue
+      console.log('[whatsapp] message received', { count: value.messages.length, forNumberId: value.metadata?.phone_number_id })
+      if (value.metadata?.phone_number_id !== ourNumberId) {
+        // A Phone Number ID is not a secret, so both are logged to spot a typo.
+        console.warn('[whatsapp] message for a different Phone Number ID', {
+          received: value.metadata?.phone_number_id,
+          configured: ourNumberId,
+        })
+        continue
+      }
 
       for (const m of value.messages) {
         // Handle each message once, whatever Meta retries.
