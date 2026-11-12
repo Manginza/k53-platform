@@ -212,7 +212,8 @@ async function sendMenu(db: Db, user: WaUser): Promise<void> {
 
   await sendList(
     user.wa_id,
-    `🚗 *SK Driving K53 practice tests*\n\nPick a test. Each question comes with buttons A, B and C, and you see the right answer after every question.\n\n${status}`,
+    // The greeting every learner sees first.
+    `Hi! This is SK Driving 🚗\n\n*K53 practice tests on WhatsApp*\n\nPick a test. Each question comes with buttons A, B and C, and you see the right answer after every question.\n\n${status}`,
     'Choose a test',
     'Practice tests',
     rows,
