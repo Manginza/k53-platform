@@ -75,7 +75,10 @@ function LoginForm() {
         supabase.from('affiliates').select('id').eq('user_id', data.user.id).maybeSingle(),
         fetch('/api/me/access', { cache: 'no-store' }).catch(() => null),
       ])
-      if (aff) {
+      if (nextPath?.startsWith('/whatsapp/')) {
+        // Linking a WhatsApp number works for every account, paid or not.
+        dest = nextPath
+      } else if (aff) {
         dest = '/affiliate'
       } else {
         const access = accessRes
@@ -145,10 +148,20 @@ function LoginForm() {
           </Link>
         </p>
 
-        <p className="text-sm text-center text-gray-500 mt-6">
-          Don&apos;t have an account? Get full access on the{' '}
-          <Link href="/pricing" className="text-blue-700 font-medium hover:underline">pricing page</Link>.
-        </p>
+        {nextPath?.startsWith('/whatsapp/') ? (
+          <p className="text-sm text-center text-gray-500 mt-6">
+            New here?{' '}
+            <Link href={`/register?next=${encodeURIComponent(nextPath)}`} className="text-blue-700 font-medium hover:underline">
+              Create a free account
+            </Link>{' '}
+            to link your WhatsApp.
+          </p>
+        ) : (
+          <p className="text-sm text-center text-gray-500 mt-6">
+            Don&apos;t have an account? Get full access on the{' '}
+            <Link href="/pricing" className="text-blue-700 font-medium hover:underline">pricing page</Link>.
+          </p>
+        )}
         <p className="text-sm text-center text-gray-500 mt-2">
           Want to earn? Join the{' '}
           <Link href="/affiliate" className="text-blue-700 font-medium hover:underline">affiliate programme</Link>.

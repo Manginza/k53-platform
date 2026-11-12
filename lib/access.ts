@@ -36,6 +36,29 @@ export async function hasFullAccess(): Promise<boolean> {
   return !data.expires_at || new Date(data.expires_at).getTime() > Date.now()
 }
 
+/**
+ * Full access for a known account id, without a browser session. Used by the
+ * WhatsApp bot, which identifies people by their linked account rather than a
+ * login cookie. Same rules as hasFullAccess: a free promo window opens the
+ * course to everyone, otherwise an unexpired access grant is needed.
+ */
+export async function userHasFullAccess(userId: string | null): Promise<boolean> {
+  if (isFreePromoActive()) return true
+  try {
+    const window = await getPromoWindow()
+    if (isPromoActiveNow(window)) return true
+  } catch { /* fall through */ }
+  if (!userId) return false
+
+  const { data } = await createAdminClient()
+    .from('access_grants')
+    .select('expires_at')
+    .eq('user_id', userId)
+    .maybeSingle()
+  if (!data) return false
+  return !data.expires_at || new Date(data.expires_at).getTime() > Date.now()
+}
+
 export interface GrantOptions {
   /**
    * When true, durationDays is ADDED to the remaining time of an active grant
