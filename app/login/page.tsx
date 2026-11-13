@@ -38,11 +38,22 @@ function friendlyError(raw: string): string {
 function LoginForm() {
   const params = useSearchParams()
   const supabase = createClient()
-  const [email, setEmail] = useState('')
+  const nextPath = safeNext(params.get('next'))
+  // True when arriving from the post-payment success page — user's Yoco
+  // session expired and they need to log back in to claim their access.
+  const isPaymentReturn = !!(nextPath?.startsWith('/subscribe/success') || nextPath?.startsWith('/subscribe'))
+
+  // Pre-fill email from localStorage if we stored it during registration
+  // (payment flow). Read once on mount so the user can still edit it.
+  function getStoredEmail() {
+    if (typeof window === 'undefined') return ''
+    try { return localStorage.getItem('sk_pay_email') ?? '' } catch { return '' }
+  }
+
+  const [email, setEmail] = useState(() => isPaymentReturn ? getStoredEmail() : '')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const nextPath = safeNext(params.get('next'))
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -93,14 +104,33 @@ function LoginForm() {
     // before router.refresh() rehydrates — which reads as "I logged in
     // but my access is broken". A full assign forces the browser to
     // re-request the destination with the fresh auth cookies attached.
+
+    // Clear the stored email once login succeeds — it's served its purpose.
+    if (isPaymentReturn) {
+      try { localStorage.removeItem('sk_pay_email') } catch {}
+    }
+
     window.location.assign(dest)
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="bg-white rounded-2xl shadow-md p-8 w-full max-w-md">
-        <h1 className="text-2xl font-extrabold text-blue-700 mb-2 text-center">Welcome back</h1>
-        <p className="text-sm text-gray-500 text-center mb-6">Log in to your K53 account</p>
+        {isPaymentReturn ? (
+          <>
+            <div className="mb-5 rounded-xl bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-900">
+              <p className="font-bold text-green-800">Your payment was received.</p>
+              <p className="mt-0.5">Log back in below to unlock your 30-day access.</p>
+            </div>
+            <h1 className="text-2xl font-extrabold text-blue-700 mb-1 text-center">Almost there</h1>
+            <p className="text-sm text-gray-500 text-center mb-6">Log in with the email and password you created</p>
+          </>
+        ) : (
+          <>
+            <h1 className="text-2xl font-extrabold text-blue-700 mb-2 text-center">Welcome back</h1>
+            <p className="text-sm text-gray-500 text-center mb-6">Log in to your K53 account</p>
+          </>
+        )}
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
