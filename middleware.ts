@@ -48,8 +48,9 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // api/yoco/webhook and api/cron are machine-to-machine and carry no
-    // session cookie, so refreshing an auth token for them is pure latency.
-    '/((?!_next/static|_next/image|favicon.ico|api/yoco/webhook|api/cron|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    // api/yoco/webhook, api/whatsapp/webhook and api/cron are machine-to-machine
+    // and carry no session cookie, so refreshing an auth token for them is
+    // pure latency (and a Supabase blip must not fail Meta's webhook check).
+    '/((?!_next/static|_next/image|favicon.ico|api/yoco/webhook|api/whatsapp/webhook|api/cron|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }

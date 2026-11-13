@@ -17,7 +17,14 @@ import { describeLinkCode } from '@/lib/whatsapp/bot'
 export const dynamic = 'force-dynamic'
 export const metadata = { title: 'Link WhatsApp | SK Driving', robots: { index: false, follow: false } }
 
-interface Props { searchParams: { code?: string; then?: string; done?: string } }
+interface Props { searchParams: { code?: string; then?: string; done?: string; notice?: string } }
+
+const LINK_NOTICES: Record<string, string> = {
+  failed: 'Something went wrong linking your number. Please try again.',
+  used: 'This link has already been used. Type LINK in WhatsApp to get a new one.',
+  expired: 'This link has expired. Type LINK in WhatsApp to get a new one.',
+  invalid: 'This link is not valid. Type LINK in WhatsApp to get a new one.',
+}
 
 function Card({ children }: { children: React.ReactNode }) {
   return (
@@ -30,6 +37,7 @@ function Card({ children }: { children: React.ReactNode }) {
 export default async function WhatsAppLinkPage({ searchParams }: Props) {
   const code = (searchParams.code ?? '').replace(/[^A-Z0-9]/gi, '').toUpperCase().slice(0, 20)
   const pay = searchParams.then === 'pay'
+  const notice = LINK_NOTICES[searchParams.notice ?? ''] ?? null
 
   const { data: { user } } = await createClient().auth.getUser()
 
@@ -67,7 +75,19 @@ export default async function WhatsAppLinkPage({ searchParams }: Props) {
     redirect(`/login?next=${encodeURIComponent(back)}`)
   }
 
-  const info = await describeLinkCode(code)
+  let info: Awaited<ReturnType<typeof describeLinkCode>>
+  try {
+    info = await describeLinkCode(code)
+  } catch (error) {
+    console.error('[whatsapp] link page lookup failed', error instanceof Error ? error.message : error)
+    return (
+      <Card>
+        <div className="text-4xl mb-3" aria-hidden="true">⚠️</div>
+        <h1 className="text-xl font-extrabold text-gray-900 mb-2">Something went wrong</h1>
+        <p className="text-sm text-gray-600">Please try again, or type LINK in WhatsApp to get a new one.</p>
+      </Card>
+    )
+  }
   if (!info.valid) {
     return (
       <Card>
@@ -87,6 +107,7 @@ export default async function WhatsAppLinkPage({ searchParams }: Props) {
       <p className="text-sm text-gray-600 mb-6">
         will use your account <strong>{user.email}</strong>. Only confirm if this is your own phone.
       </p>
+      {notice && <p className="text-sm text-red-600 mb-4">{notice}</p>}
       <form method="post" action="/api/whatsapp/link">
         <input type="hidden" name="code" value={code} />
         {pay && <input type="hidden" name="then" value="pay" />}

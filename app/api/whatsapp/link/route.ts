@@ -8,13 +8,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase-server'
 import { userHasFullAccess } from '@/lib/access'
 import { linkNumberToAccount } from '@/lib/whatsapp/bot'
+import { isSameSitePost } from '@/lib/whatsapp/origin'
 
 export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
 export async function POST(req: NextRequest) {
-  const origin = req.headers.get('origin')
-  const host = req.headers.get('x-forwarded-host') ?? req.headers.get('host')
-  if (!origin || !host || new URL(origin).host !== host) {
+  if (!isSameSitePost(req.headers.get('origin'), req.headers.get('x-forwarded-host'), req.headers.get('host'))) {
+    console.warn('[whatsapp] link rejected', { reason: 'cross-site' })
     return new NextResponse('Forbidden', { status: 403 })
   }
 
@@ -28,8 +29,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.redirect(new URL(`/login?next=${encodeURIComponent(back.pathname + back.search)}`, req.url), 303)
   }
 
-  const result = await linkNumberToAccount(code, user.id)
-  if (!result.ok) return NextResponse.redirect(back, 303)   // the page explains why (used / expired)
+  let result: Awaited<ReturnType<typeof linkNumberToAccount>>
+  try {
+    result = await linkNumberToAccount(code, user.id)
+  } catch (error) {
+    console.error('[whatsapp] link failed', error instanceof Error ? error.message : error)
+    back.searchParams.set('notice', 'failed')
+    return NextResponse.redirect(back, 303)
+  }
+  if (!result.ok) {
+    console.warn('[whatsapp] link failed', { code: result.code })
+    back.searchParams.set('notice', result.code)
+    return NextResponse.redirect(back, 303)
+  }
 
   if (pay && !(await userHasFullAccess(user.id))) {
     return NextResponse.redirect(new URL('/pricing', req.url), 303)

@@ -10,6 +10,7 @@ import LearnButton from '@/components/learn/LearnButton'
 import LearnPanel from '@/components/learn/LearnPanel'
 import { useQuestionAttempt } from '@/components/learn/useQuestionAttempt'
 import type { QuestionExplanation } from '@/lib/learn-mode-logic'
+import { isMotorcycleQuestion, MOTORCYCLE_CONTROLS } from '@/lib/quiz-format'
 
 type Option    = 'A' | 'B' | 'C'
 type AnswerMap = Record<number, Option>
@@ -156,26 +157,6 @@ function fmtTime(secs: number): string {
 }
 
 const FINAL_TEST_TITLE = 'Final Test Code 8, 10 and Motorcycle'
-const MOTORCYCLE_TEST_C_QUESTIONS = new Set([25, 36, 38, 40, 41, 42, 43, 44, 49])
-const MOTORCYCLE_CONTROLS = [
-  ['1', 'Gear lever', 'Selects gears'],
-  ['2', 'Clutch', 'Disengages the engine for gear changes'],
-  ['3', 'Mirrors', 'Used to check traffic behind you'],
-  ['4', 'Front brake', 'Controls speed and stops the motorcycle'],
-  ['5', 'Accelerator', 'Increases or decreases speed'],
-  ['6', 'Indicator', 'Signals your intention to turn'],
-  ['7', 'Brake pedal', 'Controls speed with the rear brake'],
-  ['8', 'Handlebars', 'Steer the motorcycle'],
-] as const
-
-/** Motorcycle-only questions identified from the manual's section labels. */
-function isMotorcycleQuestion(question: QuizQuestion): boolean {
-  const match = question.question.match(/^Test ([ABC]).*Question (\d+)/)
-  if (!match) return false
-  const number = Number(match[2])
-  return (match[1] === 'A' && number >= 10 && number <= 18)
-    || (match[1] === 'C' && MOTORCYCLE_TEST_C_QUESTIONS.has(number))
-}
 
 // ── Split-score results (Test 2 — K53 format) ────────────────────────────────
 function SplitResultsScreen({

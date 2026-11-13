@@ -10,6 +10,9 @@
  *   WHATSAPP_VERIFY_TOKEN     any long random string, entered in Meta's webhook
  *                             settings so Meta can confirm the webhook URL
  *   WHATSAPP_GRAPH_VERSION    optional, e.g. v23.0 (use the one Meta's dashboard shows)
+ *   WHATSAPP_SITE_URL         optional public site origin for link buttons and
+ *                             question pictures (default https://www.skdriving.co.za).
+ *                             Read by the bot, not by this file.
  *
  * Until these are set the bot stays switched off: the webhook refuses calls
  * and nothing is sent.
@@ -52,9 +55,32 @@ export function clip(text: string, max: number): string {
   return text.length <= max ? text : text.slice(0, max - 1).trimEnd() + '…'
 }
 
-/** Public image URLs may contain spaces (e.g. "code10/test 1/…"). */
-export function safeImageUrl(url: string): string {
-  try { return new URL(url).href } catch { return encodeURI(url) }
+/**
+ * An image Meta's servers can fetch. Relative paths (the form stored for the
+ * website, such as "/images/code10/test 1/….png") are resolved against the
+ * public site. Anything that is not https is dropped: WhatsApp rejects it.
+ */
+export function resolvePublicImageUrl(url: string | null | undefined, site: string): string | null {
+  if (!url?.trim()) return null
+  try {
+    const resolved = /^https?:\/\//i.test(url.trim())
+      ? new URL(url.trim())
+      : new URL(url.trim(), site.endsWith('/') ? site : `${site}/`)
+    if (resolved.protocol !== 'https:') return null
+    return resolved.href
+  } catch {
+    return null
+  }
+}
+
+function headerImage(url: string | null | undefined): string | null {
+  if (!url) return null
+  try {
+    const parsed = new URL(url)
+    return parsed.protocol === 'https:' ? parsed.href : null
+  } catch {
+    return null
+  }
 }
 
 type Payload = Record<string, unknown>
@@ -74,9 +100,17 @@ async function send(to: string, message: Payload): Promise<boolean> {
       signal: AbortSignal.timeout(8000),
     })
     if (!res.ok) {
-      const detail = await res.text().catch(() => '')
+      const raw = await res.text().catch(() => '')
+      let detail = raw.slice(0, 300)
+      let code: number | undefined
+      try {
+        const body = JSON.parse(raw) as { error?: { code?: number; message?: string } }
+        code = body.error?.code
+        if (body.error?.message) detail = body.error.message.slice(0, 300)
+      } catch { /* Meta sometimes returns plain text */ }
       // Never retried: a failed send is logged and the learner can simply reply again.
-      console.error('[whatsapp] send failed', { status: res.status, detail: detail.slice(0, 400) })
+      // The token and the message body are not logged.
+      console.error('[whatsapp] send failed', { status: res.status, code, detail })
       return false
     }
     return true
@@ -94,11 +128,12 @@ export interface Button { id: string; title: string }
 
 /** Up to three reply buttons, with an optional image above the text. */
 export function sendButtons(to: string, body: string, buttons: Button[], opts: { imageUrl?: string | null; footer?: string } = {}) {
+  const image = headerImage(opts.imageUrl)
   return send(to, {
     type: 'interactive',
     interactive: {
       type: 'button',
-      ...(opts.imageUrl ? { header: { type: 'image', image: { link: safeImageUrl(opts.imageUrl) } } } : {}),
+      ...(image ? { header: { type: 'image', image: { link: image } } } : {}),
       body: { text: clip(body, LIMITS.body) },
       ...(opts.footer ? { footer: { text: clip(opts.footer, LIMITS.footer) } } : {}),
       action: {
@@ -130,6 +165,38 @@ export function sendList(to: string, body: string, buttonText: string, sectionTi
       },
     },
   })
+}
+
+/** A road-sign picture. `imageUrl` must already be https. */
+export function sendImage(to: string, imageUrl: string, caption?: string) {
+  return send(to, {
+    type: 'image',
+    image: {
+      link: imageUrl,
+      ...(caption ? { caption: clip(caption, LIMITS.body) } : {}),
+    },
+  })
+}
+
+/** Blue ticks. Failure is logged and ignored: the reply still goes out. */
+export async function markRead(messageId: string): Promise<void> {
+  const token = setting('WHATSAPP_TOKEN')
+  const phoneId = setting('WHATSAPP_PHONE_NUMBER_ID')
+  if (!token || !phoneId || !messageId) return
+  try {
+    const res = await fetch(`https://graph.facebook.com/${GRAPH_VERSION}/${phoneId}/messages`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messaging_product: 'whatsapp', status: 'read', message_id: messageId }),
+      signal: AbortSignal.timeout(8000),
+    })
+    if (!res.ok) {
+      const detail = await res.text().catch(() => '')
+      console.warn('[whatsapp] mark read failed', { status: res.status, detail: detail.slice(0, 200) })
+    }
+  } catch (error) {
+    console.warn('[whatsapp] mark read threw', error instanceof Error ? error.message : error)
+  }
 }
 
 /** A message with one button that opens a web page. */

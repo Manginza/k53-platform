@@ -5,6 +5,7 @@ import { hasFullAccess } from '@/lib/access'
 import { loadLearnerProgress } from '@/lib/learner-progress-server'
 import { completeTrial, getTrialSummary, isTrialTest, type TrialSummary } from '@/lib/trial'
 import type { CategoryScore } from '@/lib/learner-progress'
+import { categoryFor } from '@/lib/quiz-format'
 
 type Option = 'A' | 'B' | 'C'
 
@@ -17,14 +18,6 @@ interface CompletionBody {
 }
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-
-function categoryFor(question: { question: string; image_url: string | null; image_ref: string | null }) {
-  const text = `${question.question} ${question.image_ref ?? ''}`.toLowerCase()
-  if (text.includes('control') || text.includes('clutch') || text.includes('brake') || text.includes('motorcycle')) {
-    return 'Vehicle Controls'
-  }
-  return question.image_url ? 'Road Signs & Markings' : 'Rules of the Road'
-}
 
 export async function POST(request: NextRequest) {
   const supabase = createClient()

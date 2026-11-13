@@ -9,14 +9,30 @@
  *        before answering 200 so the conversation stays in order.
  *
  * Switched off (503) until the WHATSAPP_* environment variables are set.
+ * This path is excluded from the auth middleware: Meta does not send a session.
  */
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase-admin'
-import { isWhatsAppConfigured, verifySignature, sendText, setting } from '@/lib/whatsapp/api'
+import { serviceRoleKeyCheck } from '@/lib/payments-health'
+import { allow } from '@/lib/rate-limit'
+import { isWhatsAppConfigured, markRead, sendText, setting, verifySignature } from '@/lib/whatsapp/api'
 import { handleIncoming } from '@/lib/whatsapp/bot'
+import { maskNumber, readLearnerMessage } from '@/lib/whatsapp/messages'
 
+export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 export const maxDuration = 30
+
+let serviceKeyWarned = false
+
+function warnIfServiceKeyWrong() {
+  if (serviceKeyWarned) return
+  serviceKeyWarned = true
+  const check = serviceRoleKeyCheck(process.env.SUPABASE_SERVICE_ROLE_KEY)
+  if (check.status !== 'ok') {
+    console.error('[whatsapp] supabase key', { status: check.status, detail: check.detail })
+  }
+}
 
 export async function GET(req: NextRequest) {
   const p = req.nextUrl.searchParams
@@ -27,13 +43,18 @@ export async function GET(req: NextRequest) {
   if (expected && p.get('hub.mode') === 'subscribe' && given === expected) {
     return new NextResponse(p.get('hub.challenge') ?? '', { status: 200, headers: { 'Content-Type': 'text/plain' } })
   }
+  console.warn('[whatsapp] verify failed', {
+    mode: p.get('hub.mode'),
+    tokenPresent: Boolean(given),
+    configured: Boolean(expected),
+  })
   return new NextResponse('Forbidden', { status: 403 })
 }
 
 interface WaMessage {
-  id: string
-  from: string
-  type: string
+  id?: string
+  from?: string
+  type?: string
   text?: { body?: string }
   interactive?: { type?: string; button_reply?: { id?: string }; list_reply?: { id?: string } }
   button?: { payload?: string; text?: string }
@@ -43,10 +64,12 @@ interface WaChangeValue {
   metadata?: { phone_number_id?: string }
   contacts?: { wa_id?: string; profile?: { name?: string } }[]
   messages?: WaMessage[]
+  errors?: { code?: number; title?: string }[]
 }
 
 export async function POST(req: NextRequest) {
   if (!isWhatsAppConfigured()) return new NextResponse('WhatsApp is not configured', { status: 503 })
+  warnIfServiceKeyWrong()
 
   const raw = await req.text()
   const signature = req.headers.get('x-hub-signature-256')
@@ -69,7 +92,11 @@ export async function POST(req: NextRequest) {
   for (const entry of payload.entry ?? []) {
     for (const change of entry.changes ?? []) {
       const value = change.value
-      if (!value?.messages?.length) continue                     // delivery/read receipts: nothing to do
+      if (!value) continue
+      if (value.errors?.length) {
+        console.error('[whatsapp] payload error', value.errors.map(error => ({ code: error.code, title: error.title })))
+      }
+      if (!value.messages?.length) continue
       console.log('[whatsapp] message received', { count: value.messages.length, forNumberId: value.metadata?.phone_number_id })
       if (value.metadata?.phone_number_id !== ourNumberId) {
         // A Phone Number ID is not a secret, so both are logged to spot a typo.
@@ -80,30 +107,56 @@ export async function POST(req: NextRequest) {
         continue
       }
 
-      for (const m of value.messages) {
+      for (const message of value.messages) {
+        if (!message.id || !message.from) {
+          console.warn('[whatsapp] message missing id or sender')
+          continue
+        }
+        const from = message.from
+        const read = markRead(message.id)
+
         // Handle each message once, whatever Meta retries.
         // Only a true duplicate is skipped. If the record itself fails, the
         // message is still answered: the bot's position check already stops a
         // repeated tap from counting twice.
-        const { error: seen } = await db.from('wa_processed_messages').insert({ message_id: m.id })
-        if (seen?.code === '23505') continue
+        const { error: seen } = await db.from('wa_processed_messages').insert({ message_id: message.id })
+        if (seen?.code === '23505') {
+          console.log('[whatsapp] duplicate delivery skipped', { id: message.id })
+          await read
+          continue
+        }
         if (seen) console.error('[whatsapp] dedupe insert failed', seen.message)
 
-        const profileName = value.contacts?.find(c => c.wa_id === m.from)?.profile?.name
-        const replyId = m.interactive?.button_reply?.id ?? m.interactive?.list_reply?.id ?? m.button?.payload
-        const text = m.text?.body ?? m.button?.text
+        if (!allow(`wa:${from}`, 30, 60_000)) {
+          console.warn('[whatsapp] rate limit', { wa: maskNumber(from) })
+          await sendText(from, 'Please wait a moment, then type MENU to carry on.').catch(() => {})
+          await read
+          continue
+        }
+
+        const contact = value.contacts?.find(item => item.wa_id === from)
+          ?? (value.contacts?.length === 1 ? value.contacts[0] : undefined)
+        const parsed = readLearnerMessage(message)
 
         try {
-          if (!replyId && text == null) {
-            await sendText(m.from, 'I can only read taps and short text replies. Type MENU to choose a test.')
-            continue
+          if (parsed.action === 'ignore') {
+            console.log('[whatsapp] ignored', { type: message.type, wa: maskNumber(from) })
+          } else if (parsed.action === 'unsupported') {
+            await sendText(from, 'I can only read taps and short text replies. Type MENU to choose a test.')
+          } else {
+            await handleIncoming({
+              waId: from,
+              profileName: contact?.profile?.name,
+              text: parsed.text,
+              replyId: parsed.replyId,
+            })
           }
-          await handleIncoming({ waId: m.from, profileName, text, replyId })
         } catch (error) {
           // Logged, not retried: answering 200 stops Meta re-sending the same message.
-          console.error('[whatsapp] handling failed', { id: m.id, error: error instanceof Error ? error.message : error })
-          await sendText(m.from, 'Sorry, something went wrong on our side. Please type MENU to carry on.').catch(() => {})
+          console.error('[whatsapp] handling failed', { id: message.id, error: error instanceof Error ? error.message : error })
+          await sendText(from, 'Sorry, something went wrong on our side. Please type MENU to carry on.').catch(() => {})
         }
+        await read
       }
     }
   }
