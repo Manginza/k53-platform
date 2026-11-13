@@ -135,12 +135,17 @@ export default async function PricingPage({
             Pay via WhatsApp instead
           </a>
 
-          <Link href="/login?next=/pricing%3Fpay%3D1" className="block text-center text-blue-700 font-semibold py-3 mt-1 hover:underline text-sm">
-            Already have an account? Log in
-          </Link>
+          <div className="flex flex-col gap-1 mt-2">
+            <Link href="/login?next=/pricing%3Fpay%3D1" className="block text-center text-blue-700 font-semibold py-2 hover:underline text-sm">
+              Already have an account? Log in
+            </Link>
+            <Link href="/login?next=/subscribe/success" className="block text-center text-green-700 font-semibold py-2 hover:underline text-sm">
+              Paid already but can&apos;t get in? Log in here
+            </Link>
+          </div>
 
           <p className="text-xs text-gray-400 text-center mt-2">
-            First create your pre-qualified account, then pay securely by card with Yoco. Premium
+            First create your account, then pay securely by card with Yoco. Premium
             access activates only after payment is verified. Or message us on WhatsApp for help.
           </p>
 
