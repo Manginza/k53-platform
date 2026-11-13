@@ -10,6 +10,10 @@
 --   wa_quiz_sessions      one row per test attempt taken on WhatsApp.
 --   wa_processed_messages message ids already handled, because Meta retries
 --                         webhooks and the same tap must never count twice.
+--
+-- Also creates one unique partial index so a number can have only one test
+-- running. Migration 29 is the same index, for databases that already ran
+-- an older copy of this file.
 
 create table if not exists public.wa_users (
   wa_id         text primary key,                                   -- digits only, e.g. 27821234567
@@ -49,6 +53,10 @@ create table if not exists public.wa_quiz_sessions (
 create index if not exists wa_quiz_sessions_lookup_idx
   on public.wa_quiz_sessions(wa_id, course_id, test_number, mode);
 create index if not exists wa_quiz_sessions_open_idx
+  on public.wa_quiz_sessions(wa_id) where finished_at is null;
+-- One running test per number. Migration 29 creates the same index for
+-- databases that already applied an older copy of this file.
+create unique index if not exists wa_quiz_sessions_one_open_idx
   on public.wa_quiz_sessions(wa_id) where finished_at is null;
 
 create table if not exists public.wa_processed_messages (
