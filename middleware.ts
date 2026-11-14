@@ -1,8 +1,29 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { normalizeReferralCode, REF_COOKIE, REF_COOKIE_MAX_AGE } from '@/lib/referral'
+import { provinceFromParam } from '@/lib/directory'
+
+/**
+ * Directory province views moved from /centers?province=Gauteng to
+ * /centers/gauteng (same for /driving-schools). Permanently redirect the old
+ * URLs so links and search results carry over. Unknown values go to the
+ * all-provinces page. Other query params (e.g. ?ref=) are kept.
+ */
+function legacyProvinceRedirect(request: NextRequest): NextResponse | null {
+  const { pathname, searchParams } = request.nextUrl
+  if (pathname !== '/centers' && pathname !== '/driving-schools') return null
+  if (!searchParams.has('province')) return null
+  const province = provinceFromParam(searchParams.get('province'))
+  const url = request.nextUrl.clone()
+  url.pathname = province ? `${pathname}/${province.slug}` : pathname
+  url.searchParams.delete('province')
+  return NextResponse.redirect(url, 308)
+}
 
 export async function middleware(request: NextRequest) {
+  const legacy = legacyProvinceRedirect(request)
+  if (legacy) return legacy
+
   const referralCode = normalizeReferralCode(request.nextUrl.searchParams.get('ref'))
   if (referralCode) request.cookies.set(REF_COOKIE, referralCode)
 

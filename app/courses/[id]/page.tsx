@@ -1,38 +1,78 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
+import { cache } from 'react'
 import { notFound } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
 import { isTrialCourse } from '@/lib/trial'
 import { EACH_ONCE_REGISTER_URL } from '@/lib/contact'
+import { publicSelect } from '@/lib/supabase-public'
+import { QUESTIONS_PATH } from '@/lib/k53-sample-questions'
+import { absoluteUrl, breadcrumbSchema, canonical, jsonLd } from '@/lib/site'
 import type { Course } from '@/lib/types'
 
-// Course data is public and changes rarely — cache for 1 hour, revalidate in background.
+// Course data is public and changes rarely: static HTML, regenerated hourly (ISR).
+// Pages are built on first request (no generateStaticParams), so the build
+// never needs Supabase for them.
 export const revalidate = 3600
 
 interface Props {
   params: { id: string }
 }
 
-export default async function CoursePage({ params }: Props) {
-  const { data: course, error } = await supabase
-    .from('courses')
-    .select('*')
-    .eq('id', params.id)
-    .single()
+// No paths at build time; each course page is rendered on its first request
+// and then cached (ISR). An empty list is what opts the route into caching.
+export function generateStaticParams(): { id: string }[] {
+  return []
+}
 
-  if (error || !course) notFound()
-
-  // Single query — count by test_number client-side (avoids head:true edge case on Vercel)
-  const { data: qMeta } = await supabase
-    .from('quiz_questions')
-    .select('test_number')
-    .eq('course_id', params.id)
-
+/** Course row + question count per test. Deduplicated between metadata and page. */
+const loadCourse = cache(async (id: string) => {
+  if (!/^\d+$/.test(id)) return null
+  const [courses, qMeta] = await Promise.all([
+    publicSelect<Course>('courses', `select=*&id=eq.${id}`, { revalidate }),
+    publicSelect<{ test_number: number }>('quiz_questions', `select=test_number&course_id=eq.${id}`, { revalidate }),
+  ])
+  const course = courses?.[0]
+  if (!course) return null
   const countByTest: Record<number, number> = {}
   for (const q of qMeta ?? []) {
     countByTest[q.test_number] = (countByTest[q.test_number] ?? 0) + 1
   }
+  return { course, countByTest }
+})
 
-  const c = course as Course
+/** "code8" → "Code 8"; anything else falls back to the course title. */
+function codeLabel(c: Course): string | null {
+  const m = /^code\s*(\d+)$/i.exec(c.code ?? '')
+  return m ? `Code ${m[1]}` : null
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const data = await loadCourse(params.id)
+  if (!data) return { title: 'Course not found', robots: { index: false, follow: true } }
+  const { course: c, countByTest } = data
+  const tests = Object.values(countByTest).filter(n => n > 0).length
+  const label = codeLabel(c)
+  const title = label
+    ? `${label} K53 Practice Tests${tests ? ` (${tests} Timed Test${tests === 1 ? '' : 's'})` : ''}`
+    : `${c.title} — K53 Practice Test`
+  const fallback = label
+    ? `${label} K53 learner's licence practice tests in the real test format: road signs, rules of the road and vehicle controls. Start with a free sample.`
+    : `${c.title}: a timed K53 learner's licence practice test covering road signs, rules of the road and vehicle controls.`
+  const raw = (c.description ?? '').trim()
+  const description = raw.length >= 70 && raw.length <= 155 ? raw : fallback.length <= 155 ? fallback : `${fallback.slice(0, 152).trimEnd()}…`
+  const path = `/courses/${c.id}`
+  return {
+    title,
+    description,
+    alternates: canonical(path),
+    openGraph: { title, description, url: path, type: 'website' },
+  }
+}
+
+export default async function CoursePage({ params }: Props) {
+  const data = await loadCourse(params.id)
+  if (!data) notFound()
+  const { course: c, countByTest } = data
 
   const tests = (c.code === 'final-k53' ? [
     {
@@ -69,8 +109,26 @@ export default async function CoursePage({ params }: Props) {
     },
   ]).filter(t => t.count > 0)
 
+  const courseSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Course',
+    name: c.title,
+    description: c.description ?? undefined,
+    url: absoluteUrl(`/courses/${c.id}`),
+    provider: { '@id': `${absoluteUrl('/')}/#organization`, '@type': 'Organization', name: 'SK Driving', url: absoluteUrl('/') },
+  }
+
   return (
     <main className="max-w-3xl mx-auto px-6 py-12">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(courseSchema) }} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbSchema([
+          { name: 'Home', path: '/' },
+          { name: 'Courses', path: '/courses' },
+          { name: c.title, path: `/courses/${c.id}` },
+        ])) }}
+      />
       <Link href="/courses" className="text-blue-600 hover:underline text-sm font-medium mb-8 inline-block">
         ← Back to Practice Tests
       </Link>
@@ -128,6 +186,11 @@ export default async function CoursePage({ params }: Props) {
           ))}
         </div>
       </div>
+
+      <p className="mt-6 text-sm text-gray-600 text-center">
+        Want to warm up first? Try our free{' '}
+        <Link href={QUESTIONS_PATH} className="text-blue-600 font-semibold hover:underline">K53 questions and answers</Link>.
+      </p>
     </main>
   )
 }

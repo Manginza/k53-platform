@@ -1,20 +1,21 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { supabase } from '@/lib/supabase'
-import { hasFullAccess } from '@/lib/access'
-import LiveSessionCard from '@/components/LiveSessionCard'
+import MemberLiveSessionCard from '@/components/MemberLiveSessionCard'
+import { publicSelect } from '@/lib/supabase-public'
+import { QUESTIONS_PATH } from '@/lib/k53-sample-questions'
+import { canonical, jsonLd } from '@/lib/site'
 import type { Course } from '@/lib/types'
 
 export const metadata: Metadata = {
-  title: "Online K53 Learners Course — Code 8 & Code 10 Practice Tests",
-  description: "South Africa's best online learners licence course. Structured K53 practice tests for Code 8 and Code 10 — road signs, rules of the road, vehicle controls. Pass your learners test first time.",
+  title: "Online K53 Learners Course: Code 8 & Code 10 Practice Tests",
+  description: "Online K53 learner's licence course with timed Code 8 and Code 10 practice tests: road signs, rules of the road and vehicle controls. Free sample.",
   keywords: [
     "a learners course", "online learners licence course", "K53 learners course South Africa",
     "learners licence practice test", "K53 practice test", "Code 8 learners test",
     "Code 10 learners test", "K53 road signs questions", "learners licence study online",
     "free learners course South Africa", "learners licence mock test",
   ],
-  alternates: { canonical: 'https://www.skdriving.co.za/courses' },
+  alternates: canonical('/courses'),
   openGraph: {
     title: "Online K53 Learners Course — Code 8 & Code 10 | SK Driving",
     description: "The best online K53 learners licence course in South Africa. Practice road signs, rules of the road and vehicle controls for Code 8 and Code 10.",
@@ -22,22 +23,14 @@ export const metadata: Metadata = {
   },
 }
 
-// Reads access (cookies) to show paid members the live-session link.
-export const dynamic = 'force-dynamic'
+// Public course list: static HTML regenerated hourly (ISR). The members-only
+// live-session card is decided client-side so no session cookie is read here.
+export const revalidate = 3600
 
 export default async function CoursesPage() {
-  const [{ data: courses, error }, fullAccess] = await Promise.all([
-    supabase.from('courses').select('*').not('code', 'is', null).order('id'),
-    hasFullAccess(),
-  ])
-
-  if (error) {
-    return (
-      <main className="max-w-4xl mx-auto px-6 py-12">
-        <p className="text-red-500">Error loading courses: {error.message}</p>
-      </main>
-    )
-  }
+  // null only when Supabase is unreachable during the build; at runtime a
+  // failed read throws and ISR keeps serving the previous good copy.
+  const courses = await publicSelect<Course>('courses', 'select=*&code=not.is.null&order=id', { revalidate })
 
   const courseSchema = courses && courses.length > 0 ? {
     '@context': 'https://schema.org',
@@ -58,7 +51,7 @@ export default async function CoursesPage() {
 
   return (
     <main>
-      {courseSchema && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(courseSchema) }} />}
+      {courseSchema && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(courseSchema) }} />}
 
       {/* Page header */}
       <section className="bg-gradient-to-br from-brand-800 to-brand-700 text-white py-12 sm:py-16">
@@ -103,7 +96,17 @@ export default async function CoursesPage() {
           ))}
         </div>
 
-        {fullAccess && <LiveSessionCard className="mb-10" />}
+        <MemberLiveSessionCard className="mb-10" />
+
+        <div className="mb-10 rounded-2xl border border-green-200 bg-green-50 p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+          <p className="flex-1 text-sm text-green-900">
+            <strong>New to K53?</strong> Start with our free questions and answers: real-format practice questions with
+            the correct answer and a short explanation for each.
+          </p>
+          <Link href={QUESTIONS_PATH} className="shrink-0 bg-green-600 text-white font-bold px-5 py-2.5 rounded-full text-sm hover:bg-green-700 text-center">
+            Free K53 questions &amp; answers
+          </Link>
+        </div>
 
         {courses && courses.length > 0 ? (
           <div className="grid gap-5 sm:grid-cols-2">
@@ -128,7 +131,9 @@ export default async function CoursesPage() {
             ))}
           </div>
         ) : (
-          <p className="text-gray-400 text-center py-12">No courses found.</p>
+          <p className="text-gray-400 text-center py-12">
+            {courses ? 'No courses found.' : 'Courses are loading. Please refresh in a moment.'}
+          </p>
         )}
       </section>
     </main>

@@ -73,7 +73,8 @@ export default function ResourcesClient() {
   if (state === 'loading') {
     return (
       <div className="max-w-6xl mx-auto px-4 py-12">
-        <div className="h-8 w-48 bg-gray-200 rounded animate-pulse mb-4" />
+        {/* Real heading, not a skeleton bar: this state is the server-rendered HTML. */}
+        <h1 className="text-3xl font-extrabold text-gray-900 mb-4">Study Resources</h1>
         <div className="h-4 w-96 bg-gray-100 rounded animate-pulse mb-10" />
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {[1,2,3].map(i => <div key={i} className="h-52 bg-gray-100 rounded-2xl animate-pulse" />)}
