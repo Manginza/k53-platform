@@ -1,4 +1,12 @@
 import React from 'react';
+import type { Metadata } from 'next'
+import { canonical } from '@/lib/site'
+
+export const metadata: Metadata = {
+  title: 'Cookie Policy',
+  description: "How SK Driving uses cookies and similar technologies, and how to manage your cookie choices.",
+  alternates: canonical('/cookie-policy'),
+}
 
 export default function CookiePolicy() {
   return (

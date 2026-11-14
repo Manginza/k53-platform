@@ -1,4 +1,12 @@
 import React from 'react';
+import type { Metadata } from 'next'
+import { canonical } from '@/lib/site'
+
+export const metadata: Metadata = {
+  title: 'Terms and Conditions',
+  description: "The terms and conditions for using SK Driving's K53 learner's licence practice tests and study material.",
+  alternates: canonical('/terms-and-conditions'),
+}
 
 export default function TermsAndConditions() {
   return (

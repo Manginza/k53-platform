@@ -1,4 +1,6 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
+import { canonical, jsonLd } from '@/lib/site'
 import BuyAccessButton from '@/components/BuyAccessButton'
 import { createClient } from '@/lib/supabase-server'
 import { createAdminClient } from '@/lib/supabase-admin'
@@ -8,10 +10,10 @@ import {
   ACCESS_DISCOUNT_LABEL, ACCESS_DURATION_DAYS,
 } from '@/lib/contact'
 
-export const metadata = {
-  title: 'Get Full Access — K53 Learner\'s',
-  description: 'Unlock unlimited K53 practice tests, Live Notes, resources and videos.',
-  alternates: { canonical: 'https://www.skdriving.co.za/pricing' },
+export const metadata: Metadata = {
+  title: 'Pricing: K53 Full Access',
+  description: `Unlock every K53 practice test, study notes, PDFs and videos for ${ACCESS_PRICE} (${ACCESS_DURATION_DAYS} days). Pay by card or on WhatsApp.`,
+  alternates: canonical('/pricing'),
 }
 
 const FEATURES = [
@@ -67,10 +69,10 @@ export default async function PricingPage({
 
   return (
     <main className="bg-gray-50 min-h-screen">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(productSchema) }} />
       <div className="bg-blue-700 text-white py-14 px-4 text-center">
         <span className="text-xs font-bold tracking-widest uppercase text-blue-200 block mb-3">SK Driving</span>
-        <h1 className="text-3xl sm:text-4xl font-extrabold mb-3 leading-tight">Prepare to Pass Your K53 the First Time</h1>
+        <h1 className="text-3xl sm:text-4xl font-extrabold mb-3 leading-tight">K53 Full Access Pricing</h1>
         <p className="text-blue-100 text-base sm:text-lg max-w-xl mx-auto">
           Try any test free for 2 minutes. Unlock everything for{' '}
           <span className="line-through opacity-60 mr-1">{ACCESS_PRICE_ORIGINAL}</span>

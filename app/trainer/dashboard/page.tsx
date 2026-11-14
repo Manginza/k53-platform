@@ -5,7 +5,7 @@ import TrainerDashboardClient from '@/components/trainer/TrainerDashboardClient'
 import type { Metadata } from 'next'
 
 export const dynamic = 'force-dynamic'
-export const metadata: Metadata = { title: 'Trainer Dashboard' }
+export const metadata: Metadata = { title: 'Trainer Dashboard', robots: { index: false, follow: true } }
 
 export default async function TrainerDashboardPage() {
   const supabase = createClient()

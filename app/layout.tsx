@@ -22,6 +22,7 @@ import EachOncePopup from "@/components/EachOncePopup";
 import FreeAccessThankYou from "@/components/FreeAccessThankYou";
 import RecoveryLinkCatcher from "@/components/RecoveryLinkCatcher";
 import LiveSessionsButton from "@/components/LiveSessionsButton";
+import { SITE_URL, organizationSchema, jsonLd } from "@/lib/site";
 
 const geistSans = localFont({
     src: "./fonts/GeistVF.woff",
@@ -35,12 +36,13 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-    metadataBase: new URL('https://www.skdriving.co.za'),
+    metadataBase: new URL(SITE_URL),
     title: {
         default: "Free K53 Learner's Licence Practice Tests | SK Driving",
         template: '%s | SK Driving',
     },
-    description: "Pass your K53 learner's licence test first time. Free practice tests covering road signs, vehicle controls and rules of the road — for Code 8, Code 10 and Code 14 in South Africa.",
+    // ≤155 chars. Pages override this with their own description.
+    description: "Free K53 learner's licence practice tests for South Africa: road signs, vehicle controls and rules of the road for Code 8, 10 and 14.",
     keywords: [
         "learners licence test", "K53 learners licence", "learners licence practice test",
         "K53 test questions", "learners licence questions South Africa",
@@ -104,9 +106,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                                   __html: `!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','1492132475472276');fbq('track','PageView');`,
                             }}
                       />
-                      <noscript>
-                            <img height="1" width="1" style={{ display: 'none' }} src="https://www.facebook.com/tr?id=1492132475472276&ev=PageView&noscript=1" alt="" />
-                      </noscript>
+                      {/* Meta Pixel <noscript> fallback lives in <body> below: an <img> is not valid inside <head>. */}
                       {/* End Meta Pixel */}
 
                       {/* Google AdSense */}
@@ -125,10 +125,18 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                                   src="https://www.googletagmanager.com/ns.html?id=GTM-M995P8CW"
                                   height="0"
                                   width="0"
+                                  title="Google Tag Manager"
                                   style={{ display: 'none', visibility: 'hidden' }}
                             />
                       </noscript>
                       {/* End Google Tag Manager (noscript) */}
+                      {/* Meta Pixel (noscript) */}
+                      <noscript>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img height="1" width="1" style={{ display: 'none' }} src="https://www.facebook.com/tr?id=1492132475472276&ev=PageView&noscript=1" alt="Meta Pixel tracking image" />
+                      </noscript>
+                      {/* Organization structured data, site-wide */}
+                      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(organizationSchema) }} />
                         <Suspense fallback={null}>
                                   <ReferralCapture />
                         </Suspense>
