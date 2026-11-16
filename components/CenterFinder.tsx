@@ -1,8 +1,12 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+
+function provinceSlug(name: string) {
+  return name.toLowerCase().replace(/\s+/g, '-')
+}
 
 // ─── SA location → approx coordinates lookup (no external API needed) ─────
 // Covers provinces, metros, major townships, suburbs, and towns in the dataset.
@@ -298,24 +302,13 @@ export default function CenterFinder({ initialProvince = '' }: { initialProvince
     }
   }, [])
 
-  // Auto-fetch on mount when a province is pre-selected via URL param
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    if (!initialProvince) return
-    const coords = findCoords(initialProvince.toLowerCase())
-    if (coords) fetchNearest(coords.lat, coords.lng, initialProvince, 20)
-  }, []) // intentionally only on mount — URL param sets initial state once
-
+  // Each province has its own server-rendered page (/centers/<slug>),
+  // so changing the province navigates there instead of fetching client-side.
   function handleProvinceChange(newProvince: string) {
     setProvince(newProvince)
-    const url = newProvince === 'All provinces'
-      ? '/centers'
-      : `/centers?province=${encodeURIComponent(newProvince)}`
-    router.replace(url, { scroll: false })
-    if (newProvince !== 'All provinces') {
-      const coords = findCoords(newProvince.toLowerCase())
-      if (coords) fetchNearest(coords.lat, coords.lng, newProvince, 20)
-    }
+    setResults(null)
+    setSearched(false)
+    router.push(newProvince === 'All provinces' ? '/centers' : `/centers/${provinceSlug(newProvince)}`)
   }
 
   function handleSearch(e: React.FormEvent) {

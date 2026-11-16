@@ -4,13 +4,16 @@ import BookSlideshow from '@/components/BookSlideshow'
 import BuyAccessButton from '@/components/BuyAccessButton'
 import { hasFullAccess } from '@/lib/access'
 import { createClient } from '@/lib/supabase-server'
+import { QUESTIONS_PATH } from '@/lib/k53-sample-questions'
+import { canonical, jsonLd, organizationSchema } from '@/lib/site'
 import { EACH_ONCE_REGISTER_URL, WHATSAPP_URL, WHATSAPP_LINK, WHATSAPP_DISPLAY, ACCESS_PRICE, ACCESS_PRICE_ORIGINAL, ACCESS_DURATION_DAYS } from '@/lib/contact'
 
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: "Free K53 Learner's Licence Practice Tests South Africa | SK Driving",
-  description: "Study for your South African learner's licence with free K53 practice tests. Covers road signs, vehicle controls, and rules of the road for Code 8, Code 10 and Code 14. Pass first time.",
+  // Absolute: the home page carries the brand in its own title.
+  title: { absolute: "Free K53 Learner's Licence Practice Tests South Africa | SK Driving" },
+  description: "Free K53 learner's licence practice tests for South Africa: road signs, vehicle controls and rules of the road for Code 8, 10 and 14. Pass first time.",
   keywords: [
     "learners licence test South Africa", "K53 practice test", "free learners licence test",
     "K53 questions and answers", "learners licence road signs", "learners licence rules of the road",
@@ -18,7 +21,7 @@ export const metadata: Metadata = {
     "learners licence study guide South Africa", "K53 learner driver manual",
     "learners test questions South Africa", "learners licence test online free",
   ],
-  alternates: { canonical: 'https://www.skdriving.co.za' },
+  alternates: canonical('/'),
   openGraph: {
     title: "Free K53 Learner's Licence Practice Tests | SK Driving",
     description: "Pass your South African learner's licence first time. Free K53 practice tests for Code 8, Code 10 and Code 14 — road signs, vehicle controls, rules of the road.",
@@ -33,11 +36,7 @@ const websiteSchema = {
   url: 'https://www.skdriving.co.za',
   description: "Free K53 learner's licence practice tests for South Africa. Road signs, vehicle controls and rules of the road for Code 8, Code 10 and Code 14.",
   inLanguage: 'en-ZA',
-  potentialAction: {
-    '@type': 'SearchAction',
-    target: 'https://www.skdriving.co.za/centers?province={search_term_string}',
-    'query-input': 'required name=search_term_string',
-  },
+  publisher: { '@id': organizationSchema['@id'] },
 }
 
 const appSchema = {
@@ -171,9 +170,9 @@ export default async function Home() {
   const { data: { user } } = await createClient().auth.getUser()
   return (
     <main>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(appSchema) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(websiteSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(appSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqSchema) }} />
 
       {/* ─── Hero ─── */}
       <section className="relative bg-gradient-to-br from-brand-800 via-brand-700 to-brand-600 text-white overflow-hidden">
@@ -270,6 +269,12 @@ export default async function Home() {
               </div>
             ))}
           </div>
+          <p className="mt-8 text-center text-sm text-gray-600">
+            Not sure what the questions look like?{' '}
+            <Link href={QUESTIONS_PATH} className="font-bold text-brand-700 hover:underline">
+              See free K53 questions and answers for all three sections →
+            </Link>
+          </p>
         </div>
       </section>
 
@@ -357,6 +362,10 @@ export default async function Home() {
             <h2 className="text-xl font-extrabold text-gray-900 sm:text-2xl">Know the test before you practise</h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-600">
               Check the 64-question test structure, exact section pass marks, licence categories and booking checklist.
+              Then test yourself with our{' '}
+              <Link href={QUESTIONS_PATH} className="font-semibold text-brand-700 underline">
+                free K53 questions and answers
+              </Link>.
             </p>
           </div>
           <Link

@@ -6,7 +6,9 @@
  * - Logged-in affiliate → earner dashboard (link, earnings, scoreboard, bank)
  * - Otherwise → registration form (self-register, or enrol an existing login)
  */
+import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase-server'
+import { canonical } from '@/lib/site'
 import { createAdminClient } from '@/lib/supabase-admin'
 import { getAffiliateForUser, getAffiliateStats } from '@/lib/affiliate'
 import { getScoreboard, SCOREBOARD_ADMIN_SIZE } from '@/lib/affiliate-scoreboard'
@@ -16,6 +18,12 @@ import AdminAffiliateDashboard from '@/components/affiliate/AdminAffiliateDashbo
 import type { Affiliate, AffiliateCommission, ManagedAffiliate } from '@/lib/types'
 
 export const dynamic = 'force-dynamic'
+
+export const metadata: Metadata = {
+  title: 'Become an Affiliate: Earn Commission Sharing K53 Courses',
+  description: "Join the SK Driving affiliate programme: share your link, help learners pass their K53 learner's licence, and earn commission on every sale.",
+  alternates: canonical('/affiliate'),
+}
 
 /** The roster the programme admin manages: every affiliate, with their figures. */
 async function loadRoster(): Promise<ManagedAffiliate[]> {

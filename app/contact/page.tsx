@@ -1,5 +1,13 @@
 import React from 'react';
+import type { Metadata } from 'next'
+import { canonical } from '@/lib/site'
 import { WHATSAPP_URL } from '@/lib/contact';
+
+export const metadata: Metadata = {
+  title: 'Contact Us',
+  description: "Contact SK Driving on WhatsApp for help with K53 practice tests, payments, access or your account.",
+  alternates: canonical('/contact'),
+}
 
 export default function ContactPage() {
   return (

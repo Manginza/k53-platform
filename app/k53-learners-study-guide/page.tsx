@@ -7,7 +7,7 @@ const PAGE_URL = `${BASE_URL}/k53-learners-study-guide`
 export const metadata: Metadata = {
   title: "Free K53 Learners Study Guide South Africa",
   description:
-    "Free South African K53 learner's licence study guide: official test sections and pass marks, Code 1, 2 and 3 age rules, booking checklist, PDF summary and online practice tests.",
+    "Free K53 learner's licence study guide: test sections and pass marks, Code 1, 2 and 3 age rules, booking checklist, a PDF summary and practice tests.",
   keywords: [
     'free K53 learners study guide',
     'K53 learners book PDF download',
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'article',
     url: PAGE_URL,
-    title: 'Free K53 Learners Study Guide for South Africa | SK Driving',
+    title: 'Free K53 Learners Study Guide for South Africa',
     description:
       "Study the K53 test sections, pass marks, licence categories and booking steps, then download SK Driving's free original PDF checklist.",
   },
@@ -117,6 +117,9 @@ export default function K53StudyGuidePage() {
             >
               Download the SK Driving Free K53 Learners Study Guide PDF
             </a>
+            <Link href="/k53-questions-and-answers" className="rounded-full border-2 border-blue-300 px-6 py-3 text-center font-bold hover:bg-blue-600">
+              Free K53 questions &amp; answers
+            </Link>
             <Link href="/courses" className="rounded-full border-2 border-blue-300 px-6 py-3 text-center font-bold hover:bg-blue-600">
               Start free practice tests
             </Link>
@@ -229,6 +232,8 @@ export default function K53StudyGuidePage() {
         <section aria-labelledby="study-next" className="mt-14 rounded-3xl bg-blue-50 p-6 sm:p-8">
           <h2 id="study-next" className="text-2xl font-extrabold text-gray-900">Where to study next</h2>
           <ul className="mt-5 grid gap-3 sm:grid-cols-2">
+            <li><Link href="/k53-questions-and-answers" className="block rounded-xl bg-white p-4 font-bold text-blue-700 shadow-sm hover:underline">Free K53 questions and answers</Link></li>
+            <li><Link href="/k53-questions-and-answers-pdf" className="block rounded-xl bg-white p-4 font-bold text-blue-700 shadow-sm hover:underline">Printable K53 questions and answers (PDF)</Link></li>
             <li><Link href="/courses" className="block rounded-xl bg-white p-4 font-bold text-blue-700 shadow-sm hover:underline">Take K53 practice tests online</Link></li>
             <li><Link href="/live-notes" className="block rounded-xl bg-white p-4 font-bold text-blue-700 shadow-sm hover:underline">Read K53 road signs and rules notes</Link></li>
             <li><Link href="/videos" className="block rounded-xl bg-white p-4 font-bold text-blue-700 shadow-sm hover:underline">Watch K53 study videos</Link></li>

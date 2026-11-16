@@ -1,4 +1,12 @@
 import React from 'react';
+import type { Metadata } from 'next'
+import { canonical } from '@/lib/site'
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy',
+  description: "How SK Driving collects, uses and protects your personal information when you use our K53 practice tests.",
+  alternates: canonical('/privacy-policy'),
+}
 
 export default function PrivacyPolicy() {
   return (

@@ -1,9 +1,11 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { canonical } from '@/lib/site'
 
 export const metadata: Metadata = {
   title: 'Manifesto — Social Enterprise Academy South Africa',
   description: 'We are convinced that a better future will be fuelled by the strength of millions of communities. We call them agents of change.',
+  alternates: canonical('/manifesto'),
 }
 
 export default function ManifestoPage() {

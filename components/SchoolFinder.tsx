@@ -1,8 +1,12 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+
+function provinceSlug(name: string) {
+  return name.toLowerCase().replace(/\s+/g, '-')
+}
 
 // Reuse the same location lookup as CenterFinder — suburb → approx coords
 const LOCATION_LOOKUP: Record<string, { lat: number; lng: number }> = {
@@ -147,24 +151,13 @@ export default function SchoolFinder({ initialProvince = '' }: { initialProvince
     }
   }, [])
 
-  // Auto-fetch on mount when province is pre-set via URL
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    if (!initialProvince) return
-    const coords = findCoords(initialProvince.toLowerCase())
-    if (coords) fetchNearest(coords.lat, coords.lng, initialProvince, codeFilter, 20)
-  }, [])
-
+  // Each province has its own server-rendered page (/driving-schools/<slug>),
+  // so changing the province navigates there instead of fetching client-side.
   function handleProvinceChange(newProvince: string) {
     setProvince(newProvince)
-    const url = newProvince === 'All provinces'
-      ? '/driving-schools'
-      : `/driving-schools?province=${encodeURIComponent(newProvince)}`
-    router.replace(url, { scroll: false })
-    if (newProvince !== 'All provinces') {
-      const coords = findCoords(newProvince.toLowerCase())
-      if (coords) fetchNearest(coords.lat, coords.lng, newProvince, codeFilter, 20)
-    }
+    setResults(null)
+    setSearched(false)
+    router.push(newProvince === 'All provinces' ? '/driving-schools' : `/driving-schools/${provinceSlug(newProvince)}`)
   }
 
   function handleSearch(e: React.FormEvent) {

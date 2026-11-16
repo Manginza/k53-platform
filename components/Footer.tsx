@@ -1,7 +1,6 @@
 /**
- * Footer — site footer with a WhatsApp access CTA, an access-code link, and a
- * deliberately discreet round admin-login button in the bottom-right corner
- * that blends into the footer colour.
+ * Footer — site footer with a WhatsApp access CTA and site links.
+ * Admin routes are reachable directly and deliberately not linked here.
  */
 import Link from 'next/link'
 import { WHATSAPP_URL, ACCESS_PRICE, ACCESS_DURATION_DAYS } from '@/lib/contact'
@@ -13,7 +12,7 @@ export default function Footer() {
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
           {/* Brand column */}
           <div className="lg:col-span-1">
-            <div className="text-xl font-extrabold text-white tracking-tight">K53 Learner&apos;s</div>
+            <div className="text-xl font-extrabold text-white tracking-tight">SK Driving</div>
             <p className="text-sm text-gray-400 mt-3 max-w-xs leading-relaxed">
               Practise free with 2-minute timed tests. Unlock everything for {ACCESS_PRICE} ({ACCESS_DURATION_DAYS} days).
             </p>
@@ -41,6 +40,9 @@ export default function Footer() {
               <Link href="/affiliate" className="text-sm text-gray-400 hover:text-white transition-colors">Become an affiliate</Link>
               <Link href="/trainer" className="text-sm text-gray-400 hover:text-white transition-colors">Become a Trainer</Link>
               <Link href="/k53-learners-study-guide" className="text-sm text-gray-400 hover:text-white transition-colors">Free K53 Study Guide</Link>
+              <Link href="/k53-questions-and-answers" className="text-sm text-gray-400 hover:text-white transition-colors">K53 Questions &amp; Answers</Link>
+              <Link href="/centers" className="text-sm text-gray-400 hover:text-white transition-colors">Testing Centres</Link>
+              <Link href="/driving-schools" className="text-sm text-gray-400 hover:text-white transition-colors">Driving Schools</Link>
               <Link href="/manifesto" className="text-sm text-gray-400 hover:text-white transition-colors">Manifesto</Link>
               <Link href="/resources" className="text-sm text-gray-400 hover:text-white transition-colors">Resources</Link>
               <Link href="/blog" className="text-sm text-gray-400 hover:text-white transition-colors">Blog</Link>
@@ -56,14 +58,13 @@ export default function Footer() {
               <Link href="/privacy-policy" className="text-sm text-gray-400 hover:text-white transition-colors">Privacy Policy</Link>
               <Link href="/terms-and-conditions" className="text-sm text-gray-400 hover:text-white transition-colors">Terms & Conditions</Link>
               <Link href="/cookie-policy" className="text-sm text-gray-400 hover:text-white transition-colors">Cookie Policy</Link>
-              <Link href="/admin" className="text-sm text-gray-500 hover:text-gray-300 transition-colors">Admin</Link>
             </div>
           </div>
         </div>
 
         <div className="border-t border-white/10 mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-xs text-gray-500">
-            © {new Date().getFullYear()} K53 Learner&apos;s. All rights reserved.
+            © {new Date().getFullYear()} SK Driving. All rights reserved.
           </p>
           <p className="text-xs text-gray-600">
             South Africa&apos;s K53 exam prep platform

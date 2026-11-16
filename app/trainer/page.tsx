@@ -1,9 +1,11 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { canonical } from '@/lib/site'
 
 export const metadata: Metadata = {
-  title: 'Become a Trainer — Earn 66% Revenue from Your Learners',
+  title: 'Become a K53 Trainer: Earn 66% of Learner Payments',
   description: 'Join SK Driving as a certified trainer. Build your own learner base, set your own prices, and earn 66.67% of every learner payment. R1,500/year.',
+  alternates: canonical('/trainer'),
 }
 
 export default function TrainerLandingPage() {

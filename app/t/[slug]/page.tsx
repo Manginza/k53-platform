@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase-admin'
 import LearnerPortal from '@/components/trainer/LearnerPortal'
 import Link from 'next/link'
+import { canonical } from '@/lib/site'
 
 // Trainer public pages are mostly static — revalidate every 5 minutes.
 export const revalidate = 300
@@ -10,10 +11,11 @@ export const revalidate = 300
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const db = createAdminClient()
   const { data } = await db.from('trainers').select('name,bio,province').eq('slug', params.slug).eq('is_active', true).single()
-  if (!data) return { title: 'Trainer not found' }
+  if (!data) return { title: 'Trainer not found', robots: { index: false, follow: true } }
   return {
     title: `${data.name} — K53 Driving Instructor${data.province ? ` | ${data.province}` : ''}`,
-    description: data.bio ?? `Book learner's licence lessons with ${data.name} on SK Driving.`,
+    description: (data.bio ?? `Book learner's licence lessons with ${data.name} on SK Driving.`).slice(0, 155),
+    alternates: canonical(`/t/${params.slug}`),
   }
 }
 

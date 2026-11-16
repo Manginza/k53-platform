@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import TrainerRegisterForm from '@/components/trainer/TrainerRegisterForm'
 
-export const metadata: Metadata = { title: 'Trainer Registration' }
+export const metadata: Metadata = { title: 'Trainer Registration', robots: { index: false, follow: true } }
 
 export default function TrainerRegisterPage() {
   return (

@@ -2,6 +2,7 @@
  * /live-notes/rules/[slug] — a Rules of the Road chapter: study content
  * followed by an end-of-chapter quiz. Full-access only.
  */
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { hasFullAccess } from '@/lib/access'
@@ -10,6 +11,7 @@ import RulesChapterQuiz from '@/components/live-notes/RulesChapterQuiz'
 import { RULES_CHAPTERS, getRuleChapter } from '@/lib/rules-of-the-road'
 import ProgressVisit from '@/components/ProgressVisit'
 import { createClient } from '@/lib/supabase-server'
+import { NOINDEX } from '@/lib/site'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,6 +23,14 @@ export function generateStaticParams() {
 
 interface Props {
   params: { slug: string }
+}
+
+export function generateMetadata({ params }: Props): Metadata {
+  const chapter = getRuleChapter(params.slug)
+  return {
+    title: chapter ? `${chapter.title}: Rules of the Road Notes` : 'Rules of the Road Notes',
+    robots: NOINDEX,
+  }
 }
 
 export default async function RulesChapterPage({ params }: Props) {

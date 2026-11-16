@@ -15,7 +15,7 @@ import { userHasFullAccess } from '@/lib/access'
 import { describeLinkCode } from '@/lib/whatsapp/bot'
 
 export const dynamic = 'force-dynamic'
-export const metadata = { title: 'Link WhatsApp | SK Driving', robots: { index: false, follow: false } }
+export const metadata = { title: 'Link WhatsApp', robots: { index: false, follow: false } }
 
 interface Props { searchParams: { code?: string; then?: string; done?: string; notice?: string } }
 
