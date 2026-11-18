@@ -12,10 +12,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase-admin'
 import { generateAffiliateCode, COMMISSION_RATE } from '@/lib/affiliate'
 import { gateEmail } from '@/lib/email-gate'
+import { isAdminEmail } from '@/lib/admin-emails'
 import { verifyTurnstile, CAPTCHA_MESSAGE } from '@/lib/turnstile'
-import { clientIp } from '@/lib/rate-limit'
+import { allow, clientIp } from '@/lib/rate-limit'
 
 export async function POST(req: NextRequest) {
+  if (!allow(`affiliate-reg-ip:${clientIp(req.headers)}`, 10, 60 * 60 * 1000)) {
+    return NextResponse.json({ error: 'Too many sign-ups from your connection. Please try again later.' }, { status: 429 })
+  }
   let b: Record<string, string>
   try {
     b = await req.json()
@@ -38,6 +42,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: emailCheck.message, suggestion: emailCheck.suggestion, problem: emailCheck.problem }, { status: 400 })
   }
   const email = emailCheck.email
+  // Admin addresses can never be claimed through a public sign-up route: these
+  // routes auto-confirm the address without proving ownership, so a free
+  // admin mailbox that had not registered yet could otherwise be taken over.
+  if (isAdminEmail(email)) {
+    return NextResponse.json({ error: 'An account with this email already exists. Please log in instead.' }, { status: 409 })
+  }
+
   if (password.length < 6) return NextResponse.json({ error: 'Password must be at least 6 characters.' }, { status: 400 })
   if (!bankAccountName || !bankName || !accountNumber) return NextResponse.json({ error: 'Please provide your bank account details.' }, { status: 400 })
   if (accountType !== 'cheque' && accountType !== 'savings') return NextResponse.json({ error: 'Account type must be Cheque or Savings.' }, { status: 400 })

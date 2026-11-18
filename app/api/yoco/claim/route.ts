@@ -33,10 +33,14 @@ import { createAdminClient } from '@/lib/supabase-admin'
 import { getYocoCheckout } from '@/lib/yoco'
 import { applyPaidCheckout, checkoutDurationDays, checkoutRejection } from '@/lib/payments'
 import { findCodeForCheckout } from '@/lib/access-codes'
+import { allow, clientIp } from '@/lib/rate-limit'
 
 export const dynamic = 'force-dynamic'
 
 export async function POST(req: NextRequest) {
+  if (!allow(`yoco-claim-ip:${clientIp(req.headers)}`, 60, 10 * 60 * 1000)) {
+    return NextResponse.json({ error: 'Too many requests. Please wait a few minutes and try again.' }, { status: 429 })
+  }
   let checkoutId: string | undefined
   try {
     ({ checkoutId } = await req.json())
