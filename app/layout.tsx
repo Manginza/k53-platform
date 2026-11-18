@@ -17,11 +17,13 @@ import CookieBanner from "@/components/CookieBanner";
 // import GlobalVideoPopup from "@/components/GlobalVideoPopup";
 // import FreePromoPopup from "@/components/FreePromoPopup";
 import FreePromoBanner from "@/components/FreePromoBanner";
-import WhatsAppGroupPopup from "@/components/WhatsAppGroupPopup";
+// Removed from the site on request (18 Nov). Uncomment the import and the tag
+// further down to bring either back.
+// import WhatsAppGroupPopup from "@/components/WhatsAppGroupPopup";
 import EachOncePopup from "@/components/EachOncePopup";
 import FreeAccessThankYou from "@/components/FreeAccessThankYou";
 import RecoveryLinkCatcher from "@/components/RecoveryLinkCatcher";
-import LiveSessionsButton from "@/components/LiveSessionsButton";
+// import LiveSessionsButton from "@/components/LiveSessionsButton";
 import { SITE_URL, organizationSchema, jsonLd } from "@/lib/site";
 
 const geistSans = localFont({
@@ -158,11 +160,13 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                         <GlobalVideoPopup /> */}
                         {/* Each Once Special: free-trial invite for visitors who are not logged in. */}
                         <EachOncePopup />
-                        <WhatsAppGroupPopup />
+                        {/* WhatsApp group / class invite popup: removed 18 Nov. */}
+                        {/* <WhatsAppGroupPopup /> */}
                         {/* Thanks free-window users once it closes, and offers paid access. */}
                         <FreeAccessThankYou />
                         <RecoveryLinkCatcher />
-                        <LiveSessionsButton />
+                        {/* "Watch our live sessions" (8pm lessons) button: removed 18 Nov. */}
+                        {/* <LiveSessionsButton /> */}
                 </body>
           </html>
         );
