@@ -51,8 +51,9 @@ export async function sendEmail(message: EmailMessage): Promise<EmailResult> {
   const apiKey = process.env.RESEND_API_KEY
   const from = senderAddress()
   if (!apiKey || !from) {
+    // No recipient address in the log: it is personal data and adds nothing.
     console.warn('[email] not configured — set RESEND_API_KEY and EMAIL_FROM to send', {
-      to: message.to, subject: message.subject,
+      subject: message.subject,
     })
     return { sent: false, reason: 'not_configured' }
   }

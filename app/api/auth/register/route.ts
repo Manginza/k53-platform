@@ -15,6 +15,7 @@ import { createAdminClient } from '@/lib/supabase-admin'
 import { resolveAffiliateAttribution } from '@/lib/affiliate-attribution'
 import { REF_COOKIE } from '@/lib/referral'
 import { gateEmail } from '@/lib/email-gate'
+import { isAdminEmail } from '@/lib/admin-emails'
 import { verifyTurnstile, CAPTCHA_MESSAGE } from '@/lib/turnstile'
 import { allow, clientIp } from '@/lib/rate-limit'
 
@@ -40,6 +41,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: gate.message, suggestion: gate.suggestion, problem: gate.problem }, { status: gate.status })
   }
   const email = gate.email
+  // Admin addresses can never be claimed through a public sign-up route: these
+  // routes auto-confirm the address without proving ownership, so a free
+  // admin mailbox that had not registered yet could otherwise be taken over.
+  if (isAdminEmail(email)) {
+    return NextResponse.json({ error: 'An account with this email already exists. Please log in instead.' }, { status: 409 })
+  }
 
   const captcha = await verifyTurnstile(body.captchaToken, ip)
   if (!captcha.ok) return NextResponse.json({ error: CAPTCHA_MESSAGE, problem: 'captcha' }, { status: 400 })

@@ -12,8 +12,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase-admin'
 import { grantAccess } from '@/lib/access'
 import { gateEmail } from '@/lib/email-gate'
+import { allow, clientIp } from '@/lib/rate-limit'
+import { isAdminEmail } from '@/lib/admin-emails'
 
 export async function POST(req: NextRequest) {
+  if (!allow(`reg-token-ip:${clientIp(req.headers)}`, 15, 60 * 60 * 1000)) {
+    return NextResponse.json({ error: 'Too many attempts from your connection. Please try again later.' }, { status: 429 })
+  }
   let token: string | undefined, email: string | undefined, password: string | undefined
   try {
     ({ token, email, password } = await req.json())
@@ -33,6 +38,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: gate.message, suggestion: gate.suggestion, problem: gate.problem }, { status: gate.status })
   }
   email = gate.email
+  // Admin addresses can never be claimed through a public sign-up route: these
+  // routes auto-confirm the address without proving ownership, so a free
+  // admin mailbox that had not registered yet could otherwise be taken over.
+  if (isAdminEmail(email)) {
+    return NextResponse.json({ error: 'An account with this email already exists. Please log in instead.' }, { status: 409 })
+  }
 
   const admin = createAdminClient()
 

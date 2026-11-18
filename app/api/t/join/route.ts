@@ -2,8 +2,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase-admin'
 import { saIdDigits, genderFromSaId } from '@/lib/sa-id'
+import { allow, clientIp } from '@/lib/rate-limit'
 
 export async function POST(req: NextRequest) {
+  if (!allow(`trainer-join-ip:${clientIp(req.headers)}`, 30, 60 * 60 * 1000)) {
+    return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 })
+  }
   const { trainer_id, name, email, phone, id_number } = await req.json()
   if (!trainer_id || !name || !email)
     return NextResponse.json({ error: 'trainer_id, name and email are required.' }, { status: 400 })

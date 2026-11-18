@@ -17,6 +17,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { gateEmail } from '@/lib/email-gate'
+import { safeNextPath } from '@/lib/safe-next'
 import { verifyTurnstile, CAPTCHA_MESSAGE } from '@/lib/turnstile'
 import { allow, secondsUntilAllowed, markAction, clientIp } from '@/lib/rate-limit'
 
@@ -40,10 +41,7 @@ const PER_NETWORK_PER_HOUR = 10
  */
 const RESET_ORIGIN = (process.env.AUTH_REDIRECT_ORIGIN || 'https://sa-learners-licence.vercel.app').replace(/\/+$/, '')
 
-function safeNext(raw: unknown): string | null {
-  if (typeof raw !== 'string' || !raw.startsWith('/') || raw.startsWith('//')) return null
-  return raw
-}
+const safeNext = safeNextPath
 
 export async function POST(req: NextRequest) {
   let body: { email?: unknown; captchaToken?: unknown; next?: unknown } = {}

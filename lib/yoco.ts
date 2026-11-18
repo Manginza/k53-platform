@@ -85,7 +85,12 @@ export async function getYocoCheckout(id: string): Promise<YocoCheckoutDetail | 
   const secretKey = process.env.YOCO_SECRET_KEY
   if (!secretKey) throw new Error('YOCO_SECRET_KEY is not set')
 
-  const res = await fetch(`${YOCO_API}/checkouts/${id}`, {
+  // The id can originate from a request body (confirm / claim). Never let it
+  // alter the URL path: a value like "../payments/x" would otherwise make this
+  // call another Yoco endpoint with our secret key.
+  if (typeof id !== 'string' || !/^[A-Za-z0-9_-]{1,128}$/.test(id)) return null
+
+  const res = await fetch(`${YOCO_API}/checkouts/${encodeURIComponent(id)}`, {
     headers: { Authorization: `Bearer ${secretKey}` },
   })
   if (!res.ok) return null

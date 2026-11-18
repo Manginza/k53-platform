@@ -7,7 +7,7 @@
  * It is switched on by configuration, not by code:
  *   - TURNSTILE_SECRET_KEY set  → every protected request must carry a valid token.
  *   - TURNSTILE_SECRET_KEY unset → the check is skipped, so the site keeps working
- *     until the keys are added. A warning is logged on every request.
+ *     until the keys are added. A warning is logged once per server instance.
  *
  * The matching site key is NEXT_PUBLIC_TURNSTILE_SITE_KEY, read by the page
  * when the site is built. Neither key is written in the code.
@@ -17,10 +17,17 @@ const VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify'
 
 export type TurnstileResult = { ok: true } | { ok: false; reason: string }
 
+let warnedUnconfigured = false
+
 export async function verifyTurnstile(token: unknown, ip?: string): Promise<TurnstileResult> {
   const secret = process.env.TURNSTILE_SECRET_KEY
   if (!secret) {
-    console.warn('[turnstile] TURNSTILE_SECRET_KEY is not set — CAPTCHA check skipped')
+    // Once per server instance: this runs on every sign-up, and repeating it
+    // made /api/auth/register the noisiest path in the production logs.
+    if (!warnedUnconfigured) {
+      warnedUnconfigured = true
+      console.warn('[turnstile] TURNSTILE_SECRET_KEY is not set — CAPTCHA check skipped (logged once per instance)')
+    }
     return { ok: true }
   }
   if (typeof token !== 'string' || token.length === 0 || token.length > 2048) {

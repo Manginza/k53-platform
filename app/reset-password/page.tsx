@@ -15,13 +15,10 @@
 import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { safeNextPath } from '@/lib/safe-next'
 import { createClient } from '@/lib/supabase-browser'
 
-function safeNext(raw: string | null): string | null {
-  if (!raw) return null
-  if (!raw.startsWith('/') || raw.startsWith('//')) return null
-  return raw
-}
+const safeNext = safeNextPath
 
 type Status = 'checking' | 'ready' | 'invalid' | 'updating' | 'done' | 'error'
 

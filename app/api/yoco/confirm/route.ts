@@ -35,6 +35,7 @@ export async function POST(req: NextRequest) {
   try {
     ({ checkoutId } = await req.json())
   } catch { /* body optional */ }
+  if (typeof checkoutId !== 'string') checkoutId = undefined
 
   console.log('[yoco/confirm] called', { userId: user.id, suppliedCheckoutId: Boolean(checkoutId) })
 

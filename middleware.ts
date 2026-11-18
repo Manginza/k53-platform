@@ -52,7 +52,21 @@ export async function middleware(request: NextRequest) {
   // still valid. The refreshed tokens are written back to the response
   // cookies via setAll above, so downstream server components and API routes
   // see a valid session instead of null.
-  await supabase.auth.getUser()
+  //
+  // A stale or revoked refresh token ("Refresh Token Not Found") makes this
+  // return an error rather than throw, and supabase-js clears the dead auth
+  // cookies through setAll above, so the visitor simply becomes signed-out.
+  // The try/catch makes that guarantee explicit: nothing about the session
+  // check may ever turn a page request into a 500. (The library also prints
+  // the AuthApiError to the console itself; that log line is expected and
+  // harmless — it appears once per stale cookie, then the cookie is gone.)
+  try {
+    await supabase.auth.getUser()
+  } catch (error) {
+    console.warn('[middleware] session refresh failed; continuing signed-out', {
+      error: error instanceof Error ? error.message : String(error),
+    })
+  }
 
   if (referralCode) {
     supabaseResponse.cookies.set(REF_COOKIE, referralCode, {
