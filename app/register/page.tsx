@@ -15,17 +15,13 @@
 import { Suspense, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { safeNextPath } from '@/lib/safe-next'
 import { createClient } from '@/lib/supabase-browser'
 import EmailSuggestion from '@/components/EmailSuggestion'
 import TurnstileWidget, { TURNSTILE_ENABLED } from '@/components/TurnstileWidget'
 import { checkEmail, normaliseEmail } from '@/lib/email-check'
 
-/** Only allow same-site paths when returning from registration. */
-function safeNext(raw: string | null): string | null {
-  if (!raw) return null
-  if (!raw.startsWith('/') || raw.startsWith('//')) return null
-  return raw
-}
+const safeNext = safeNextPath
 
 function RegisterForm() {
   const params = useSearchParams()

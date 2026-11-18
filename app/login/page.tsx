@@ -3,18 +3,11 @@
 import { Suspense, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { safeNextPath } from '@/lib/safe-next'
 import { createClient } from '@/lib/supabase-browser'
 import { isAdminEmail } from '@/lib/admin-emails'
 
-/**
- * Whitelist for the `next` param — only allow same-site paths so a poisoned
- * link can't route the user to an external site after login.
- */
-function safeNext(raw: string | null): string | null {
-  if (!raw) return null
-  if (!raw.startsWith('/') || raw.startsWith('//')) return null
-  return raw
-}
+const safeNext = safeNextPath
 
 /**
  * Map Supabase Auth error messages to something a paid user can act on.

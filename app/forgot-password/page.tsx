@@ -15,17 +15,14 @@
 import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { safeNextPath } from '@/lib/safe-next'
 import EmailSuggestion from '@/components/EmailSuggestion'
 import TurnstileWidget, { TURNSTILE_ENABLED } from '@/components/TurnstileWidget'
 import { checkEmail, normaliseEmail } from '@/lib/email-check'
 
 const RESEND_WAIT = 60
 
-function safeNext(raw: string | null): string | null {
-  if (!raw) return null
-  if (!raw.startsWith('/') || raw.startsWith('//')) return null
-  return raw
-}
+const safeNext = safeNextPath
 
 function ForgotPasswordForm() {
   const params = useSearchParams()
