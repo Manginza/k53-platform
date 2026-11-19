@@ -128,21 +128,31 @@ export const QUESTIONS_PDF_PATH = '/k53-questions-and-answers-pdf'
 /** CTA at the end of every section. */
 export const FULL_TEST_URL = '/register?trial=1'
 
-/** FAQPage JSON-LD: each sample question with its correct answer and reason. */
-export function questionsFaqSchema(pageUrl: string) {
+/**
+ * FAQPage JSON-LD: each sample question with its correct answer and reason,
+ * followed by any page-level FAQs (rendered verbatim on the page).
+ */
+export function questionsFaqSchema(pageUrl: string, pageFaqs: { question: string; answer: string }[] = []) {
   return {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
     url: pageUrl,
-    mainEntity: SAMPLE_SECTIONS.flatMap(section =>
-      section.questions.map(q => ({
+    mainEntity: [
+      ...SAMPLE_SECTIONS.flatMap(section =>
+        section.questions.map(q => ({
+          '@type': 'Question',
+          name: q.question,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: `${q.answer}: ${q.options[q.answer]}. ${q.reason}`,
+          },
+        })),
+      ),
+      ...pageFaqs.map(f => ({
         '@type': 'Question',
-        name: q.question,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: `${q.answer}: ${q.options[q.answer]}. ${q.reason}`,
-        },
+        name: f.question,
+        acceptedAnswer: { '@type': 'Answer', text: f.answer },
       })),
-    ),
+    ],
   }
 }
