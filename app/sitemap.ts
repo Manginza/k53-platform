@@ -2,6 +2,7 @@ import type { MetadataRoute } from 'next'
 import { BLOG_POSTS } from '@/lib/blog'
 import { PROVINCES } from '@/lib/directory'
 import { QUESTIONS_PATH, QUESTIONS_PDF_PATH } from '@/lib/k53-sample-questions'
+import { GUIDE_LIST } from '@/lib/guides'
 import { publicSelect } from '@/lib/supabase-public'
 import { absoluteUrl } from '@/lib/site'
 
@@ -21,6 +22,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: QUESTIONS_PATH, priority: 0.9, changeFrequency: 'monthly' },
     { path: QUESTIONS_PDF_PATH, priority: 0.7, changeFrequency: 'monthly' },
     { path: '/k53-learners-study-guide', priority: 0.9, changeFrequency: 'monthly' },
+    ...GUIDE_LIST.map(g => ({ path: g.path, priority: 0.8, changeFrequency: 'monthly' as const })),
     { path: '/courses', priority: 0.8, changeFrequency: 'weekly' },
     { path: '/centers', priority: 0.8, changeFrequency: 'weekly' },
     { path: '/driving-schools', priority: 0.7, changeFrequency: 'weekly' },
