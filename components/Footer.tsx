@@ -4,12 +4,13 @@
  */
 import Link from 'next/link'
 import { WHATSAPP_URL, ACCESS_PRICE, ACCESS_DURATION_DAYS } from '@/lib/contact'
+import { GUIDE_LIST } from '@/lib/guides'
 
 export default function Footer() {
   return (
     <footer className="relative bg-brand-950 text-gray-300 mt-16">
       <div className="section-container py-12 sm:py-14">
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           {/* Brand column */}
           <div className="lg:col-span-1">
             <div className="text-xl font-extrabold text-white tracking-tight">SK Driving</div>
@@ -48,6 +49,20 @@ export default function Footer() {
               <Link href="/blog" className="text-sm text-gray-400 hover:text-white transition-colors">Blog</Link>
             </div>
           </div>
+
+          {/* Learner's licence guides */}
+          <nav aria-labelledby="footer-guides-heading" className="lg:col-span-1">
+            <h4 id="footer-guides-heading" className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-4">Learner&apos;s Licence Guides</h4>
+            <ul className="flex flex-col gap-2.5">
+              {GUIDE_LIST.map(g => (
+                <li key={g.path}>
+                  <Link href={g.path} className="text-sm text-gray-400 hover:text-white transition-colors">{g.label}</Link>
+                </li>
+              ))}
+              <li><Link href="/k53-learners-study-guide" className="text-sm text-gray-400 hover:text-white transition-colors">K53 study guide</Link></li>
+              <li><Link href="/k53-questions-and-answers" className="text-sm text-gray-400 hover:text-white transition-colors">K53 questions &amp; answers</Link></li>
+            </ul>
+          </nav>
 
           {/* Company & legal */}
           <div className="lg:col-span-1">

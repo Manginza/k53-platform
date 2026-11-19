@@ -9,6 +9,7 @@ import Link from 'next/link'
 import CenterFinder from '@/components/CenterFinder'
 import { PROVINCES, mapsUrl, telHref, type Centre, type Province } from '@/lib/directory'
 import { absoluteUrl, breadcrumbSchema, jsonLd } from '@/lib/site'
+import { GUIDES, NATIS_BOOKING_URL } from '@/lib/guides'
 
 /** How many centres each province shows on the all-provinces page. */
 const PREVIEW_PER_PROVINCE = 6
@@ -226,11 +227,11 @@ export default function CentresDirectory({
           <h2 className="font-bold text-gray-900 mb-4">How to book your learner&apos;s writing centre test</h2>
           <ol className="space-y-3">
             {[
-              { n: '1', title: 'Book your slot', body: 'Gauteng & Eastern Cape: book online at eNaTIS. All other provinces: visit your nearest DLTC writing centre in person or phone them.' },
-              { n: '2', title: 'Confirm within 3 days', body: 'After booking online, you must visit the DLTC within 3 business days to pay the booking fee (approx. R108 in Gauteng, R68 in the Western Cape). Your slot is cancelled if you miss this window.' },
-              { n: '3', title: 'What to bring on the day', body: 'Original ID book or Smart ID card + 2 certified copies · 2–4 recent ID-sized photos · Proof of address (max 3 months old) · Completed Form LL1 · Proof of online booking (if applicable).' },
-              { n: '4', title: 'Pass the eye test', body: 'A vision screening is done at the DLTC on arrival. You can bring a certificate from a registered optometrist to skip the queue.' },
-              { n: '5', title: 'Write your K53 test', body: 'The computerised test has 64 questions across Road Signs (28), Rules of the Road (28), and Vehicle Controls (8). You must pass all three sections.' },
+              { n: '1', title: 'Book your slot', body: 'Gauteng: gov.za says all residents should book online on the official NaTIS portal (online.natis.gov.za). Other provinces: online availability varies, so phone or visit your nearest DLTC.' },
+              { n: '2', title: 'Pay and confirm at the DLTC', body: 'Gauteng online bookings have been described as needing a visit to the DLTC within 3 days to pay, or the slot is released — confirm the current rule when you book. Fees vary: official examples are R108 in the City of Johannesburg and R68 in the Western Cape.' },
+              { n: '3', title: 'What to bring', body: 'Your ID · two identical ID photos (confirm the number and colour with your DLTC) · proof of postal and residential address · the booking fee · your booking confirmation if you booked online. Take a copy of your ID in case your centre asks for one. You fill in form LL1 at the DLTC.' },
+              { n: '4', title: 'Pass the eye test', body: 'Your eyes are tested at the DLTC, or you can hand in the required form completed by a qualified optometrist.' },
+              { n: '5', title: 'Write your K53 test', body: 'The test has 64 questions: Road Signs (28), Rules of the Road (28) and Vehicle Controls (8). You must pass all three sections. Some centres, including all of those in the Western Cape, now use a computerised test.' },
             ].map(({ n, title, body }) => (
               <li key={n} className="flex items-start gap-3">
                 <span className="shrink-0 w-7 h-7 rounded-full bg-blue-700 text-white text-xs font-bold flex items-center justify-center">{n}</span>
@@ -241,17 +242,36 @@ export default function CentresDirectory({
               </li>
             ))}
           </ol>
+          <p className="mt-5 text-xs text-gray-500 leading-relaxed">
+            Full details:{' '}
+            <Link href={GUIDES.booking.path} className="font-semibold text-blue-600 hover:underline">how to book a learner&apos;s licence test</Link>
+            {' · '}
+            <Link href={GUIDES.cost.path} className="font-semibold text-blue-600 hover:underline">learner&apos;s licence cost and fees</Link>
+            {' · '}
+            <Link href={GUIDES.requirements.path} className="font-semibold text-blue-600 hover:underline">documents and requirements</Link>
+          </p>
+        </section>
+
+        {/* Waiting times */}
+        <section className="mt-6 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm" aria-labelledby="waiting-times-heading">
+          <h2 id="waiting-times-heading" className="font-bold text-gray-900 mb-2">How long is the wait for a learner&apos;s test date?</h2>
+          <p className="text-sm text-gray-600 leading-relaxed">
+            We could not find an official national waiting-time figure. Waits vary by centre and by time of year, so the
+            quickest way to find out is to phone the DLTC listed above, or, in Gauteng, check the available slots on the{' '}
+            <a href={NATIS_BOOKING_URL} target="_blank" rel="noopener noreferrer" className="font-semibold text-blue-600 hover:underline">NaTIS portal</a>.
+            If your nearest centre is fully booked, ask about other centres nearby.
+          </p>
         </section>
 
         {/* About writing centres */}
         <section className="mt-6 bg-blue-50 border border-blue-100 rounded-2xl p-6 text-sm text-blue-900">
           <h2 className="font-bold mb-2">About learner&apos;s licence writing centres (DLTCs)</h2>
           <p className="text-blue-800 leading-relaxed">
-            South Africa has over 190 official learner&apos;s licence writing centres, known as Driving Licence Testing Centres (DLTCs), regulated under the National Road Traffic Act. Online booking via the{' '}
-            <a href="https://online.natis.gov.za/#/auth/identify" target="_blank" rel="noopener noreferrer" className="underline font-semibold">
-              eNaTIS portal
+            South Africa has over 190 official learner&apos;s licence writing centres, known as Driving Licence Testing Centres (DLTCs), regulated under the National Road Traffic Act. The national government says all Gauteng residents should book online on the{' '}
+            <a href={NATIS_BOOKING_URL} target="_blank" rel="noopener noreferrer" className="underline font-semibold">
+              NaTIS portal
             </a>
-            {' '}is available in Gauteng (mandatory) and the Eastern Cape. All other provinces use walk-in or phone bookings at the writing centre.
+            . In other provinces, online booking is not available everywhere, so phone or visit the centre to ask how it takes bookings.
           </p>
         </section>
 
