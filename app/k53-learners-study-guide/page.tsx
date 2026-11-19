@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { GUIDES } from '@/lib/guides'
 
 const BASE_URL = 'https://www.skdriving.co.za'
 const PAGE_URL = `${BASE_URL}/k53-learners-study-guide`
@@ -7,7 +8,7 @@ const PAGE_URL = `${BASE_URL}/k53-learners-study-guide`
 export const metadata: Metadata = {
   title: "Free K53 Learners Study Guide South Africa",
   description:
-    "Free K53 learner's licence study guide: test sections and pass marks, Code 1, 2 and 3 age rules, booking checklist, a PDF summary and practice tests.",
+    "Free K53 learner's licence study guide: what each test section covers, how to study for your code, a free PDF summary and practice tests.",
   keywords: [
     'free K53 learners study guide',
     'K53 learners book PDF download',
@@ -15,7 +16,6 @@ export const metadata: Metadata = {
     'learners licence pass marks',
     'Code 1 Code 2 Code 3 learners licence',
     'Code 8 Code 10 Code 14 learners test',
-    'how to book learners licence test',
   ],
   alternates: { canonical: PAGE_URL },
   openGraph: {
@@ -23,12 +23,12 @@ export const metadata: Metadata = {
     url: PAGE_URL,
     title: 'Free K53 Learners Study Guide for South Africa',
     description:
-      "Study the K53 test sections, pass marks, licence categories and booking steps, then download SK Driving's free original PDF checklist.",
+      "Study the three K53 test sections, see how the test is marked, then download SK Driving's free original PDF summary and practise.",
   },
   twitter: {
     card: 'summary',
     title: 'Free K53 Learners Study Guide for South Africa',
-    description: 'Pass marks, categories, booking checklist, free PDF and practice tests from SK Driving.',
+    description: 'What to study for each K53 section, a free PDF summary and practice tests from SK Driving.',
   },
 }
 
@@ -51,7 +51,7 @@ const faqs = [
   {
     question: "How long is a South African learner's licence valid?",
     answer:
-      "A South African learner's licence is valid for 24 months from its issue date and cannot be extended.",
+      "A South African learner's licence is valid for 24 months from the day you pass the test, and it cannot be extended.",
   },
 ]
 
@@ -70,9 +70,9 @@ const webPageSchema = {
   name: 'Free K53 Learners Study Guide for South Africa',
   url: PAGE_URL,
   description:
-    "A free guide to South Africa's K53 learner's licence test, including pass marks, licence categories, booking steps and study resources.",
+    "A free guide to studying for South Africa's K53 learner's licence test: the three sections, how they are marked and study resources.",
   inLanguage: 'en-ZA',
-  dateModified: '2026-07-16',
+  dateModified: '2026-11-19',
   isPartOf: { '@type': 'WebSite', name: 'SK Driving', url: BASE_URL },
   publisher: { '@type': 'Organization', name: 'SK Driving', url: BASE_URL },
 }
@@ -106,8 +106,8 @@ export default function K53StudyGuidePage() {
             Free K53 Learners Study Guide for South Africa
           </h1>
           <p className="mt-5 max-w-3xl text-lg leading-relaxed text-blue-100">
-            Learn the three test sections, exact pass requirements, licence categories and booking steps.
-            Then use the free PDF summary and exam-style practice tests to prepare.
+            Learn what the three test sections cover and how they are marked. Then use the free PDF summary and
+            exam-style practice tests to prepare.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <a
@@ -156,77 +156,50 @@ export default function K53StudyGuidePage() {
         </section>
 
         <section aria-labelledby="pass-marks" className="mt-14 scroll-mt-20">
-          <h2 id="pass-marks" className="text-2xl font-extrabold text-gray-900 sm:text-3xl">K53 test questions and pass marks</h2>
+          <h2 id="pass-marks" className="text-2xl font-extrabold text-gray-900 sm:text-3xl">How the test is marked</h2>
           <p className="mt-4 leading-7 text-gray-600">
-            The test contains <strong>64 questions</strong>. Each section has its own minimum score.
+            The test has <strong>64 questions</strong>, and each section has its own minimum score: 22 out of 28 for Rules of
+            the Road, 23 out of 28 for Road Traffic Signs and 6 out of 8 for Vehicle Controls. Failing one section means
+            failing the test, so study all three. Road signs has the highest bar, so give it the most time.
           </p>
-          <div className="mt-6 overflow-x-auto rounded-2xl border border-gray-200">
-            <table className="w-full border-collapse text-left text-sm">
-              <caption className="sr-only">South African learner&apos;s licence test questions and minimum pass scores</caption>
-              <thead className="bg-blue-50 text-blue-950">
-                <tr>
-                  <th scope="col" className="px-5 py-4 font-bold">Test section</th>
-                  <th scope="col" className="px-5 py-4 font-bold">Questions</th>
-                  <th scope="col" className="px-5 py-4 font-bold">Minimum correct</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                <tr><th scope="row" className="px-5 py-4 font-semibold text-gray-900">Rules of the Road</th><td className="px-5 py-4">28</td><td className="px-5 py-4 font-bold">22 out of 28</td></tr>
-                <tr><th scope="row" className="px-5 py-4 font-semibold text-gray-900">Road Traffic Signs</th><td className="px-5 py-4">28</td><td className="px-5 py-4 font-bold">23 out of 28</td></tr>
-                <tr><th scope="row" className="px-5 py-4 font-semibold text-gray-900">Vehicle Controls</th><td className="px-5 py-4">8</td><td className="px-5 py-4 font-bold">6 out of 8</td></tr>
-              </tbody>
-            </table>
-          </div>
-          <p className="mt-5 rounded-xl border-l-4 border-yellow-400 bg-yellow-50 p-4 font-semibold text-gray-900">
-            You must pass all three sections. Failing one section means failing the test.
+          <p className="mt-3 leading-7 text-gray-600">
+            For the full breakdown, computerised testing and what happens if you fail, read{' '}
+            <Link href={GUIDES.test.path} className="font-semibold text-blue-700 hover:underline">
+              the learner&apos;s licence test: questions, pass mark and format
+            </Link>.
           </p>
         </section>
 
         <section aria-labelledby="licence-codes" className="mt-14 scroll-mt-20">
-          <h2 id="licence-codes" className="text-2xl font-extrabold text-gray-900 sm:text-3xl">Code 1, Code 2 and Code 3 learner&apos;s licences</h2>
+          <h2 id="licence-codes" className="text-2xl font-extrabold text-gray-900 sm:text-3xl">Study for the right code</h2>
           <p className="mt-4 leading-7 text-gray-600">
-            Choose the learner&apos;s licence category that matches the vehicle you plan to drive. Gross Vehicle Mass (GVM)
-            means the vehicle&apos;s maximum permitted mass when fully loaded.
-          </p>
-          <ul className="mt-6 space-y-4">
-            <li className="rounded-2xl bg-gray-50 p-5">
-              <h3 className="font-bold text-gray-900">Code 1 — motorcycles</h3>
-              <p className="mt-2 leading-7 text-gray-600">Minimum age 16 for a motorcycle of 125 cc or less, and 18 for a motorcycle over 125 cc.</p>
-            </li>
-            <li className="rounded-2xl bg-gray-50 p-5">
-              <h3 className="font-bold text-gray-900">Code 2 — light motor vehicles</h3>
-              <p className="mt-2 leading-7 text-gray-600">Minimum age 17. Covers a motor vehicle, minibus, bus or goods vehicle with a GVM not exceeding 3,500 kg.</p>
-            </li>
-            <li className="rounded-2xl bg-gray-50 p-5">
-              <h3 className="font-bold text-gray-900">Code 3 — heavy motor vehicles</h3>
-              <p className="mt-2 leading-7 text-gray-600">Minimum age 18. Covers motor vehicles with a GVM exceeding 3,500 kg.</p>
-            </li>
-          </ul>
-          <p className="mt-5 text-sm leading-6 text-gray-600">
-            <strong>About Code 8, Code 10 and Code 14:</strong> these are familiar market terms for driving licence
-            classes. People often use them when searching for learner material. The official learner&apos;s licence categories
-            shown during application are Code 1, Code 2 and Code 3, so confirm the correct category with your DLTC.
-          </p>
-          <p className="mt-3 text-sm leading-6 text-gray-600">
-            A learner&apos;s licence is valid for <strong>24 months</strong> and cannot be extended.
+            Make sure you know which learner&apos;s licence category you are writing before you study. The official learner&apos;s categories are Code 1 (motorcycles), Code 2 (light motor vehicles)
+            and Code 3 (heavier vehicles); &ldquo;Code 8&rdquo;, &ldquo;Code 10&rdquo; and &ldquo;Code 14&rdquo; are everyday
+            names for driving licences. See{' '}
+            <Link href={GUIDES.codes.path} className="font-semibold text-blue-700 hover:underline">learner&apos;s licence codes explained</Link>{' '}
+            for ages and which code to book.
           </p>
         </section>
 
         <section aria-labelledby="booking" className="mt-14 scroll-mt-20">
-          <h2 id="booking" className="text-2xl font-extrabold text-gray-900 sm:text-3xl">How to book your learner&apos;s licence test</h2>
-          <ol className="mt-6 space-y-4 pl-5 text-gray-600 [counter-reset:step]">
-            <li className="list-decimal pl-2 leading-7"><strong className="text-gray-900">Choose your category.</strong> Check that you meet the minimum age for Code 1, 2 or 3.</li>
-            <li className="list-decimal pl-2 leading-7"><strong className="text-gray-900">Book with a DLTC.</strong> Gauteng residents should apply through the official eNaTIS online portal. In other areas, online availability varies, so confirm with your local Driving Licence Testing Centre.</li>
-            <li className="list-decimal pl-2 leading-7"><strong className="text-gray-900">Prepare your documents.</strong> Take your ID, the required ID photographs, proof of postal and residential address, the booking fee and a completed LL1 application form. Confirm the number of photos with your DLTC.</li>
-            <li className="list-decimal pl-2 leading-7"><strong className="text-gray-900">Complete the eye test.</strong> The DLTC can test your eyesight, or you may submit the required form completed by a qualified optometrist.</li>
-            <li className="list-decimal pl-2 leading-7"><strong className="text-gray-900">Write the test.</strong> Bring your booking receipt and ID on the test date.</li>
-            <li className="list-decimal pl-2 leading-7"><strong className="text-gray-900">Pay the issue fee after passing.</strong> Booking and issue fees vary by DLTC or municipality; contact the centre for the current amount.</li>
-          </ol>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <a href="https://online.natis.gov.za/" target="_blank" rel="noopener noreferrer" className="font-semibold text-blue-700 hover:underline">Open the official eNaTIS portal</a>
-            <span aria-hidden="true" className="text-gray-300">•</span>
+          <h2 id="booking" className="text-2xl font-extrabold text-gray-900 sm:text-3xl">Booking, fees and validity</h2>
+          <p className="mt-4 leading-7 text-gray-600">
+            You book through the official NaTIS portal in Gauteng, or at your DLTC elsewhere, and write the test in person.
+            Once you pass, your learner&apos;s licence is valid for 24 months. These guides cover the details:
+          </p>
+          <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+            {[GUIDES.booking, GUIDES.cost, GUIDES.requirements, GUIDES.validity].map(g => (
+              <li key={g.path}>
+                <Link href={g.path} className="block rounded-xl border border-gray-200 p-4 hover:border-blue-400">
+                  <span className="block font-bold text-blue-700">{g.label}</span>
+                  <span className="mt-1 block text-sm text-gray-600">{g.teaser}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-4 text-sm text-gray-600">
             <Link href="/centers" className="font-semibold text-blue-700 hover:underline">Find a learner&apos;s licence testing centre near you</Link>
-          </div>
+          </p>
         </section>
 
         <section aria-labelledby="study-next" className="mt-14 rounded-3xl bg-blue-50 p-6 sm:p-8">
@@ -259,10 +232,10 @@ export default function K53StudyGuidePage() {
 
         <section aria-labelledby="sources" className="mt-14 border-t border-gray-200 pt-8">
           <h2 id="sources" className="text-lg font-bold text-gray-900">Official sources and review date</h2>
-          <p className="mt-3 text-sm leading-6 text-gray-600">This guide was reviewed on 16 July 2026. Requirements can change, so confirm local fees and photo requirements with your DLTC.</p>
+          <p className="mt-3 text-sm leading-6 text-gray-600">This guide was reviewed on 19 November 2026. Requirements can change, so confirm local fees and photo requirements with your DLTC.</p>
           <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-gray-600">
             <li><a href="https://www.gov.za/services/driving-licence/apply-learners-licence" target="_blank" rel="noopener noreferrer" className="text-blue-700 hover:underline">South African Government: Apply for a learner&apos;s licence</a></li>
-            <li><a href="https://www.natis.gov.za/images/learners/1_Rules_of_the_Road_v100_Jun_2012.pdf" target="_blank" rel="noopener noreferrer" className="text-blue-700 hover:underline">Department of Transport: SA Learner Driver Manual — Rules of the Road</a></li>
+            <li><a href="https://www.natis.gov.za/media/com_natisdownloads/files/1_Rules_of_the_Road_v100_Jun_2012-20260713-173225.pdf" target="_blank" rel="noopener noreferrer" className="text-blue-700 hover:underline">Department of Transport: SA Learner Driver Manual — Rules of the Road</a></li>
             <li><a href="https://www.gov.za/sites/default/files/gcis_document/201409/28446b.pdf" target="_blank" rel="noopener noreferrer" className="text-blue-700 hover:underline">National Road Traffic Regulations: learner&apos;s licence testing requirements</a></li>
           </ul>
         </section>
