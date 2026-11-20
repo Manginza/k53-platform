@@ -59,6 +59,34 @@ export async function userHasFullAccess(userId: string | null): Promise<boolean>
   return !data.expires_at || new Date(data.expires_at).getTime() > Date.now()
 }
 
+/**
+ * The account's own access grant, ignoring free promo windows (during a promo
+ * everyone "has access", but they may still want to buy). Used to stop people
+ * paying for access they already have.
+ *
+ * Returns null when there is no active grant. expiresAt null = lifetime.
+ */
+export async function activeGrant(userId: string): Promise<{ expiresAt: string | null } | null> {
+  const { data } = await createAdminClient()
+    .from('access_grants')
+    .select('expires_at')
+    .eq('user_id', userId)
+    .maybeSingle()
+  if (!data) return null
+  if (data.expires_at && new Date(data.expires_at).getTime() <= Date.now()) return null
+  return { expiresAt: data.expires_at ?? null }
+}
+
+/** A grant ending within this many days may be renewed early; otherwise buying is blocked. */
+export const RENEW_WINDOW_DAYS = 7
+
+/** True when an active grant has more than RENEW_WINDOW_DAYS left (or is lifetime). */
+export function grantBlocksPurchase(grant: { expiresAt: string | null } | null): boolean {
+  if (!grant) return false
+  if (!grant.expiresAt) return true
+  return new Date(grant.expiresAt).getTime() - Date.now() > RENEW_WINDOW_DAYS * 86_400_000
+}
+
 export interface GrantOptions {
   /**
    * When true, durationDays is ADDED to the remaining time of an active grant

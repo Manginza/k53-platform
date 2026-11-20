@@ -21,6 +21,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase-server'
 import { createAdminClient } from '@/lib/supabase-admin'
 import { getYocoCheckout } from '@/lib/yoco'
+import { activeGrant } from '@/lib/access'
 import { recordAffiliateCommission } from '@/lib/affiliate-attribution'
 import {
   appliedCheckoutIds, applyPaidCheckout, checkoutDurationDays, checkoutRejection, legacyCutoff,
@@ -101,6 +102,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ granted: true })
   }
 
+  // The checkout this visit is about: the one the browser just paid (if it is
+  // this account's), else the account's newest.
+  const ownSupplied = checkoutId && mappedCreatedAt.has(checkoutId) ? checkoutId : undefined
+  const focusId = ownSupplied ?? (sessions?.[0]?.checkout_id as string | undefined)
+  let focusStatus: string | null = null
+
   // Verify each with Yoco; grant on the first that is paid + belongs to the user.
   for (const cid of candidates) {
     const createdAt = mappedCreatedAt.get(cid)
@@ -120,6 +127,9 @@ export async function POST(req: NextRequest) {
       })
       continue
     }
+    // Remember what Yoco says about the checkout the buyer just came back
+    // from (or, without one, their newest), so the page can explain it.
+    if (cid === focusId) focusStatus = checkout?.status ?? null
     const rejection = checkoutRejection(checkout)
     if (rejection === 'not_paid') {
       console.warn('[yoco/confirm] checkout is not yet paid', {
@@ -182,6 +192,41 @@ export async function POST(req: NextRequest) {
     userId: user.id,
     candidateCount: candidates.length,
     suppliedCheckoutId: Boolean(checkoutId),
+    focusStatus,
   })
-  return NextResponse.json({ granted: false, pending: true })
+
+  // Facts for the success page, so it can say what is actually going on
+  // instead of waiting forever or claiming the payment was received.
+  //  - yocoStatus: Yoco's status for the checkout just paid ('started' means a
+  //    payment was tried but not completed, e.g. a declined card).
+  //  - otherAccount: the browser's checkout was started on a different
+  //    account (shared phone). Shown masked so they know which to log in with.
+  //  - activeUntil: this account already has access (not counting promos).
+  let otherAccount: string | null = null
+  if (checkoutId && !mappedCreatedAt.has(checkoutId)) {
+    const { data: owner } = await admin
+      .from('checkout_sessions').select('user_id').eq('checkout_id', checkoutId).maybeSingle()
+    if (owner?.user_id && owner.user_id !== user.id) {
+      const { data: ownerUser } = await admin.auth.admin.getUserById(owner.user_id as string)
+      otherAccount = maskEmail(ownerUser?.user?.email ?? null)
+    }
+  }
+  const grant = await activeGrant(user.id).catch(() => null)
+
+  return NextResponse.json({
+    granted: false,
+    pending: true,
+    yocoStatus: focusStatus,
+    otherAccount,
+    activeUntil: grant ? (grant.expiresAt ?? 'lifetime') : null,
+  })
+}
+
+/** "thabo.dlamini@gmail.com" -> "th•••••ni@gmail.com" */
+function maskEmail(email: string | null): string | null {
+  if (!email) return null
+  const [local, domain] = email.split('@')
+  if (!domain) return null
+  const shown = local.length <= 3 ? local.slice(0, 1) : `${local.slice(0, 2)}•••••${local.slice(-2)}`
+  return `${shown}@${domain}`
 }

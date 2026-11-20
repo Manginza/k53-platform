@@ -19,6 +19,7 @@ import { REF_COOKIE } from '@/lib/referral'
 import { attributionMetadata, resolveAffiliateAttribution } from '@/lib/affiliate-attribution'
 import { ACCESS_PRICE_CENTS } from '@/lib/contact'
 import { accessDurationDaysFor } from '@/lib/entitlement'
+import { activeGrant, grantBlocksPurchase } from '@/lib/access'
 
 /**
  * The base URL Yoco redirects back to MUST match the domain the buyer is on,
@@ -51,6 +52,17 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
     return NextResponse.json({ error: 'Please create an account or log in before paying.' }, { status: 401 })
+  }
+
+  // Don't take money for access the account already has. Renewing in the
+  // last RENEW_WINDOW_DAYS is still allowed (payments extend the end date).
+  const grant = await activeGrant(user.id).catch(() => null)
+  if (grantBlocksPurchase(grant)) {
+    return NextResponse.json({
+      alreadyActive: true,
+      activeUntil: grant?.expiresAt ?? 'lifetime',
+      error: 'You already have full access on this account, so there is nothing to pay.',
+    }, { status: 409 })
   }
 
   // Affiliate attribution from the referral cookie (no self-referrals).

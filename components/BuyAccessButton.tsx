@@ -34,6 +34,9 @@ export default function BuyAccessButton({
   const supabase = useMemo(() => createClient(), [])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  // Set when the server says this account already has access: shown instead
+  // of an error, with a way into the course, so nobody pays twice.
+  const [activeUntil, setActiveUntil] = useState<string | null>(null)
 
   // A customer grandfathered onto the longer plan must be quoted the window
   // they will actually be given, not the current standard one. The server
@@ -64,6 +67,11 @@ export default function BuyAccessButton({
         return
       }
       const body = await res.json()
+      if (res.status === 409 && body.alreadyActive) {
+        setActiveUntil(body.activeUntil ?? 'lifetime')
+        setLoading(false)
+        return
+      }
       if (!res.ok || !body.redirectUrl) throw new Error(body.error ?? 'Could not start payment.')
       if (body.checkoutId) {
         try { localStorage.setItem('sk_checkout', body.checkoutId) } catch {}
@@ -101,6 +109,25 @@ export default function BuyAccessButton({
     })()
     return () => { cancelled = true }
   }, [supabase, pay])
+
+  if (activeUntil) {
+    const until = activeUntil === 'lifetime'
+      ? null
+      : new Date(activeUntil).toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' })
+    return (
+      <div className={className}>
+        <div className="rounded-xl border-2 border-green-200 bg-green-50 p-4 text-center">
+          <p className="font-bold text-green-900">You already have full access ✅</p>
+          <p className="text-sm text-green-800 mt-1 mb-3">
+            {until ? <>Your access runs until <strong>{until}</strong>. There is nothing to pay.</> : 'There is nothing to pay.'}
+          </p>
+          <a href="/courses" className="block w-full bg-green-600 text-white font-bold py-3 rounded-xl hover:bg-green-700 transition-colors">
+            Go to the course
+          </a>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className={className}>

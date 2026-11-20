@@ -29,7 +29,24 @@ import { WHATSAPP_QUERIES_URL, WHATSAPP_LOGIN_URL, ACCESS_DURATION_DAYS } from '
 import { invalidateAccessCache } from '@/lib/access-cache'
 import LiveSessionCard from '@/components/LiveSessionCard'
 
-type Status = 'confirming' | 'done' | 'manual' | 'login_required'
+type Status = 'confirming' | 'done' | 'manual' | 'login_required' | 'not_paid' | 'already_active' | 'other_account'
+
+/**
+ * Yoco can take a few seconds to mark a fresh payment complete, so a checkout
+ * it still calls "started" is only treated as not paid after this long.
+ */
+const NOT_PAID_AFTER_MS = 30_000
+
+/** Yoco checkout states that mean no completed payment (yet). */
+const UNPAID_STATES = ['created', 'started', 'expired']
+
+/** Facts /api/yoco/confirm reports when it could not grant access. */
+interface Facts { yocoStatus: string | null; otherAccount: string | null; activeUntil: string | null }
+
+function formatUntil(value: string | null): string | null {
+  if (!value || value === 'lifetime') return null
+  try { return new Date(value).toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' }) } catch { return null }
+}
 
 /** Where a buyer should land again after logging in or resetting a password. */
 const RETURN_TO = '/subscribe/success'
@@ -69,7 +86,11 @@ export default function SubscribeSuccessPage() {
   const [grantError, setGrantError] = useState('')
   const [code, setCode] = useState('')
   const [claimedForAccount, setClaimedForAccount] = useState(false)
+  const [facts, setFacts] = useState<Facts>({ yocoStatus: null, otherAccount: null, activeUntil: null })
   const attempts = useRef(0)
+  const startedAt = useRef(Date.now())
+  // True once Yoco has confirmed the money: only then may the page say "Payment received".
+  const paymentConfirmed = useRef(false)
 
   /**
    * Finish the payment without a session and fetch its code. Safe to call more
@@ -108,6 +129,7 @@ export default function SubscribeSuccessPage() {
       }
       const body = await res.json()
       if (res.ok && body.granted) {
+        paymentConfirmed.current = true
         invalidateAccessCache()
         const verifyRes = await fetch('/api/me/access', { cache: 'no-store' })
         const verify = await verifyRes.json()
@@ -129,6 +151,28 @@ export default function SubscribeSuccessPage() {
         setStatus('manual')
         return
       }
+
+      // Not granted: use what the server knows to stop guessing.
+      if (body.pending) {
+        const f: Facts = {
+          yocoStatus: body.yocoStatus ?? null,
+          otherAccount: body.otherAccount ?? null,
+          activeUntil: body.activeUntil ?? null,
+        }
+        setFacts(f)
+        // This account already has access: nothing is missing. (Checked
+        // twice first, so a renewal that is completing right now still wins.)
+        if (f.activeUntil && attempts.current >= 2) { setStatus('already_active'); return }
+        // The checkout in this browser was started on another account.
+        if (f.otherAccount && !f.activeUntil) { void claim(); setStatus('other_account'); return }
+        // Yoco says the payment was not completed (declined card, bank
+        // approval not finished, or never paid) and it has had time to update.
+        if (f.yocoStatus && UNPAID_STATES.includes(f.yocoStatus) && Date.now() - startedAt.current >= NOT_PAID_AFTER_MS) {
+          void claim()
+          setStatus('not_paid')
+          return
+        }
+      }
       if (body.error) {
         console.error('[subscribe/success] confirm error:', body.error)
       }
@@ -140,6 +184,15 @@ export default function SubscribeSuccessPage() {
   }, [router, claim])
 
   useEffect(() => { confirm() }, [confirm])
+
+  /** Check again from the start, with a fresh grace period. */
+  const restart = useCallback(() => {
+    attempts.current = 0
+    startedAt.current = Date.now()
+    setGrantError('')
+    setStatus('confirming')
+    void confirm()
+  }, [confirm])
 
   return (
     <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
@@ -170,11 +223,13 @@ export default function SubscribeSuccessPage() {
         {status === 'login_required' && (
           <>
             <div className="text-5xl mb-4">🔐</div>
-            <h1 className="text-2xl font-extrabold text-gray-900 mb-2">Payment received</h1>
+            <h1 className="text-2xl font-extrabold text-gray-900 mb-2">
+              {claimedForAccount ? 'Payment received' : 'Please log in to finish'}
+            </h1>
             <p className="text-sm text-gray-500 mb-4">
               {claimedForAccount
                 ? <>Your {ACCESS_DURATION_DAYS} days are unlocked on the account you paid with. You were signed out while paying, so log back in to use it.</>
-                : <>You were signed out while paying. Log in with the email you paid with and your access will be unlocked automatically.</>}
+                : <>You were signed out while paying. Log in with the email you paid with and we&apos;ll check your payment. If it went through, your access unlocks automatically.</>}
             </p>
 
             {code && <AccessCode code={code} />}
@@ -190,14 +245,85 @@ export default function SubscribeSuccessPage() {
           </>
         )}
 
-        {status === 'manual' && (
+        {status === 'not_paid' && (
+          <>
+            <div className="text-5xl mb-4">💳</div>
+            <h1 className="text-2xl font-extrabold text-gray-900 mb-2">Your payment didn&apos;t go through</h1>
+            <p className="text-sm text-gray-600 mb-3">
+              Yoco, our card payment provider, has not confirmed a payment for this attempt. Usually the card was
+              declined, or the bank&apos;s approval step (an OTP or a notification in your banking app) was not finished.
+            </p>
+            <div className="text-left rounded-xl bg-blue-50 border border-blue-200 p-4 mb-4">
+              <p className="text-sm font-bold text-blue-900 mb-1">Before you try again</p>
+              <ul className="text-sm text-blue-900 list-disc pl-5 space-y-1">
+                <li>Use a card that is enabled for online payments.</li>
+                <li>Keep your phone close and approve the bank&apos;s OTP or app notification.</li>
+                <li>Make sure there is at least the full amount available.</li>
+              </ul>
+            </div>
+            <p className="text-xs text-gray-500 mb-5">
+              Money left your account anyway? Wait 10 minutes and tap <strong>Check again</strong>. A completed payment
+              unlocks your access by itself.
+            </p>
+            <div className="flex flex-col gap-3">
+              <Link href="/pricing?pay=1" className="block w-full bg-blue-700 text-white font-bold py-3 rounded-xl hover:bg-blue-800 transition-colors text-center">Try paying again</Link>
+              <button onClick={restart} className="block w-full border-2 border-blue-200 text-blue-700 font-semibold py-3 rounded-xl hover:border-blue-400 transition-colors">Check again</button>
+              <a href={WHATSAPP_QUERIES_URL} target="_blank" rel="noopener noreferrer" className="block w-full text-sm text-gray-500 hover:text-gray-700 underline underline-offset-2 py-1 text-center">
+                Need help? Message us on WhatsApp
+              </a>
+            </div>
+          </>
+        )}
+
+        {status === 'already_active' && (
           <>
             <div className="text-5xl mb-4">✅</div>
-            <h1 className="text-2xl font-extrabold text-gray-900 mb-2">Payment received</h1>
+            <h1 className="text-2xl font-extrabold text-gray-900 mb-2">You already have full access</h1>
+            <p className="text-sm text-gray-600 mb-5">
+              {formatUntil(facts.activeUntil)
+                ? <>Your access on this account runs until <strong>{formatUntil(facts.activeUntil)}</strong>. There is nothing to pay.</>
+                : <>Your access on this account is active. There is nothing to pay.</>}
+              {' '}If you have just paid to renew, the extra days are added by themselves.
+            </p>
+            {facts.otherAccount && (
+              <p className="text-xs text-gray-500 mb-5">
+                A payment was also started on this phone for another account,{' '}
+                <strong className="font-mono">{facts.otherAccount}</strong>. You don&apos;t need it for this account.
+              </p>
+            )}
+            <Link href="/courses" className="block w-full bg-blue-700 text-white font-bold py-3 rounded-xl hover:bg-blue-800 transition-colors text-center">Go to the course →</Link>
+          </>
+        )}
+
+        {status === 'other_account' && (
+          <>
+            <div className="text-5xl mb-4">👤</div>
+            <h1 className="text-2xl font-extrabold text-gray-900 mb-2">This payment belongs to another account</h1>
+            <p className="text-sm text-gray-600 mb-5">
+              The checkout on this phone was started while logged in as{' '}
+              <strong className="font-mono">{facts.otherAccount}</strong>, but you are now logged in with a different
+              account. Log in as <strong className="font-mono">{facts.otherAccount}</strong> to see that payment.
+            </p>
+            {code && <AccessCode code={code} />}
+            <div className="flex flex-col gap-3">
+              <Link href={`/login?next=${encodeURIComponent(RETURN_TO)}`} className="block w-full bg-blue-700 text-white font-bold py-3 rounded-xl hover:bg-blue-800 transition-colors text-center">Log in with that account</Link>
+              <Link href="/courses" className="block text-gray-500 font-medium py-2 hover:text-gray-700 text-sm text-center">Stay on this account</Link>
+            </div>
+          </>
+        )}
+
+        {status === 'manual' && (
+          <>
+            <div className="text-5xl mb-4">{paymentConfirmed.current || grantError.startsWith('Payment verified') ? '✅' : '⏳'}</div>
+            <h1 className="text-2xl font-extrabold text-gray-900 mb-2">
+              {paymentConfirmed.current || grantError.startsWith('Payment verified') ? 'Payment received' : 'Still checking your payment'}
+            </h1>
             <p className="text-sm text-gray-500 mb-2">
               {grantError
                 ? grantError
-                : <>Your payment is safe and your {ACCESS_DURATION_DAYS} days are held against your account.</>}
+                : paymentConfirmed.current
+                  ? <>Your payment is safe and your {ACCESS_DURATION_DAYS} days are held against your account.</>
+                  : <>Yoco has not finished processing this payment yet. If it goes through, your access unlocks by itself.</>}
             </p>
             <p className="text-sm text-gray-500 mb-5">
               Access unlocks by itself, usually within a few minutes. You do not need to message anyone.
@@ -208,7 +334,7 @@ export default function SubscribeSuccessPage() {
             {code && <AccessCode code={code} />}
 
             <div className="flex flex-col gap-3">
-              <button onClick={() => { attempts.current = 0; setGrantError(''); setStatus('confirming'); confirm() }} className="block w-full bg-blue-700 text-white font-bold py-3 rounded-xl hover:bg-blue-800 transition-colors">Unlock my access</button>
+              <button onClick={restart} className="block w-full bg-blue-700 text-white font-bold py-3 rounded-xl hover:bg-blue-800 transition-colors">Unlock my access</button>
               <Link href={code ? `/access-code?code=${encodeURIComponent(code)}` : '/access-code'} className="block border-2 border-blue-200 text-blue-700 font-semibold py-3 rounded-xl hover:border-blue-400 transition-colors text-center">Use my access code</Link>
               <a href={WHATSAPP_LOGIN_URL} target="_blank" rel="noopener noreferrer" className="block border-2 border-green-500 text-green-700 font-semibold py-3 rounded-xl hover:bg-green-50 transition-colors text-center">Retrieve login</a>
               <Link href="/courses" className="block text-gray-500 font-medium py-2 hover:text-gray-700 text-sm text-center">Go to courses</Link>
