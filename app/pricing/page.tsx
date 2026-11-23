@@ -2,11 +2,12 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { canonical, jsonLd } from '@/lib/site'
 import BuyAccessButton from '@/components/BuyAccessButton'
+import TrackOnView from '@/components/TrackOnView'
 import { createClient } from '@/lib/supabase-server'
 import { createAdminClient } from '@/lib/supabase-admin'
 import { accessDurationDaysFor } from '@/lib/entitlement'
 import {
-  WHATSAPP_URL, WHATSAPP_QUERIES_URL, ACCESS_PRICE, ACCESS_PRICE_ORIGINAL,
+  WHATSAPP_URL, WHATSAPP_QUERIES_URL, ACCESS_PRICE, ACCESS_PRICE_CENTS, ACCESS_PRICE_ORIGINAL,
   ACCESS_DISCOUNT_LABEL, ACCESS_DURATION_DAYS,
 } from '@/lib/contact'
 
@@ -70,11 +71,12 @@ export default async function PricingPage({
   return (
     <main className="bg-gray-50 min-h-screen">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(productSchema) }} />
+      <TrackOnView event="view_item" params={{ item_name: 'full_access', value: ACCESS_PRICE_CENTS / 100, currency: 'ZAR' }} />
       <div className="bg-blue-700 text-white py-14 px-4 text-center">
         <span className="text-xs font-bold tracking-widest uppercase text-blue-200 block mb-3">SK Driving</span>
         <h1 className="text-3xl sm:text-4xl font-extrabold mb-3 leading-tight">K53 Full Access Pricing</h1>
         <p className="text-blue-100 text-base sm:text-lg max-w-xl mx-auto">
-          Try any test free for 2 minutes. Unlock everything for{' '}
+          Try any test free first. Unlock everything for{' '}
           <span className="line-through opacity-60 mr-1">{ACCESS_PRICE_ORIGINAL}</span>
           <span className="font-extrabold text-white">{ACCESS_PRICE}</span>.
         </p>
@@ -129,6 +131,7 @@ export default async function PricingPage({
             href={WHATSAPP_URL}
             target="_blank"
             rel="noopener noreferrer"
+            data-track-location="pricing"
             className="flex items-center justify-center gap-2 w-full border-2 border-green-600 text-green-700 font-semibold py-3 rounded-xl hover:bg-green-50 transition-colors"
           >
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">

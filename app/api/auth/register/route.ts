@@ -15,6 +15,7 @@ import { createAdminClient } from '@/lib/supabase-admin'
 import { resolveAffiliateAttribution } from '@/lib/affiliate-attribution'
 import { REF_COOKIE } from '@/lib/referral'
 import { gateEmail } from '@/lib/email-gate'
+import { clientIdFromCookieHeader } from '@/lib/ga-server'
 import { isAdminEmail } from '@/lib/admin-emails'
 import { verifyTurnstile, CAPTCHA_MESSAGE } from '@/lib/turnstile'
 import { allow, clientIp } from '@/lib/rate-limit'
@@ -52,7 +53,14 @@ export async function POST(req: NextRequest) {
   if (!captcha.ok) return NextResponse.json({ error: CAPTCHA_MESSAGE, problem: 'captcha' }, { status: 400 })
 
   const admin = createAdminClient()
-  const { data: created, error } = await admin.auth.admin.createUser({ email, password, email_confirm: true })
+  // Remember the visitor's Google Analytics id on the account, so a sale made
+  // later over WhatsApp (granted by us, with no browser involved) can still be
+  // credited to the visit that brought them here.
+  const gaClientId = clientIdFromCookieHeader(req.headers.get('cookie'))
+  const { data: created, error } = await admin.auth.admin.createUser({
+    email, password, email_confirm: true,
+    ...(gaClientId ? { user_metadata: { ga_client_id: gaClientId } } : {}),
+  })
   if (error || !created.user) {
     const message = error?.message ?? 'Could not create the account.'
     const dup = /registered|already|exists/i.test(message)

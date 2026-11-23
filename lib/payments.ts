@@ -33,6 +33,7 @@ import {
 } from '@/lib/contact'
 import { mintCodeForCheckout, type MintedCode } from '@/lib/access-codes'
 import { sendAccessCodeEmail } from '@/lib/access-code-email'
+import { sendGaEvent, purchaseEvent } from '@/lib/ga-server'
 
 type AdminClient = ReturnType<typeof createAdminClient>
 
@@ -195,6 +196,20 @@ export async function applyPaidCheckout(
 
   try {
     const { expiresAt } = await grantAccess(userId, checkoutDurationDays(checkout), 'payment', { extend: true })
+    // Tell Google Analytics about the sale. Only the caller that wins the
+    // ledger claim above reaches this line, so each payment is reported once,
+    // however many routes (webhook, confirm, claim, recovery) race to apply it.
+    // Never awaited for its result and never allowed to fail the sale.
+    void sendGaEvent({
+      event: purchaseEvent({
+        transactionId: checkoutId,
+        valueRand: (checkout.amount ?? ACCESS_PRICE_CENTS) / 100,
+        days: checkoutDurationDays(checkout),
+        via: 'card',
+      }),
+      clientId: checkout.metadata?.gaClientId ?? null,
+      userId,
+    })
     return { status: 'granted', expiresAt }
   } catch (error) {
     // Release the claim so the payment isn't stranded as "applied" with no grant.

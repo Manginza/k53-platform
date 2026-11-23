@@ -20,6 +20,7 @@ import { attributionMetadata, resolveAffiliateAttribution } from '@/lib/affiliat
 import { ACCESS_PRICE_CENTS } from '@/lib/contact'
 import { accessDurationDaysFor } from '@/lib/entitlement'
 import { activeGrant, grantBlocksPurchase } from '@/lib/access'
+import { clientIdFromCookieHeader } from '@/lib/ga-server'
 
 /**
  * The base URL Yoco redirects back to MUST match the domain the buyer is on,
@@ -65,6 +66,8 @@ export async function POST(req: NextRequest) {
     }, { status: 409 })
   }
 
+  const gaClientId = clientIdFromCookieHeader(req.headers.get('cookie'))
+
   // Affiliate attribution from the referral cookie (no self-referrals).
   const admin = createAdminClient()
   let affiliateMeta: Record<string, string> = {}
@@ -104,7 +107,13 @@ export async function POST(req: NextRequest) {
       successUrl: `${BASE_URL}/subscribe/success`,
       cancelUrl:  `${BASE_URL}/pricing`,
       failureUrl: `${BASE_URL}/subscribe/failed`,
-      metadata: { userId: user.id, durationDays: String(durationDays), product: `full-access-${durationDays}day`, ...affiliateMeta },
+      metadata: {
+        userId: user.id, durationDays: String(durationDays), product: `full-access-${durationDays}day`, ...affiliateMeta,
+        // The visitor's Google Analytics id, so the purchase is credited to
+        // the same visit (and traffic source) that led to it. Absent when the
+        // visitor declined analytics cookies.
+        ...(gaClientId ? { gaClientId } : {}),
+      },
     })
 
     // Map the checkout to this account so access can be granted on return even

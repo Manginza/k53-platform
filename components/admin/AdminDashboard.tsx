@@ -207,12 +207,15 @@ export default function AdminDashboard({
   const [grants, setGrants] = useState(initialGrants)
   const [gEmail, setGEmail] = useState(''); const [gPassword, setGPassword] = useState(''); const [gDays, setGDays] = useState(60)
   const [gBusy, setGBusy] = useState(false); const [gErr, setGErr] = useState(''); const [gOk, setGOk] = useState('')
+  // Tick when the member paid us (WhatsApp / EFT): it is then counted as a sale
+  // in Google Analytics. Untick for free passes and support fixes.
+  const [gSale, setGSale] = useState(true)
   async function grant(e: React.FormEvent) {
     e.preventDefault(); setGBusy(true); setGErr(''); setGOk('')
     try {
       const res = await fetch('/api/admin/grant', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: gEmail, password: gPassword || undefined, durationDays: gDays }),
+        body: JSON.stringify({ email: gEmail, password: gPassword || undefined, durationDays: gDays, countAsSale: gSale }),
       })
       const body = await res.json(); if (!res.ok) throw new Error(body.error ?? 'Could not grant access.')
       setGrants(g => [body.grant, ...g.filter(x => x.user_id !== body.grant.user_id)])
@@ -611,6 +614,11 @@ export default function AdminDashboard({
               {gBusy ? 'Working…' : gPassword ? 'Create & grant' : 'Grant access'}
             </button>
           </form>
+          <label className="flex items-center gap-2 mt-3 text-sm text-gray-700 select-none">
+            <input type="checkbox" checked={gSale} onChange={e => setGSale(e.target.checked)} className="w-4 h-4" />
+            This member paid us (WhatsApp / EFT): count it as a sale in Google Analytics
+          </label>
+          <p className="text-xs text-gray-400 mt-1 ml-6">Untick for free passes, trainers and support fixes.</p>
           {gErr && <p className="text-red-500 text-sm mt-2">{gErr}</p>}
           {gOk && <p className="text-green-600 text-sm mt-2">{gOk}</p>}
         </div>

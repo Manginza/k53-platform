@@ -20,6 +20,7 @@ import { createClient } from '@/lib/supabase-browser'
 import EmailSuggestion from '@/components/EmailSuggestion'
 import TurnstileWidget, { TURNSTILE_ENABLED } from '@/components/TurnstileWidget'
 import { checkEmail, normaliseEmail } from '@/lib/email-check'
+import { track } from '@/lib/analytics'
 
 const safeNext = safeNextPath
 
@@ -77,6 +78,7 @@ function RegisterForm() {
         throw new Error(body.error ?? 'Could not create your account.')
       }
 
+      track('sign_up', { method: 'email', source: token ? 'signup_link' : trial ? 'each_once' : 'open' })
       const { error: signInErr } = await createClient().auth.signInWithPassword({ email: check.email, password })
       if (signInErr) { window.location.assign('/login'); return }
 

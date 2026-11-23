@@ -11,6 +11,7 @@ import LearnPanel from '@/components/learn/LearnPanel'
 import { useQuestionAttempt } from '@/components/learn/useQuestionAttempt'
 import type { QuestionExplanation } from '@/lib/learn-mode-logic'
 import { isMotorcycleQuestion, MOTORCYCLE_CONTROLS } from '@/lib/quiz-format'
+import { track } from '@/lib/analytics'
 
 type Option    = 'A' | 'B' | 'C'
 type AnswerMap = Record<number, Option>
@@ -535,6 +536,8 @@ export default function QuizClient({ questions, courseTitle, courseId, testNumbe
       .then(d => {
         if (cancelled || d.unlimited) return
         if (d.status === 'used' || d.status === 'blocked_ip') { window.location.reload(); return }
+        // First time only: resuming a running attempt is not a new trial.
+        if (d.status === 'available') track('trial_start', { course_id: courseId, test_number: testNumber })
         if (typeof d.seconds === 'number') setSecondsLeft(s => Math.min(s, d.seconds))
       })
       .catch(() => {})

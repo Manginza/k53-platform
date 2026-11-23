@@ -9,6 +9,7 @@
  */
 import Link from 'next/link'
 import BuyAccessButton from '@/components/BuyAccessButton'
+import TrackOnView from '@/components/TrackOnView'
 import { WHATSAPP_URL, ACCESS_PRICE, ACCESS_PRICE_ORIGINAL, ACCESS_DURATION_DAYS } from '@/lib/contact'
 
 const FEATURES = [
@@ -21,7 +22,8 @@ const FEATURES = [
 
 export default function QuizPaywall({ courseId, trialCta = false }: { courseId: number; trialCta?: boolean }) {
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-10">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-10" data-track-location="paywall">
+      <TrackOnView event="paywall_view" params={{ course_id: courseId }} />
       <div className="bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden">
 
         {/* Header */}

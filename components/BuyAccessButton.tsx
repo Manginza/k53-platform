@@ -15,7 +15,8 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
-import { ACCESS_PRICE, ACCESS_PRICE_ORIGINAL, ACCESS_DURATION_DAYS } from '@/lib/contact'
+import { ACCESS_PRICE, ACCESS_PRICE_CENTS, ACCESS_PRICE_ORIGINAL, ACCESS_DURATION_DAYS } from '@/lib/contact'
+import { track } from '@/lib/analytics'
 import { getAccessStatus } from '@/lib/access-cache'
 
 export default function BuyAccessButton({
@@ -76,6 +77,9 @@ export default function BuyAccessButton({
       if (body.checkoutId) {
         try { localStorage.setItem('sk_checkout', body.checkoutId) } catch {}
       }
+      // A real checkout now exists (not just a click), so this is the true
+      // "started paying" count. Sent as a beacon so it survives the redirect.
+      track('begin_checkout', { value: ACCESS_PRICE_CENTS / 100, currency: 'ZAR', page: window.location.pathname })
       window.location.href = body.redirectUrl
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not start payment. Please try WhatsApp.')

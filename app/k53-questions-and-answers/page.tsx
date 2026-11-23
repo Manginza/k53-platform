@@ -75,10 +75,10 @@ export default function K53QuestionsPage() {
             you can practise online, on your phone, with no login.
           </p>
           <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
-            <Link href={QUESTIONS_PDF_PATH} className="bg-white text-brand-700 font-bold px-6 py-3 rounded-full text-sm hover:bg-blue-50">
+            <Link href={QUESTIONS_PDF_PATH} data-track="pdf_download" data-track-location="qa_hero" className="bg-white text-brand-700 font-bold px-6 py-3 rounded-full text-sm hover:bg-blue-50">
               Printable version / Save as PDF
             </Link>
-            <Link href={FULL_TEST_URL} className="bg-green-500 hover:bg-green-400 text-white font-bold px-6 py-3 rounded-full text-sm">
+            <Link href={FULL_TEST_URL} data-track="cta_click" data-track-location="qa_hero" className="bg-green-500 hover:bg-green-400 text-white font-bold px-6 py-3 rounded-full text-sm">
               Take the full timed test
             </Link>
           </div>
@@ -132,7 +132,7 @@ export default function K53QuestionsPage() {
               <p className="flex-1 text-sm text-brand-900">
                 Ready for the real format? Practise under time pressure with full-length K53 tests, scored by section.
               </p>
-              <Link href={FULL_TEST_URL} className="shrink-0 btn-primary px-6 py-3 text-sm text-center">
+              <Link href={FULL_TEST_URL} data-track="cta_click" data-track-location="qa_section" className="shrink-0 btn-primary px-6 py-3 text-sm text-center">
                 Take the full timed test
               </Link>
             </div>

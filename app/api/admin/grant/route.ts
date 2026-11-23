@@ -15,7 +15,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getAdminUser } from '@/lib/admin'
 import { createAdminClient } from '@/lib/supabase-admin'
 import { grantAccess } from '@/lib/access'
-import { ACCESS_DURATION_DAYS } from '@/lib/contact'
+import { ACCESS_DURATION_DAYS, ACCESS_PRICE_CENTS } from '@/lib/contact'
+import { sendGaEvent, purchaseEvent } from '@/lib/ga-server'
 import { gateEmail } from '@/lib/email-gate'
 
 export async function POST(req: NextRequest) {
@@ -25,10 +26,12 @@ export async function POST(req: NextRequest) {
   let email = ''
   let password = ''
   let durationDays = ACCESS_DURATION_DAYS
+  let countAsSale = false
   try {
     const b = await req.json()
     email = (b.email ?? '').toString().trim().toLowerCase()
     password = (b.password ?? '').toString()
+    countAsSale = b.countAsSale === true
     if (b.durationDays != null && Number(b.durationDays) > 0) durationDays = Math.floor(Number(b.durationDays))
   } catch { /* defaults */ }
 
@@ -97,6 +100,23 @@ export async function POST(req: NextRequest) {
     )
   }
   const expires = new Date(Date.now() + durationDays * 24 * 60 * 60 * 1000).toISOString()
+
+  // A WhatsApp / EFT sale: the admin ticked "this member paid us". Reported to
+  // Google Analytics as `whatsapp_purchase`, credited to the visit that
+  // created the account when we saved its analytics id at sign-up.
+  if (countAsSale) {
+    const gaClientId = (target.user_metadata as { ga_client_id?: string } | undefined)?.ga_client_id ?? null
+    void sendGaEvent({
+      event: purchaseEvent({
+        transactionId: `wa-${target.id}-${Date.now()}`,
+        valueRand: ACCESS_PRICE_CENTS / 100,
+        days: durationDays,
+        via: 'whatsapp',
+      }),
+      clientId: gaClientId,
+      userId: target.id,
+    })
+  }
 
   return NextResponse.json({
     ok: true,

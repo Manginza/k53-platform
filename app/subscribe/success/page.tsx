@@ -28,6 +28,7 @@ import Link from 'next/link'
 import { WHATSAPP_QUERIES_URL, WHATSAPP_LOGIN_URL, ACCESS_DURATION_DAYS } from '@/lib/contact'
 import { invalidateAccessCache } from '@/lib/access-cache'
 import LiveSessionCard from '@/components/LiveSessionCard'
+import TrackOnView from '@/components/TrackOnView'
 
 type Status = 'confirming' | 'done' | 'manual' | 'login_required' | 'not_paid' | 'already_active' | 'other_account'
 
@@ -247,6 +248,7 @@ export default function SubscribeSuccessPage() {
 
         {status === 'not_paid' && (
           <>
+            <TrackOnView event="payment_failed_view" params={{ yoco_status: facts.yocoStatus ?? 'unknown' }} />
             <div className="text-5xl mb-4">💳</div>
             <h1 className="text-2xl font-extrabold text-gray-900 mb-2">Your payment didn&apos;t go through</h1>
             <p className="text-sm text-gray-600 mb-3">
