@@ -138,8 +138,8 @@ interface Props {
   /** Use separate K53 section pass marks instead of one combined percentage. */
   splitScoring?: boolean
   /**
-   * Set when this is the learner's free Each Once first attempt: seconds left
-   * of its 10 minutes. The attempt is claimed on mount via /api/trial/start.
+   * Set when this is the learner's free Each Once attempt: seconds left of
+   * its 2 minutes. The attempt is claimed on mount via /api/trial/start.
    */
   trialSeconds?: number
   /** Offer the free Each Once registration on the paywall (Code 8 / 10). */
@@ -515,8 +515,8 @@ export default function QuizClient({ questions, courseTitle, courseId, testNumbe
   // For free users the starting value comes from the server (initialSeconds)
   // and is reconciled with /api/quiz/session on mount so the window can't be
   // reset by reloading or editing the client timer.
-  // A free Each Once first attempt runs for 10 minutes (trialSeconds); the
-  // second attempt is the ordinary 2-minute sample (initialSeconds).
+  // A free Each Once attempt runs for 2 minutes (trialSeconds); visitors who
+  // are not registered get the same 2-minute sample (initialSeconds).
   const totalSeconds = isPremium ? questions.length * 60 : isTrial ? trialSeconds! : (initialSeconds ?? FREE_SECONDS)
   const [secondsLeft, setSecondsLeft] = useState(totalSeconds)
   const [lockedOut,   setLockedOut]   = useState(false)

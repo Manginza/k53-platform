@@ -1,11 +1,9 @@
 /**
  * lib/trial.ts — "Each Once" free trial (server-only).
  *
- * A registered learner WITHOUT paid access gets two free goes at each Code 8
- * and Code 10 practice test:
- *   1st attempt: 10 minutes (TRIAL_MAX_SECONDS), recorded here;
- *   2nd attempt: the ordinary 2-minute sample (lib/quiz-session.ts).
- * After that the test shows the combined score and the offer to buy access.
+ * A registered learner WITHOUT paid access gets ONE free go at each Code 8
+ * and Code 10 practice test, capped at 2 minutes (TRIAL_MAX_SECONDS). After
+ * that the test shows their combined score and the offer to buy access.
  *
  * Anti-abuse: each claim is stored in `trial_attempts` (migration 25) with the
  * account email and the IP address it came from. A course's trial is refused
@@ -34,10 +32,10 @@ export const TRIAL_MAX_ACCOUNTS_PER_IP = 1
 /** Exam-style pace, same as paid tests: 1 minute per question. */
 export const TRIAL_SECONDS_PER_QUESTION = 60
 
-/** The free first attempt is capped at 10 minutes. */
-export const TRIAL_MAX_SECONDS = 10 * 60
+/** The free attempt is capped at 2 minutes. */
+export const TRIAL_MAX_SECONDS = 2 * 60
 
-/** Length of a learner's free first attempt at a test with this many questions. */
+/** Length of a learner's free attempt at a test with this many questions. */
 export function trialLimitSeconds(questionCount: number): number {
   return Math.min(questionCount * TRIAL_SECONDS_PER_QUESTION, TRIAL_MAX_SECONDS)
 }
