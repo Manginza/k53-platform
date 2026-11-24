@@ -24,6 +24,8 @@ import EachOncePopup from "@/components/EachOncePopup";
 import FreeAccessThankYou from "@/components/FreeAccessThankYou";
 import RecoveryLinkCatcher from "@/components/RecoveryLinkCatcher";
 import AnalyticsEvents from "@/components/AnalyticsEvents";
+import AdSense from "@/components/AdSense";
+import { ADSENSE_CLIENT } from "@/lib/adsense";
 // import LiveSessionsButton from "@/components/LiveSessionsButton";
 import { SITE_URL, organizationSchema, jsonLd } from "@/lib/site";
 
@@ -115,16 +117,12 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                       {/* Meta Pixel <noscript> fallback lives in <body> below: an <img> is not valid inside <head>. */}
                       {/* End Meta Pixel */}
 
-                      {/* Google AdSense */}
-                      <meta name="google-adsense-account" content="ca-pub-4650201068372958" />
-                      <script
-                            async
-                            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4650201068372958"
-                            crossOrigin="anonymous"
-                      />
-                      {/* End Google AdSense */}
+                      {/* AdSense publisher verification. The ads script itself is
+                          loaded by <AdSense /> and only on public content pages. */}
+                      <meta name="google-adsense-account" content={ADSENSE_CLIENT} />
                 </head>
                 <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 min-h-screen`}>
+                      <AdSense />
                       {/* Google Tag Manager (noscript) */}
                       <noscript>
                             <iframe
