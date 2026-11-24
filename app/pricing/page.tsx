@@ -22,7 +22,6 @@ const FEATURES = [
   'Full Live Notes — Road Signs Manual + Rules of the Road',
   'All study resources & PDFs',
   'All study videos',
-  'Full answer explanations',
 ]
 
 const productSchema = {

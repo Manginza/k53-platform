@@ -6,6 +6,7 @@ import QuizPaywall from '@/components/QuizPaywall'
 import ResultAdvisory from '@/components/learner/ResultAdvisory'
 import type { QuizQuestion } from '@/lib/types'
 import { EXPLANATIONS } from '@/lib/explanations'
+import { EXPLAINERS_ENABLED } from '@/lib/features'
 import LearnButton from '@/components/learn/LearnButton'
 import LearnPanel from '@/components/learn/LearnPanel'
 import { useQuestionAttempt } from '@/components/learn/useQuestionAttempt'
@@ -330,9 +331,9 @@ function SplitResultsScreen({
                       <span className="font-bold">{q.correct_answer}</span>
                       {' — '}{optLabel(q, q.correct_answer)}
                     </div>
-                    {(EXPLANATIONS[q.id] ?? q.explanation) && (
+                    {explainerText(q) && (
                       <p className="text-gray-500 leading-relaxed pt-1 border-t border-gray-100">
-                        {EXPLANATIONS[q.id] ?? q.explanation}
+                        {explainerText(q)}
                       </p>
                     )}
                   </div>
@@ -479,9 +480,9 @@ function StandardResultsScreen({
                       <span className="font-bold">{q.correct_answer}</span>
                       {' — '}{optLabel(q, q.correct_answer)}
                     </div>
-                    {(EXPLANATIONS[q.id] ?? q.explanation) && (
+                    {explainerText(q) && (
                       <p className="text-gray-500 leading-relaxed pt-1 border-t border-gray-100">
-                        {EXPLANATIONS[q.id] ?? q.explanation}
+                        {explainerText(q)}
                       </p>
                     )}
                   </div>
@@ -496,6 +497,11 @@ function StandardResultsScreen({
 }
 
 // ── Main quiz component ───────────────────────────────────────────────────────
+/** The short explanation under a question, or nothing while explainers are switched off (lib/features.ts). */
+function explainerText(q: { id: number; explanation?: string | null }): string | undefined {
+  return EXPLAINERS_ENABLED ? (EXPLANATIONS[q.id] ?? q.explanation ?? undefined) : undefined
+}
+
 export default function QuizClient({ questions, courseTitle, courseId, testNumber, isPremium, initialSeconds, splitScoring = false, trialSeconds, trialCta = false, explanations = {}, isLoggedIn = false }: Props) {
   const isTrial = !isPremium && trialSeconds != null
   const { record: recordAttempt } = useQuestionAttempt()
@@ -596,7 +602,7 @@ export default function QuizClient({ questions, courseTitle, courseId, testNumbe
   const finalSection = q.question.match(/^Test ([ABC]) · Question (\d+)/)
   const selected = answers[q.id]
   const progress = (current / ordered.length) * 100
-  const explanation = explanations[q.id]
+  const explanation = EXPLAINERS_ENABLED ? explanations[q.id] : undefined
 
   // Each question starts with its Learn panel closed; it opens on answer
   // (per the attempt rules) or when the learner taps the Learn button.
@@ -889,9 +895,9 @@ export default function QuizClient({ questions, courseTitle, courseId, testNumbe
                     : `Incorrect. The correct answer is ${q.correct_answer}.`}
                 </span>
               </div>
-              {!explanation && (EXPLANATIONS[q.id] ?? q.explanation) && (
+              {!explanation && explainerText(q) && (
                 <p className="mt-2 text-xs leading-relaxed opacity-90 border-t border-current/20 pt-2">
-                  {EXPLANATIONS[q.id] ?? q.explanation}
+                  {explainerText(q)}
                 </p>
               )}
             </div>

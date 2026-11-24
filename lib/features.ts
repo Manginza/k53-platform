@@ -1,22 +1,15 @@
 /**
- * lib/features.ts — feature flags.
+ * lib/features.ts — site-wide on/off switches for features that can be
+ * hidden without deleting anything.
  *
- * Each feature can be turned OFF without removing the code; flip the matching
- * env var in Vercel (Production) and redeploy to restore. Defaults are OFF
- * while we wait for AdSense approval — keeps the site as a clean publisher.
+ * EXPLAINERS_ENABLED
+ *   false → no question shows an explanation anywhere on the practice tests:
+ *           not the "Learn" button and panel, not the short text under the
+ *           correct answer on the results screen, and not the WhatsApp bot's
+ *           "why". All the written explanations stay in the database and in
+ *           lib/explanations.ts, so setting this back to true brings every
+ *           one of them back exactly as it was.
  *
- *   NEXT_PUBLIC_FEATURE_PAYMENTS   = 'on' → enable Yoco card checkout
- *   NEXT_PUBLIC_FEATURE_WHATSAPP   = 'on' → enable WhatsApp "buy access" CTAs
- *   NEXT_PUBLIC_FEATURE_AFFILIATE  = 'on' → enable affiliate programme + clicks
- *
- * These are NEXT_PUBLIC_ so the same value is visible on server and client.
+ * Hidden on request, 24 Nov 2026.
  */
-
-const on = (v: string | undefined) => (v ?? '').toLowerCase() === 'on' || v === '1' || v === 'true'
-
-export const FEATURE_PAYMENTS  = on(process.env.NEXT_PUBLIC_FEATURE_PAYMENTS)
-export const FEATURE_WHATSAPP  = on(process.env.NEXT_PUBLIC_FEATURE_WHATSAPP)
-export const FEATURE_AFFILIATE = on(process.env.NEXT_PUBLIC_FEATURE_AFFILIATE)
-
-/** True when any monetisation path is enabled. */
-export const FEATURE_ANY_BUY = FEATURE_PAYMENTS || FEATURE_WHATSAPP
+export const EXPLAINERS_ENABLED = false

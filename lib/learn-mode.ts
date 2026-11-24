@@ -7,6 +7,7 @@
  * the caller has authenticated the user; RLS protects any direct access.
  */
 import { createAdminClient } from '@/lib/supabase-admin'
+import { EXPLAINERS_ENABLED } from '@/lib/features'
 import type { QuestionExplanation } from '@/lib/learn-mode-logic'
 
 type AdminClient = ReturnType<typeof createAdminClient>
@@ -49,7 +50,7 @@ export async function setShowUnreviewed(enabled: boolean, db: AdminClient = crea
 export async function getExplanationsForQuestions(
   questionIds: number[],
 ): Promise<Record<number, QuestionExplanation>> {
-  if (questionIds.length === 0) return {}
+  if (questionIds.length === 0 || !EXPLAINERS_ENABLED) return {}
   const db = createAdminClient()
   try {
     const allowUnreviewed = await showUnreviewedEnabled(db)
