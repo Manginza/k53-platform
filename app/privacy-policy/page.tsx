@@ -106,8 +106,9 @@ export default function PrivacyPolicy() {
           <Ext href="https://www.aboutads.info">https://www.aboutads.info</Ext>.
         </p>
         <p>
-          The AdSense script is not loaded on sign-in, account, admin, payment, quiz or members&apos; pages. On pages
-          where it does load, advertising cookies stay off until you tap Accept on the cookie banner. See the Cookie Policy.
+          The AdSense script is not loaded on sign-in, account, admin, payment, quiz or members&apos; pages. On the
+          public pages where it can load, it is loaded only after you tap Accept on the cookie banner, and never if you
+          tap Decline. See the Cookie Policy.
         </p>
 
         <h2 className="text-xl font-bold text-gray-900 mt-8 mb-4">Google Analytics and Tag Manager</h2>

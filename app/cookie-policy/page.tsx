@@ -103,8 +103,9 @@ export default function CookiePolicy() {
                   Show ads and measure them. Third-party vendors, including Google, use cookies to serve ads based
                   on your prior visits. Google&apos;s advertising cookies let Google and its partners serve ads based
                   on your visits to this site and other sites. The AdSense script (publisher ca-pub-4650201068372958)
-                  is only added on public pages. It is not added on sign-in, account, admin, payment, quiz or
-                  members&apos; pages. Personalised advertising cookies are used only after you tap Accept.
+                  is added only on public pages, and only after you tap Accept. It is never added if you tap
+                  Decline, and it is not added on sign-in, account, admin, payment, quiz or members&apos; pages. So
+                  no Google advertising cookie is set before you accept.
                 </td>
                 <td className="p-3 border-b"><code>IDE</code>, <code>__gads</code></td>
               </tr>

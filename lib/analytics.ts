@@ -15,6 +15,14 @@ interface AnalyticsWindow { gtag?: Gtag; fbq?: (...args: unknown[]) => void }
 
 export const CONSENT_KEY = 'k53_cookie_consent'
 
+/** Fired on window the moment a visitor taps Accept, so things that wait for consent (the ads script) can start. */
+export const CONSENT_GRANTED_EVENT = 'sk:consent-granted'
+
+/** True when this browser has already accepted cookies. */
+export function hasConsent(): boolean {
+  try { return localStorage.getItem(CONSENT_KEY) === 'true' } catch { return false }
+}
+
 function w(): AnalyticsWindow | null {
   return typeof window === 'undefined' ? null : (window as unknown as AnalyticsWindow)
 }
@@ -38,4 +46,5 @@ export function grantConsent(): void {
     })
     w()?.fbq?.('consent', 'grant')
   } catch { /* ignore */ }
+  try { window.dispatchEvent(new Event(CONSENT_GRANTED_EVENT)) } catch { /* ignore */ }
 }
