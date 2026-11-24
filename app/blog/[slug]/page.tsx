@@ -1,14 +1,9 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { BLOG_POSTS, BASE_URL, getPost, type BlogPost } from '@/lib/blog'
-import LearnersLicenceStudyMaterials, { FAQ_ITEMS } from '@/components/blog/LearnersLicenceStudyMaterials'
+import { BLOG_POSTS, BASE_URL, getPost } from '@/lib/blog'
+import { BODIES, FAQS } from '@/components/blog/registry'
 
 export const dynamic = 'force-static'
-
-/** slug → article body component. */
-const BODIES: Record<string, React.ComponentType<{ post: BlogPost }>> = {
-  'learners-licence-study-materials-south-africa': LearnersLicenceStudyMaterials,
-}
 
 export function generateStaticParams() {
   return BLOG_POSTS.map(p => ({ slug: p.slug }))
@@ -44,6 +39,7 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
 export default function BlogArticlePage({ params }: { params: { slug: string } }) {
   const post = getPost(params.slug)
   const Body = post ? BODIES[post.slug] : undefined
+  const faqs = post ? FAQS[post.slug] ?? [] : []
   if (!post || !Body) notFound()
 
   const url = `${BASE_URL}/blog/${post.slug}`
@@ -75,10 +71,10 @@ export default function BlogArticlePage({ params }: { params: { slug: string } }
     ],
   }
 
-  const faqLd = {
+  const faqLd = faqs.length === 0 ? null : {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
-    mainEntity: FAQ_ITEMS.map(({ q, a }) => ({
+    mainEntity: faqs.map(({ q, a }) => ({
       '@type': 'Question',
       name: q,
       acceptedAnswer: { '@type': 'Answer', text: a },
@@ -89,7 +85,7 @@ export default function BlogArticlePage({ params }: { params: { slug: string } }
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
+      {faqLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />}
       <Body post={post} />
     </>
   )
