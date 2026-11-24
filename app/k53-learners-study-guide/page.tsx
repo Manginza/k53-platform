@@ -202,6 +202,51 @@ export default function K53StudyGuidePage() {
           </p>
         </section>
 
+        <section aria-labelledby="how-to-use" className="mt-14 scroll-mt-20">
+          <h2 id="how-to-use" className="text-2xl font-extrabold text-gray-900 sm:text-3xl">How to use this guide</h2>
+          <p className="mt-4 leading-7 text-gray-600">
+            Read this page once so you know the three sections and the three pass marks. Then leave it. A study guide
+            that you only reread does not show you whether you can answer a new question. Use it as the map, and use
+            the questions as the work.
+          </p>
+          <p className="mt-3 leading-7 text-gray-600">
+            A practical split, if you have about two weeks, is: two days on how the test is marked and which code you
+            are writing, three days on rules of the road, four days on signs, two days on vehicle controls, and the
+            last days on mixed practice marked as three separate scores. Signs get the most days because you can miss
+            only five of those 28 questions. The day-by-day version is{' '}
+            <Link href="/blog/how-to-study-for-the-k53-learners-test-in-two-weeks" className="font-semibold text-blue-700 hover:underline">how to study for the K53 learner&apos;s test in two weeks</Link>.
+          </p>
+          <p className="mt-3 leading-7 text-gray-600">
+            When a practice set comes back, do not add the three scores together and call it a percentage. A result of
+            26 out of 28 on rules, 20 out of 28 on signs and 7 out of 8 on controls is 53 out of 64, and it is still a
+            fail, because signs needed 23. Study only the section that missed. The mistakes that usually cause that
+            pattern are described in{' '}
+            <Link href="/blog/common-reasons-people-fail-the-learners-test" className="font-semibold text-blue-700 hover:underline">common reasons people fail</Link>,
+            with the sign mix-ups in{' '}
+            <Link href="/blog/k53-road-signs-most-people-get-wrong" className="font-semibold text-blue-700 hover:underline">road signs most people get wrong</Link>{' '}
+            and the rules numbers in{' '}
+            <Link href="/blog/k53-rules-of-the-road-explained" className="font-semibold text-blue-700 hover:underline">rules of the road explained</Link>.
+          </p>
+          <p className="mt-3 leading-7 text-gray-600">
+            Controls questions use a numbered diagram. Learn what each control does — foot brake, parking brake, clutch,
+            indicator — because the official diagram may not use the same numbers as a picture you saw online. Walk
+            through ours in{' '}
+            <Link href="/blog/k53-vehicle-controls-questions-explained" className="font-semibold text-blue-700 hover:underline">vehicle controls questions explained</Link>.
+          </p>
+          <p className="mt-3 leading-7 text-gray-600">
+            Before you pay for a date, know the code on the LL1 form and what you will carry to the centre. Code 8,
+            Code 10 and Code 14 are driving-licence names, not learner&apos;s categories. That difference, and a
+            worked booking example, is in{' '}
+            <Link href="/blog/learners-licence-vs-drivers-licence-codes" className="font-semibold text-blue-700 hover:underline">learner&apos;s licence versus driver&apos;s licence</Link>.
+            What to pack, and what the centre does on the day, is in{' '}
+            <Link href="/blog/what-to-bring-on-learners-licence-test-day" className="font-semibold text-blue-700 hover:underline">what to bring on test day</Link>.
+            Find the centre itself on the <Link href="/centers" className="font-semibold text-blue-700 hover:underline">DLTC finder</Link>.
+            After a pass, the card lasts 24 months and does not let you drive a car alone. Read{' '}
+            <Link href="/blog/what-you-can-do-after-passing-your-learners" className="font-semibold text-blue-700 hover:underline">what you may do after you pass</Link>{' '}
+            before you treat the licence as a full licence.
+          </p>
+        </section>
+
         <section aria-labelledby="study-next" className="mt-14 rounded-3xl bg-blue-50 p-6 sm:p-8">
           <h2 id="study-next" className="text-2xl font-extrabold text-gray-900">Where to study next</h2>
           <ul className="mt-5 grid gap-3 sm:grid-cols-2">

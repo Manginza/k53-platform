@@ -267,7 +267,7 @@ export default function CentresDirectory({
         <section className="mt-6 bg-blue-50 border border-blue-100 rounded-2xl p-6 text-sm text-blue-900">
           <h2 className="font-bold mb-2">About learner&apos;s licence writing centres (DLTCs)</h2>
           <p className="text-blue-800 leading-relaxed">
-            South Africa has over 190 official learner&apos;s licence writing centres, known as Driving Licence Testing Centres (DLTCs), regulated under the National Road Traffic Act. The national government says all Gauteng residents should book online on the{' '}
+            Learner&apos;s licence tests are written at driving licence testing centres (DLTCs) across South Africa. These centres are regulated under the National Road Traffic Act. The national government says all Gauteng residents should book online on the{' '}
             <a href={NATIS_BOOKING_URL} target="_blank" rel="noopener noreferrer" className="underline font-semibold">
               NaTIS portal
             </a>

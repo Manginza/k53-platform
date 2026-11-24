@@ -5,9 +5,7 @@ import LockedContent from '@/components/LockedContent'
 import { getAccessStatus } from '@/lib/access-cache'
 
 const resources = [
-  { category: 'Reference', title: 'Official Road Traffic Signs Manual', description: 'The official South African manual on road traffic signs (June 2012). Essential reading for understanding all regulatory, warning, and informatory signs.', url: 'https://wzqgjzqylkbwyvzyzywu.supabase.co/storage/v1/object/public/resources/pdfs/2%20manual%20on%20road%20traffic%20signs%20jun%202012%20final.pdf' },
   { category: 'Reference', title: "Learner's Licence Study Guide", description: "A comprehensive study guide covering all sections of the K53 learner's licence test — road signs, vehicle controls, and rules of the road.", url: 'https://wzqgjzqylkbwyvzyzywu.supabase.co/storage/v1/object/public/resources/pdfs/Learners%20Licence%20Study%20Guide.pdf.pdf.pdf' },
-  { category: 'Reference', title: 'New Age K53 Manual', description: 'A modern K53 study manual with full explanations, diagrams, and worked examples to help you prepare for your learner\'s licence exam.', url: 'https://wzqgjzqylkbwyvzyzywu.supabase.co/storage/v1/object/public/resources/pdfs/New-Age-K53-Manual-PDFDrive.pdf.pdf' },
   { category: 'Code 8', title: 'Code 8 — Test 1 (Answers Highlighted)', description: 'Full Code 8 Test 1 with correct answers highlighted in green. Great for self-assessment and checking your understanding after practising.', url: 'https://wzqgjzqylkbwyvzyzywu.supabase.co/storage/v1/object/public/resources/pdfs/Code%208%20test%201(correct%20answers%20are%20highlighted%20Green).pdf' },
   { category: 'Code 8', title: 'Code 8 — Test 2 (Answers Highlighted)', description: 'Code 8 Test 2 with correct answers highlighted in green or underlined. Use alongside the interactive quiz to reinforce your knowledge.', url: 'https://wzqgjzqylkbwyvzyzywu.supabase.co/storage/v1/object/public/resources/pdfs/Code8%20test%202(correct%20answers%20are%20either%20green%20or%20underlined).pdf' },
   { category: 'Code 8', title: 'Code 8 — Test 3', description: "A full Code 8 practice test to further prepare you for the official K53 learner's licence examination.", url: 'https://wzqgjzqylkbwyvzyzywu.supabase.co/storage/v1/object/public/resources/pdfs/Code%208%20Test%203.pdf' },
@@ -87,7 +85,7 @@ export default function ResourcesClient() {
     return (
       <LockedContent
         feature="Study resources"
-        description="Download all K53 practice tests, memos with highlighted answers, and reference manuals with full access."
+        description="Download K53 practice tests, memos with highlighted answers, and a study guide with full access."
       />
     )
   }
@@ -102,7 +100,7 @@ export default function ResourcesClient() {
     <main className="max-w-6xl mx-auto px-4 py-12">
       <div className="mb-10">
         <h1 className="text-3xl font-extrabold text-gray-900 mb-2">Study Resources</h1>
-        <p className="text-gray-500">Download K53 practice tests, memos with highlighted answers, and reference manuals.</p>
+        <p className="text-gray-500">Download K53 practice tests, memos with highlighted answers, and a study guide.</p>
       </div>
       <div className="flex gap-4 mb-10 flex-wrap">
         {Object.entries(grouped).map(([cat, items]) => (

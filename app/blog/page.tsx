@@ -25,8 +25,32 @@ export default function BlogIndexPage() {
     <main className="max-w-4xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
       <header className="mb-8">
         <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900">SK Driving Blog</h1>
-        <p className="mt-2 text-gray-600">
-          Learners licence study materials, K53 tips and guidance for South Africa&apos;s computerised test.
+        <p className="mt-3 text-gray-700 leading-relaxed">
+          These articles are free to read. No account is required. They explain the South African learner&apos;s
+          licence test in the same terms as the official pass marks: 28 rules questions (you need 22), 28 road-sign
+          questions (you need 23) and 8 vehicle-controls questions (you need 6). A total that looks like a pass can
+          still fail if one of those three sections is short.
+        </p>
+        <p className="mt-3 text-gray-700 leading-relaxed">
+          Start with the <Link href="/k53-learners-study-guide" className="font-semibold text-brand-700 hover:underline">K53 study guide</Link> if
+          you want the map, then the article on{' '}
+          <Link href="/blog/how-to-study-for-the-k53-learners-test-in-two-weeks" className="font-semibold text-brand-700 hover:underline">how to study in two weeks</Link>.
+          The sign, rules and controls articles each stay on one section, with the numbers the test uses and a worked
+          example where a mixed-up sign or a wrong pedal would cost the mark. When you are ready to try questions,
+          use the <Link href="/k53-questions-and-answers" className="font-semibold text-brand-700 hover:underline">free questions and answers</Link> and
+          the <Link href="/courses" className="font-semibold text-brand-700 hover:underline">practice tests</Link>.
+        </p>
+        <p className="mt-3 text-gray-700 leading-relaxed">
+          Booking and test day depend on your province. Gauteng residents use the official NaTIS portal. Other
+          provinces should phone the centre, because online booking is not available everywhere. The articles on
+          codes, documents and what happens after you pass link to the{' '}
+          <Link href="/centers" className="font-semibold text-brand-700 hover:underline">testing-centre finder</Link> and
+          to the longer guides on <Link href="/how-to-book-a-learners-licence-test" className="font-semibold text-brand-700 hover:underline">how to book</Link>,{' '}
+          <Link href="/learners-licence-cost" className="font-semibold text-brand-700 hover:underline">fees</Link>,{' '}
+          <Link href="/learners-licence-requirements" className="font-semibold text-brand-700 hover:underline">documents</Link> and{' '}
+          <Link href="/learners-licence-validity" className="font-semibold text-brand-700 hover:underline">the 24-month limit</Link>.
+          None of the articles quotes a national pass rate or a single national fee, because those are not figures we
+          can stand behind.
         </p>
       </header>
 
